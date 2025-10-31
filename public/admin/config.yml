@@ -1,5 +1,6 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: ptn1411/astro-blog
   branch: main
 
 media_folder: 'src/assets/images'
