@@ -2,33 +2,76 @@ backend:
   name: github
   repo: ptn1411/astro-blog
   branch: main
-  base_url: https://server-message.bug.edu.vn/api
-  auth_endpoint: auth/callback.php
-
-site_id: server-message.bug.edu.vn
+  site_domain: server-message.bug.edu.vn
+  base_url: https://sveltia-cms-auth.zvw180ptn1411.workers.dev
 
 media_folder: 'src/assets/images'
 public_folder: '/_astro'
 
 collections:
+  # ========== POST ==========
   - name: 'post'
     label: 'Post'
     folder: 'src/content/post'
     create: true
+    slug: '{{slug}}'
     fields:
       - { label: 'Title', name: 'title', widget: 'string' }
       - { label: 'Excerpt', name: 'excerpt', widget: 'string' }
-      - { label: 'Category', name: 'category', widget: 'string' }
-      - {
-          label: 'Tags',
-          name: 'tags',
-          widget: 'list',
-          allow_add: true,
-          allow_delete: true,
-          collapsed: false,
-          field: { label: 'Tag', name: 'tag', widget: 'string' },
-        }
-      - { label: 'Image', name: 'image', widget: 'string' }
+      - label: 'Category'
+        name: 'category'
+        widget: 'relation'
+        collection: 'category'
+        search_fields: ['name']
+        value_field: 'name'
+        display_fields: ['name']
+      - label: 'Tags'
+        name: 'tags'
+        widget: 'relation'
+        collection: 'tag'
+        multiple: true
+        search_fields: ['name']
+        value_field: 'name'
+        display_fields: ['name']
+      - label: 'Author'
+        name: 'author'
+        widget: 'relation'
+        collection: 'author'
+        search_fields: ['name']
+        value_field: 'name'
+        display_fields: ['name']
+      - { label: 'Image', name: 'image', widget: 'image', required: false }
       - { label: 'Publish Date', name: 'publishDate', widget: 'datetime', required: false }
-      - { label: 'Author', name: 'author', widget: 'string' }
       - { label: 'Content', name: 'body', widget: 'markdown' }
+
+  # ========== AUTHOR ==========
+  - name: 'author'
+    label: 'Author'
+    folder: 'src/content/author'
+    create: true
+    slug: '{{slug}}'
+    fields:
+      - { label: 'Name', name: 'name', widget: 'string' }
+      - { label: 'Avatar', name: 'avatar', widget: 'image', required: false }
+      - { label: 'Bio', name: 'bio', widget: 'text', required: false }
+      - { label: 'Website', name: 'website', widget: 'string', required: false }
+
+  # ========== CATEGORY ==========
+  - name: 'category'
+    label: 'Category'
+    folder: 'src/content/category'
+    create: true
+    slug: '{{slug}}'
+    fields:
+      - { label: 'Name', name: 'name', widget: 'string' }
+      - { label: 'Description', name: 'description', widget: 'text', required: false }
+
+  # ========== TAG ==========
+  - name: 'tag'
+    label: 'Tag'
+    folder: 'src/content/tag'
+    create: true
+    slug: '{{slug}}'
+    fields:
+      - { label: 'Name', name: 'name', widget: 'string' }
+      - { label: 'Description', name: 'description', widget: 'text', required: false }

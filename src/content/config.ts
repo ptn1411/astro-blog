@@ -1,23 +1,22 @@
 import { glob } from 'astro/loaders';
-import { defineCollection, z } from 'astro:content';
+import { defineCollection, getCollection, z } from 'astro:content';
 
+/**
+ * Định nghĩa Metadata mở rộng (SEO, OpenGraph, Twitter,...)
+ */
 const metadataDefinition = () =>
   z
     .object({
       title: z.string().optional(),
       ignoreTitleTemplate: z.boolean().optional(),
-
       canonical: z.string().url().optional(),
-
       robots: z
         .object({
           index: z.boolean().optional(),
           follow: z.boolean().optional(),
         })
         .optional(),
-
       description: z.string().optional(),
-
       openGraph: z
         .object({
           url: z.string().optional(),
@@ -35,7 +34,6 @@ const metadataDefinition = () =>
           type: z.string().optional(),
         })
         .optional(),
-
       twitter: z
         .object({
           handle: z.string().optional(),
@@ -46,6 +44,44 @@ const metadataDefinition = () =>
     })
     .optional();
 
+/**
+ * Collection: AUTHOR
+ */
+const authorCollection = defineCollection({
+  loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/content/author' }),
+  schema: z.object({
+    name: z.string(),
+    avatar: z.string().optional(),
+    bio: z.string().optional(),
+    website: z.string().optional(),
+  }),
+});
+
+/**
+ * Collection: CATEGORY
+ */
+const categoryCollection = defineCollection({
+  loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/content/category' }),
+  schema: z.object({
+    name: z.string(),
+    description: z.string().optional(),
+  }),
+});
+
+/**
+ * Collection: TAG
+ */
+const tagCollection = defineCollection({
+  loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/content/tag' }),
+  schema: z.object({
+    name: z.string(),
+    description: z.string().optional(),
+  }),
+});
+
+/**
+ * Collection: POST
+ */
 const postCollection = defineCollection({
   loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/content/post' }),
   schema: z.object({
@@ -57,14 +93,44 @@ const postCollection = defineCollection({
     excerpt: z.string().optional(),
     image: z.string().optional(),
 
-    category: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    author: z.string().optional(),
+    category: z.string().optional(), // sẽ được map sang object
+    tags: z.array(z.string()).optional(), // sẽ được map sang array object
+    author: z.string().optional(), // sẽ được map sang object
 
     metadata: metadataDefinition(),
   }),
 });
 
+/**
+ * Hàm tiện ích: Tự động resolve liên kết thật
+ * Trả về object bài viết với dữ liệu liên quan (author, category, tags)
+ */
+export async function resolveRelations() {
+  const [posts, authors, categories, tags] = await Promise.all([
+    getCollection('post'),
+    getCollection('author'),
+    getCollection('category'),
+    getCollection('tag'),
+  ]);
+
+  const authorMap = new Map(authors.map((a) => [a.data.name, a]));
+  const categoryMap = new Map(categories.map((c) => [c.data.name, c]));
+  const tagMap = new Map(tags.map((t) => [t.data.name, t]));
+
+  return posts.map((post) => ({
+    ...post,
+    author: post.data.author ? (authorMap.get(post.data.author) ?? null) : null,
+    category: post.data.category ? (categoryMap.get(post.data.category) ?? null) : null,
+    tags: post.data.tags ? post.data.tags.map((tagName) => tagMap.get(tagName) ?? { data: { name: tagName } }) : [],
+  }));
+}
+
+/**
+ * Xuất collections cho Astro
+ */
 export const collections = {
   post: postCollection,
+  author: authorCollection,
+  category: categoryCollection,
+  tag: tagCollection,
 };
