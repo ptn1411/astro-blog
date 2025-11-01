@@ -3,7 +3,9 @@ backend:
   repo: ptn1411/astro-blog
   branch: main
   base_url: https://server-message.bug.edu.vn/api
-  auth_endpoint: auth
+  auth_endpoint: auth/callback.php
+
+site_id: server-message.bug.edu.vn
 
 media_folder: 'src/assets/images'
 public_folder: '/_astro'
