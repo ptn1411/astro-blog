@@ -1,7 +1,7 @@
-import { isUnpicCompatible, unpicOptimizer, astroAssetsOptimizer } from './images-optimization';
-import type { ImageMetadata } from 'astro';
 import type { OpenGraph } from '@astrolib/seo';
+import type { ImageMetadata } from 'astro';
 import type { ImagesOptimizer } from './images-optimization';
+import { astroAssetsOptimizer, isUnpicCompatible, unpicOptimizer } from './images-optimization';
 /** The optimized image shape returned by our ImagesOptimizer */
 type OptimizedImage = Awaited<ReturnType<ImagesOptimizer>>[0];
 
