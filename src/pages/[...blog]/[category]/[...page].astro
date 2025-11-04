@@ -1,4 +1,4 @@
----
+﻿---
 import type { InferGetStaticPropsType, GetStaticPaths } from 'astro';
 import { blogCategoryRobots, getStaticPathsBlogCategory } from '~/utils/blog';
 
@@ -20,7 +20,7 @@ const { page, category } = Astro.props as Props;
 const currentPage = page.currentPage ?? 1;
 
 const metadata = {
-  title: `Category '${category.title}' ${currentPage > 1 ? ` — Page ${currentPage}` : ''}`,
+  title: `Chuyên mục '${category.title}'${currentPage > 1 ? ` - Trang ${currentPage}` : ''}`,
   robots: {
     index: blogCategoryRobots?.index,
     follow: blogCategoryRobots?.follow,

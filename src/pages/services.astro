@@ -1,224 +1,140 @@
----
-import CallToAction from '~/components/widgets/CallToAction.astro';
-import Content from '~/components/widgets/Content.astro';
-import Features2 from '~/components/widgets/Features2.astro';
-import Hero from '~/components/widgets/Hero.astro';
-import Testimonials from '~/components/widgets/Testimonials.astro';
-import Layout from '~/layouts/PageLayout.astro';
+﻿---
+import CallToAction from "~/components/widgets/CallToAction.astro";
+import Content from "~/components/widgets/Content.astro";
+import Features2 from "~/components/widgets/Features2.astro";
+import Hero from "~/components/widgets/Hero.astro";
+import Testimonials from "~/components/widgets/Testimonials.astro";
+import Layout from "~/layouts/PageLayout.astro";
 
 const metadata = {
-  title: 'Services',
+  title: 'Dịch vụ - Phạm Thành Nam',
 };
 ---
 
 <Layout metadata={metadata}>
-  <!-- Hero Widget ******************* -->
-
+  <!-- Hero -->
   <Hero
-    tagline="Services"
-    title="Elevate your projects with our stunning templates"
-    subtitle="Explore our meticulously crafted templates tailored to various industries and purposes. From captivating presentations to functional website designs, we offer the tools you need to succeed."
-    actions={[{ variant: 'primary', target: '_blank', text: 'Start exploring', href: '/' }]}
+    tagline="Dịch vụ"
+    title="Xây dựng hệ thống tin cậy và sáng tạo"
+    subtitle="Tôi thiết kế, phát triển và triển khai ứng dụng web hiện đại - từ nền tảng nội bộ đến công cụ sáng tạo. Mục tiêu là biến công nghệ thành trải nghiệm ổn định, dễ tiếp cận và truyền cảm hứng."
+    actions={[{ variant: 'primary', text: 'Xem dự án', href: '/personal#projects' }]}
     image={{
-      src: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80',
-      alt: 'AstroWind Hero Image',
+      src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80',
+      alt: 'Góc làm việc của lập trình viên',
     }}
   />
 
-  <!-- Features2 Widget ************** -->
-
+  <!-- Main Services -->
   <Features2
-    title="Explore our diverse templates"
-    subtitle="Discover our selection below to streamline and elevate your projects."
+    title="Tôi cung cấp gì"
+    subtitle="Mỗi dịch vụ đều kết hợp chiều sâu kỹ thuật với tư duy bảo trì dài hạn và trải nghiệm người dùng tốt."
     columns={3}
     items={[
       {
-        title: 'Educational',
+        title: 'Phát triển Fullstack',
         description:
-          'By harmonizing instructional design and visual appeal, templates streamline content creation for varied materials, expediting development and cultivating engaging educational spaces.',
-        icon: 'tabler:school',
+          'Thiết kế ứng dụng web end-to-end với Node.js, React và Go. Từ API backend đến trải nghiệm giao diện - mọi thứ đều sạch sẽ, nhanh và hiện đại.',
+        icon: 'tabler:code',
       },
       {
-        title: 'Interior Design',
+        title: 'Kiến trúc hệ thống',
         description:
-          'Crafting functional, visually appealing spaces for residential and commercial use. Templates emphasize layout, colors, and furniture setups, offering a versatile toolkit for your design vision.',
-        icon: 'tabler:home-star',
+          'Thiết kế kiến trúc có thể mở rộng với Docker, Nginx Proxy Manager và hạ tầng đám mây - cân bằng giữa sự đơn giản và hiệu năng.',
+        icon: 'tabler:server',
       },
       {
-        title: 'Photography',
-        description: `Empowering photographers, our templates facilitate captivating storytelling. With a keen focus on layout, galleries, and typography, they cater to both professionals and enthusiasts.`,
-        icon: 'tabler:photo',
-      },
-      {
-        title: 'E-commerce',
+        title: 'Công cụ nội bộ & Tự động hóa',
         description:
-          'Developing engaging online stores, our E-commerce templates ensure a dynamic presence to effectively showcase products. Ideal for startups or revamps.',
-        icon: 'tabler:shopping-cart',
+          'Dashboard tuỳ chỉnh, trình chỉnh sửa nội dung và hệ thống logic nghiệp vụ giúp tự động hoá quy trình, tăng hiệu suất.',
+        icon: 'tabler:settings-automation',
       },
       {
-        title: 'Blog',
+        title: 'Kỹ thuật sáng tạo',
         description:
-          'With attention to typography, these templates empower effective content presentation for writers at any stage, ensuring visually engaging and user-friendly blogs.',
-        icon: 'tabler:article',
+          'Xây dựng giao diện tương tác và công cụ sáng tạo - như builder kéo thả, trình biên tập câu chuyện và công cụ thiết kế dùng Konva.js, FFmpeg.',
+        icon: 'tabler:brush',
       },
       {
-        title: 'Business',
+        title: 'Tối ưu web & SEO',
         description:
-          'Providing polished options for effective visual communication, these templates empower both startups and established companies for a professional brand presence.',
-        icon: 'tabler:building-store',
+          'Nâng cao hiệu năng, khả năng truy cập và thứ hạng tìm kiếm cho các framework hiện đại như Next.js, Astro và Vite.',
+        icon: 'tabler:rocket',
       },
       {
-        title: 'Branding',
+        title: 'Tư vấn & Đồng hành',
         description:
-          'Offering pre-designed elements for a consistent brand identity, including logos and marketing materials. Ideal for new ventures or revamps.',
-        icon: 'tabler:arrow-big-up-lines',
-      },
-      {
-        title: 'Medical',
-        description: `From presentations to patient forms, these tools enhance communication effectiveness for healthcare professionals. Ideal for medical practices and research pursuits.`,
-        icon: 'tabler:vaccine',
-      },
-      {
-        title: 'Fashion Design',
-        description:
-          'With attention to detail, customization, and contemporary design, they empower designers to showcase ideas cohesively. Ideal for all levels of designers.',
-        icon: 'tabler:tie',
+          'Tư vấn quy trình phát triển, lựa chọn kiến trúc và chiến lược mở rộng dự án.',
+        icon: 'tabler:users',
       },
     ]}
   />
 
-  <!-- Content Widget **************** -->
-
+  <!-- Core Values -->
   <Content
     isReversed
     items={[
       {
-        title: 'High-Quality Designs',
+        title: 'Đơn giản và ổn định',
         description:
-          'Our templates feature top-tier designs that ensure a professional and polished appearance for your projects.',
-        icon: 'tabler:wand',
+          'Code cần đơn giản, dễ đọc và đáng tin cậy. Tôi luôn xây nền tảng bền vững thay vì giải pháp chắp vá dễ hỏng.',
+        icon: 'tabler:heart',
       },
       {
-        title: 'Customization Tools',
+        title: 'Hiệu năng & UX là ưu tiên',
         description:
-          'Tailor each template to your unique needs with user-friendly customization tools that let you personalize colors, fonts, and content.',
-        icon: 'tabler:settings',
+          'Hệ thống nhanh mang lại cảm giác tốt hơn. Tôi tối ưu để trang tải nhanh, phản hồi tức thì và tự nhiên với người dùng.',
+        icon: 'tabler:sparkles',
       },
       {
-        title: 'Pre-Designed Elements',
+        title: 'Cải tiến liên tục',
         description:
-          'Save time and effort with our ready-to-use elements, including graphics, icons, and layouts that enhance the visual appeal of your creations.',
-        icon: 'tabler:presentation',
-      },
-      {
-        title: 'Preview and Mockup Views',
-        description:
-          'Visualize the final outcome before making any changes using our preview and mockup views, ensuring your projects meet your expectations.',
-        icon: 'tabler:carousel-horizontal',
+          'Mọi hệ thống đều cần phát triển. Tôi ghi chép, refactor và nâng cấp để dự án luôn hiện đại và dễ bảo trì.',
+        icon: 'tabler:refresh',
       },
     ]}
     image={{
-      src: 'https://images.unsplash.com/photo-1525909002-1b05e0c869d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80',
-      alt: 'Features Image',
-    }}
-  >
+      src: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1740&q=80',
+      alt: 'Bàn làm việc của lập trình viên',
+    }}>
     <Fragment slot="content">
-      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Main Features</h3>
+      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Phương pháp làm việc</h3>
     </Fragment>
   </Content>
 
-  <!-- Content Widget **************** -->
-
-  <Content
-    isAfterContent
-    items={[
-      {
-        title: 'Time Savings',
-        description:
-          'Streamline your workflow, enabling you to create stunning materials efficiently and allocate more time to your core tasks.',
-        icon: 'tabler:clock',
-      },
-      {
-        title: 'Professional Appearance',
-        description:
-          'Elevate your projects with the polished and sophisticated look that our templates provide, making a lasting impression on your audience.',
-        icon: 'tabler:school',
-      },
-      {
-        title: 'Cost-Efficiency',
-        description:
-          'Benefit from cost savings by avoiding the need for custom design work, as our templates offer professional-grade designs at a fraction of the cost.',
-        icon: 'tabler:coin',
-      },
-      {
-        title: 'Instant Download',
-        description:
-          'Enjoy immediate access to your chosen templates upon purchase, enabling you to begin working on your projects without delay.',
-        icon: 'tabler:file-download',
-      },
-    ]}
-    image={{
-      src: 'https://images.unsplash.com/photo-1552664688-cf412ec27db2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
-      alt: 'Benefits Image',
-    }}
-  >
-    <Fragment slot="content">
-      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Benefits</h3>
-    </Fragment>
-  </Content>
-
-  <!-- Testimonials Widget *********** -->
-
+  <!-- Testimonials -->
   <Testimonials
-    title="Words from real customers"
+    title="Cộng sự nói gì"
     testimonials={[
       {
-        testimonial: `The designs are not only visually appealing but also highly professional. The templates have saved me a significant amount of time while helping me make a lasting impression on my clients.`,
-        name: 'Emily Kennedy',
-        job: 'Front-end developer',
-        image: {
-          src: 'https://images.unsplash.com/photo-1618835962148-cf177563c6c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=930&q=80',
-          alt: 'Emily Kennedy Image',
-        },
+        testimonial:
+          'Nam tiếp cận từng dự án với sự rõ ràng và tập trung. Kiến thức của anh ấy về cả backend lẫn trải nghiệm frontend giúp việc hợp tác trở nên dễ dàng.',
+        name: 'Đồng nghiệp phát triển',
+        job: 'Backend Engineer',
       },
       {
-        testimonial: `It beautifully showcases my work, with its clean and elegant design that lets my photographs shine. Customization was a breeze, even for a non-tech person like me. The result is a professional and immersive portfolio that's garnered numerous compliments.`,
-        name: 'Sarah Hansen',
-        job: 'Photographer',
-        image: {
-          src: 'https://images.unsplash.com/photo-1561406636-b80293969660?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
-          alt: 'Sarah Hansen Image',
-        },
-      },
-      {
-        testimonial: `I discovered these templates and I'm impressed by their variety and quality. They've helped me establish a consistent brand image across my marketing and social platforms, elevating my business's overall appearance.`,
-        name: 'Mark Wilkinson',
-        job: 'Small business owner',
-        image: {
-          src: 'https://images.unsplash.com/photo-1545167622-3a6ac756afa4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=824&q=80',
-          alt: 'Mark Wilkinson Image',
-        },
+        testimonial:
+          'Anh ấy không chỉ viết code - mà tạo ra hệ thống phù hợp cho người dùng. Làm việc với Nam giống như có một đối tác thực sự quan tâm.',
+        name: 'Cộng sự thiết kế',
+        job: 'UI/UX Designer',
       },
     ]}
-    callToAction={{
-      target: '_blank',
-      text: 'More testimonials...',
-      href: 'https://github.com/arthelokyo/astrowind',
-      icon: 'tabler:chevron-right',
-    }}
   />
 
-  <!-- CallToAction Widget *********** -->
-
+  <!-- Call to Action -->
   <CallToAction
+    title="Bạn cần một lập trình viên đáng tin?"
+    subtitle="Tôi luôn sẵn sàng cho dự án freelance, hợp tác và những thử nghiệm sáng tạo."
     actions={[
       {
         variant: 'primary',
-        text: 'Start exploring',
-        href: '/',
+        text: 'Liên hệ',
+        href: '/contact',
+      },
+      {
+        variant: 'secondary',
+        text: 'Xem GitHub',
+        href: 'https://github.com/ptndz',
       },
     ]}
-    title="Dive into our template collection"
-    subtitle="Whether you're in business, design, or education, our templates are here to elevate your projects."
   />
 </Layout>

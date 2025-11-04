@@ -1,226 +1,122 @@
----
-import Features2 from '~/components/widgets/Features2.astro';
-import Features3 from '~/components/widgets/Features3.astro';
-import Hero from '~/components/widgets/Hero.astro';
-import Stats from '~/components/widgets/Stats.astro';
-import Steps2 from '~/components/widgets/Steps2.astro';
-import Layout from '~/layouts/PageLayout.astro';
+﻿---
+import Features2 from "~/components/widgets/Features2.astro";
+import Features3 from "~/components/widgets/Features3.astro";
+import Hero from "~/components/widgets/Hero.astro";
+import Steps2 from "~/components/widgets/Steps2.astro";
+import Layout from "~/layouts/PageLayout.astro";
 
 const metadata = {
-  title: 'About us',
+  title: 'Giới thiệu - Phạm Thành Nam',
 };
 ---
 
 <Layout metadata={metadata}>
-  <!-- Hero Widget ******************* -->
-
+  <!-- Hero -->
   <Hero
-    tagline="About us"
+    tagline="Về tôi"
     image={{
-      src: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
-      alt: 'Caos Image',
+      src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80',
+      alt: 'Góc làm việc của lập trình viên',
     }}>
     <Fragment slot="title">
-      Elevate your online presence with our <br />
-      <span class="text-accent dark:text-white"> Beautiful Website Templates</span>
+      <span class="text-accent dark:text-white">Phạm Thành Nam</span>
+      <br />
+      Lập trình viên Fullstack & Người làm cà phê
     </Fragment>
 
     <Fragment slot="subtitle">
-      Donec efficitur, ipsum quis congue luctus, mauris magna convallis mauris, eu auctor nisi lectus non augue. Donec
-      quis lorem non massa vulputate efficitur ac at turpis. Sed tincidunt ex a nunc convallis, et lobortis nisi tempus.
-      Suspendisse vitae nisi eget tortor luctus maximus sed non lectus.
+      Tôi là một lập trình viên web và người xây dựng hệ thống, đam mê tạo ra những ứng dụng <b>hiện đại, mở rộng linh hoạt và đặt con người ở trung tâm</b>.
+      Công việc của tôi kết hợp sự chính xác của kỹ thuật với tinh thần sáng tạo - từ <b>backend Node.js</b>, <b>giao diện React</b> cho đến
+      <b>các công cụ viết bằng Go</b> và hệ thống tự động hóa.
     </Fragment>
   </Hero>
 
-  <!-- Stats Widget ****************** -->
-
-  <Stats
-    title="Statistics about us"
-    stats={[
-      { title: 'Offices', amount: '4' },
-      { title: 'Employees', amount: '248' },
-      { title: 'Templates', amount: '12' },
-      { title: 'Awards', amount: '24' },
-    ]}
-  />
-
-  <!-- Features3 Widget ************** -->
-
+  <!-- Section: Overview -->
   <Features3
-    title="Our templates"
-    subtitle="Etiam scelerisque, enim eget vestibulum luctus, nibh mauris blandit nulla, nec vestibulum risus justo ut enim. Praesent lacinia diam et ante imperdiet euismod."
+    title="Tôi làm gì"
+    subtitle="Tôi thiết kế, xây dựng và tối ưu những hệ thống số - hòa quyện công nghệ với sự sáng tạo để tạo ra giải pháp bền vững và đầy cảm hứng."
     columns={3}
-    isBeforeContent={true}
     items={[
       {
-        title: 'Educational',
+        title: 'Phát triển web Fullstack',
         description:
-          'Morbi faucibus luctus quam, sit amet aliquet felis tempor id. Cras augue massa, ornare quis dignissim a, molestie vel nulla.',
-        icon: 'tabler:template',
+          'Xây dựng ứng dụng end-to-end với Node.js, React, Go và PHP. Tôi thích thiết kế API, công cụ nội bộ và giao diện tự nhiên, dễ sử dụng.',
+        icon: 'tabler:code',
       },
       {
-        title: 'Interior Design',
+        title: 'Kỹ sư sáng tạo',
         description:
-          'Vivamus porttitor, tortor convallis aliquam pretium, turpis enim consectetur elit, vitae egestas purus erat ac nunc nulla.',
-        icon: 'tabler:template',
+          'Khám phá điểm giao thoa giữa thiết kế và công nghệ - từ trình dựng giao diện kéo thả đến trình chỉnh sửa video dùng FFmpeg, Konva và Three.js.',
+        icon: 'tabler:brush',
       },
       {
-        title: 'Photography',
+        title: 'DevOps & Hạ tầng',
         description:
-          'Duis sed lectus in nisl vehicula porttitor eget quis odio. Aliquam erat volutpat. Nulla eleifend nulla id sem fermentum.',
-        icon: 'tabler:template',
+          'Triển khai hệ thống production với Docker, PM2 và Nginx Proxy Manager. Tôi muốn hạ tầng luôn gọn nhẹ nhưng đủ mạnh.',
+        icon: 'tabler:server',
       },
     ]}
   />
 
-  <!-- Features3 Widget ************** -->
-
-  <Features3
-    columns={3}
-    isAfterContent={true}
-    items={[
-      {
-        title: 'E-commerce',
-        description:
-          'Rutrum non odio at vehicula. Proin ipsum justo, dignissim in vehicula sit amet, dignissim id quam. Sed ac tincidunt sapien.',
-        icon: 'tabler:template',
-      },
-      {
-        title: 'Blog',
-        description:
-          'Nullam efficitur volutpat sem sed fringilla. Suspendisse et enim eu orci volutpat laoreet ac vitae libero.',
-        icon: 'tabler:template',
-      },
-      {
-        title: 'Business',
-        description:
-          'Morbi et elit finibus, facilisis justo ut, pharetra ipsum. Donec efficitur, ipsum quis congue luctus, mauris magna.',
-        icon: 'tabler:template',
-      },
-      {
-        title: 'Branding',
-        description:
-          'Suspendisse vitae nisi eget tortor luctus maximus sed non lectus. Cras malesuada pretium placerat. Nullam venenatis dolor a ante rhoncus.',
-        icon: 'tabler:template',
-      },
-      {
-        title: 'Medical',
-        description:
-          'Vestibulum malesuada lacus id nibh posuere feugiat. Nam volutpat nulla a felis ultrices, id suscipit mauris congue. In hac habitasse platea dictumst.',
-        icon: 'tabler:template',
-      },
-      {
-        title: 'Fashion Design',
-        description:
-          'Maecenas eu tellus eget est scelerisque lacinia et a diam. Aliquam velit lorem, vehicula id fermentum et, rhoncus et purus.',
-        icon: 'tabler:template',
-      },
-    ]}
-    image={{
-      src: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80',
-      alt: 'Colorful Image',
-    }}
-  />
-
-  <!-- Steps2 Widget ****************** -->
-
+  <!-- Section: Values -->
   <Steps2
-    title="Our values"
-    subtitle="Maecenas eu tellus eget est scelerisque lacinia et a diam. Aliquam velit lorem, vehicula id fermentum et, rhoncus et purus. Nulla facilisi. Vestibulum malesuada lacus."
+    title="Giá trị & Tư duy"
+    subtitle="Đằng sau mỗi sản phẩm tôi tạo ra là tư duy rõ ràng, tò mò và học hỏi không ngừng."
     items={[
       {
-        title: 'Customer-centric approach',
+        title: 'Xây để tạo giá trị',
         description:
-          'Donec id nibh neque. Quisque et fermentum tortor. Fusce vitae dolor a mauris dignissim commodo. Ut eleifend luctus condimentum.',
+          'Tôi tin công nghệ phải phục vụ con người - làm cho quy trình của họ nhanh hơn, thông minh hơn hoặc đơn giản là thú vị hơn.',
       },
       {
-        title: 'Constant Improvement',
+        title: 'Luôn cải tiến',
         description:
-          'Phasellus laoreet fermentum venenatis. Vivamus dapibus pulvinar arcu eget mattis. Fusce eget mauris leo.',
+          'Mỗi dự án là một hệ sinh thái liên tục phát triển. Tôi refactor, ghi chép và cải tiến thường xuyên để đảm bảo tính bền vững.',
       },
       {
-        title: 'Ethical Practices',
+        title: 'Cân bằng cuộc sống & code',
         description:
-          'Vestibulum imperdiet libero et lectus molestie, et maximus augue porta. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.',
+          'Là người trồng cà phê, tôi tìm thấy sự bình yên từ thiên nhiên. Sự kiên nhẫn và chăm chút là cốt lõi của việc chăm cây cũng như viết code.',
       },
     ]}
   />
 
-  <!-- Steps2 Widget ****************** -->
-
-  <Steps2
-    title="Achievements"
-    subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi sagittis, quam nec venenatis lobortis, mi risus tempus nulla, sed porttitor est nibh at nulla."
-    isReversed={true}
-    callToAction={{
-      text: 'See more',
-      href: '/',
-    }}
-    items={[
-      {
-        title: 'Global reach',
-        description: 'Nam malesuada urna in enim imperdiet tincidunt. Phasellus non tincidunt nisi, at elementum mi.',
-        icon: 'tabler:globe',
-      },
-      {
-        title: 'Positive customer feedback and reviews',
-        description:
-          'Cras semper nulla leo, eget laoreet erat cursus sed. Praesent faucibus massa in purus iaculis dictum.',
-        icon: 'tabler:message-star',
-      },
-      {
-        title: 'Awards and recognition as industry experts',
-        description:
-          'Phasellus lacinia cursus velit, eu malesuada magna pretium eu. Etiam aliquet tellus purus, blandit lobortis ex rhoncus vitae.',
-        icon: 'tabler:award',
-      },
-    ]}
-  />
-
-  <!-- Features2 Widget ************** -->
-
+  <!-- Section: Life -->
   <Features2
-    title="Our locations"
-    tagline="Find us"
-    columns={4}
-    items={[
-      {
-        title: 'EE.UU',
-        description: '1234 Lorem Ipsum St, 12345, Miami',
-      },
-      {
-        title: 'Spain',
-        description: '5678 Lorem Ipsum St, 56789, Madrid',
-      },
-      {
-        title: 'Australia',
-        description: '9012 Lorem Ipsum St, 90123, Sydney',
-      },
-      {
-        title: 'Brazil',
-        description: '3456 Lorem Ipsum St, 34567, São Paulo',
-      },
-    ]}
-  />
-
-  <!-- Features2 Widget ************** -->
-
-  <Features2
-    title="Technical Support"
-    tagline="Contact us"
+    title="Ngoài lập trình"
+    tagline="Cà phê • Thiên nhiên • Sáng tạo"
     columns={2}
     items={[
       {
-        title: 'Chat with us',
+        title: 'Trồng cà phê',
         description:
-          'Integer luctus laoreet libero, auctor varius purus rutrum sit amet. Ut nec molestie nisi, quis eleifend mi.',
-        icon: 'tabler:messages',
+          'Tôi nuôi dưỡng cà phê như một đam mê và triết lý - mỗi hạt là câu chuyện về sự kiên nhẫn, môi trường và sự tỉ mỉ, giống như một đoạn code tốt.',
+        icon: 'tabler:coffee',
       },
       {
-        title: 'Call us',
+        title: 'Tinh thần maker',
         description:
-          'Mauris faucibus finibus orci, in posuere elit viverra non. In hac habitasse platea dictumst. Cras lobortis metus a hendrerit congue.',
-        icon: 'tabler:headset',
+          'Dù là xây dựng hệ thống UI, tự động hóa quy trình hay thiết kế mô hình, tôi yêu việc biến trí tưởng tượng thành trải nghiệm hữu hình.',
+        icon: 'tabler:cube',
+      },
+    ]}
+  />
+
+  <!-- Mục: Liên hệ -->
+  <Features2
+    title="Hãy kết nối"
+    tagline="Tìm tôi trên mạng"
+    columns={2}
+    items={[
+      {
+        title: 'GitHub',
+        description: 'github.com/ptndz',
+        icon: 'tabler:brand-github',
+      },
+      {
+        title: 'Telegram',
+        description: 't.me/Ptn1411',
+        icon: 'tabler:send',
       },
     ]}
   />

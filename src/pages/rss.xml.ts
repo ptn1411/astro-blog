@@ -1,4 +1,4 @@
-import { getRssString } from '@astrojs/rss';
+﻿import { getRssString } from '@astrojs/rss';
 
 import { SITE, METADATA, APP_BLOG } from 'astrowind:config';
 import { fetchPosts } from '~/utils/blog';
@@ -8,14 +8,14 @@ export const GET = async () => {
   if (!APP_BLOG.isEnabled) {
     return new Response(null, {
       status: 404,
-      statusText: 'Not found',
+      statusText: 'Không tìm thấy',
     });
   }
 
   const posts = await fetchPosts();
 
   const rss = await getRssString({
-    title: `${SITE.name}’s Blog`,
+    title: `Blog của ${SITE.name}`,
     description: METADATA?.description || '',
     site: import.meta.env.SITE,
 

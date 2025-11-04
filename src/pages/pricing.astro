@@ -1,244 +1,146 @@
----
-import Layout from '~/layouts/PageLayout.astro';
-import HeroText from '~/components/widgets/HeroText.astro';
-import Prices from '~/components/widgets/Pricing.astro';
-import FAQs from '~/components/widgets/FAQs.astro';
-import Steps from '~/components/widgets/Steps.astro';
-import Features3 from '~/components/widgets/Features3.astro';
-import CallToAction from '~/components/widgets/CallToAction.astro';
+﻿---
+import CallToAction from "~/components/widgets/CallToAction.astro";
+import FAQs from "~/components/widgets/FAQs.astro";
+import Features3 from "~/components/widgets/Features3.astro";
+import HeroText from "~/components/widgets/HeroText.astro";
+import Prices from "~/components/widgets/Pricing.astro";
+import Layout from "~/layouts/PageLayout.astro";
 
 const metadata = {
-  title: 'Pricing',
+  title: 'Bảng giá - Phạm Thành Nam',
 };
 ---
 
 <Layout metadata={metadata}>
-  <!-- HeroText Widget ******************* -->
-
+  <!-- Hero -->
   <HeroText
-    tagline="Pricing"
-    title="Stellar Pricing for Every Journey"
-    subtitle="Choose the perfect plan that aligns with your cosmic goals."
+    tagline="Bảng giá"
+    title="Minh bạch và linh hoạt"
+    subtitle="Mỗi dự án đều khác nhau - nhưng triết lý định giá của tôi luôn giữ vững: công bằng, rõ ràng và chú trọng giá trị."
   />
 
-  <!-- Pricing Widget ******************* -->
-
+  <!-- Services Pricing -->
   <Prices
-    title="Our prices"
-    subtitle="Only pay for what you need"
+    title="Các gói phát triển"
+    subtitle="Chọn gói phù hợp với nhu cầu của bạn. Không phí ẩn, không bất ngờ."
     prices={[
       {
-        title: 'basic',
-        subtitle: 'Optimal choice for personal use',
-        price: 29,
-        period: 'per month',
+        title: 'Starter',
+        subtitle: 'Dành cho dự án cá nhân nhỏ hoặc MVP',
+        price: 200,
+        period: 'mỗi dự án',
         items: [
-          {
-            description: 'Etiam in libero, et volutpat',
-          },
-          {
-            description: 'Aenean ac nunc dolor tristique',
-          },
-          {
-            description: 'Cras scelerisque accumsan lib',
-          },
-          {
-            description: 'In hac habitasse',
-          },
+          { description: 'Frontend (React / Astro / Tailwind)' },
+          { description: 'Backend (Node.js / PHP)' },
+          { description: 'Thiết lập triển khai (PM2 / Docker / Nginx)' },
+          { description: 'Hỗ trợ 1 tuần sau bàn giao' },
         ],
         callToAction: {
-          target: '_blank',
-          text: 'Get started',
-          href: '#',
+          text: 'Bắt đầu dự án',
+          href: '/contact',
         },
       },
       {
-        title: 'standard',
-        subtitle: 'Optimal choice for small teams',
-        price: 69,
-        period: 'Per Month',
-        items: [
-          {
-            description: 'Proin vel laoreet',
-          },
-          {
-            description: 'Ut efficitur habitasse egestas',
-          },
-          {
-            description: 'Volutpat hac curabitur',
-          },
-          {
-            description: 'Pellentesque blandit ut nibh',
-          },
-          {
-            description: 'Donec fringilla sem',
-          },
-        ],
-        callToAction: {
-          target: '_blank',
-          text: 'Get started',
-          href: '#',
-        },
+        title: 'Professional',
+        subtitle: 'Phù hợp cho startup và ứng dụng fullstack',
+        price: 600,
+        period: 'mỗi dự án',
         hasRibbon: true,
-        ribbonTitle: 'popular',
-      },
-      {
-        title: 'premium',
-        subtitle: 'Optimal choice for companies',
-        price: 199,
-        period: 'Per Month',
+        ribbonTitle: 'Phổ biến nhất',
         items: [
-          {
-            description: 'Curabitur suscipit risus',
-          },
-          {
-            description: 'Aliquam habitasse malesuada',
-          },
-          {
-            description: 'Suspendisse sit amet blandit',
-          },
-          {
-            description: 'Suspendisse auctor blandit dui',
-          },
+          { description: 'Hệ thống fullstack (Next.js / Node / Prisma / Postgres)' },
+          { description: 'Xác thực, dashboard quản trị, tích hợp API' },
+          { description: 'Môi trường CI/CD & Docker' },
+          { description: 'Hỗ trợ 2 tuần sau khi ra mắt' },
         ],
         callToAction: {
-          target: '_blank',
-          text: 'Get started',
-          href: '#',
+          text: 'Cùng hợp tác',
+          href: '/contact',
+        },
+      },
+      {
+        title: 'Enterprise',
+        subtitle: 'Cho hệ thống phức tạp hoặc xây dựng dài hạn',
+        price: 1500,
+        period: 'từ',
+        items: [
+          { description: 'Ứng dụng phức hợp hoặc nền tảng đa dịch vụ' },
+          { description: 'Kiến trúc tùy chỉnh (Go, microservice, Redis, scaling)' },
+          { description: 'Triển khai và bảo mật nâng cao' },
+          { description: 'Đồng hành phát triển & tư vấn chuyên sâu' },
+        ],
+        callToAction: {
+          text: 'Trao đổi dự án',
+          href: '/contact',
         },
       },
     ]}
   />
 
-  <!-- Features3 Widget ************** -->
-
+  <!-- Features -->
   <Features3
-    title="Price-related features"
-    subtitle="Discover the advantages of choosing our plans"
+    title="Vì sao làm việc cùng tôi"
+    subtitle="Không chỉ là code - tôi ưu tiên sự ổn định, rõ ràng và sáng tạo trong từng dự án."
     columns={2}
     items={[
       {
-        title: 'Tiered Pricing Plans',
-        description: 'Choose from a range of pricing plans designed to accommodate different budgets and requirements.',
-        icon: 'tabler:stairs',
+        title: 'Chuyên môn fullstack',
+        description:
+          'Từ API backend đến thiết kế giao diện, tôi bao quát toàn bộ quá trình phát triển - Node.js, Go, React và hơn thế nữa.',
+        icon: 'tabler:layers-linked',
       },
       {
-        title: 'Transparent Pricing',
-        description: 'Clearly displayed pricing details for each plan, with no hidden costs or unexpected charges.',
-        icon: 'tabler:flip-vertical',
+        title: 'Quy trình minh bạch',
+        description: 'Bạn luôn biết đang xây dựng gì, mất bao lâu và gồm những gì - không điều bất ngờ.',
+        icon: 'tabler:clipboard-list',
       },
       {
-        title: 'Secure Payment Methods',
-        description: 'Secure payment gateways to protect your financial information during transactions.',
-        icon: 'tabler:shield-lock',
+        title: 'Hợp tác thực sự',
+        description: 'Tôi xem mỗi dự án là một sự đồng hành - chúng ta cùng lặp lại, hoàn thiện và phát triển.',
+        icon: 'tabler:users',
       },
       {
-        title: 'Instant Access',
-        description: `Immediate access to your chosen plan's features and templates upon subscription.`,
-        icon: 'tabler:accessible',
-      },
-      {
-        title: 'Upgrade Value',
-        description: 'Upgrade to higher-tier plans to unlock more features and benefits for an enhanced experience.',
-        icon: 'tabler:chevrons-up',
-      },
-      {
-        title: '24H support',
-        description: 'Questions answered via live chat, email or phone, every calendar day.',
-        icon: 'tabler:headset',
+        title: 'Code bền vững',
+        description: 'Tôi tạo ra hệ thống dễ đọc, dễ bảo trì và có thể mở rộng trong nhiều năm.',
+        icon: 'tabler:code',
       },
     ]}
     classes={{ container: 'max-w-5xl' }}
   />
 
-  <!-- Steps Widget ****************** -->
-
-  <Steps
-    title="A guided journey from plans to creativity"
-    tagline="simplified process"
-    isReversed={true}
-    items={[
-      {
-        title: 'Explore plans',
-        icon: 'tabler:number-1',
-      },
-      {
-        title: 'Select a plan',
-        icon: 'tabler:number-2',
-      },
-      {
-        title: 'Sign Up / Log In',
-        icon: 'tabler:number-3',
-      },
-      {
-        title: 'Review order',
-        icon: 'tabler:number-4',
-      },
-      {
-        title: 'Enter payment details',
-        icon: 'tabler:number-5',
-      },
-      {
-        title: 'Confirmation',
-        icon: 'tabler:number-6',
-      },
-      {
-        title: 'Download and start using the template(s)',
-        icon: 'tabler:number-7',
-      },
-    ]}
-    image={{
-      src: 'https://images.unsplash.com/photo-1536816579748-4ecb3f03d72a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=987&q=80',
-      alt: 'Steps image',
-    }}
-  />
-
-  <!-- FAQs Widget ******************* -->
-
+  <!-- FAQs -->
   <FAQs
-    title="Pricing FAQs"
-    subtitle="Choosing the right plan is important, and we're here to answer your questions. If you have queries about our pricing options, you're in the right place."
+    title="Câu hỏi thường gặp"
+    subtitle="Vẫn còn thắc mắc về chi phí hoặc quy trình? Đây là một vài câu trả lời nhanh."
     columns={1}
     items={[
       {
-        title: 'Do the plans come with customer support?',
+        title: 'Chúng ta có thể bắt đầu bằng dự án nhỏ không?',
         description:
-          'Absolutely, all plans include access to our dedicated customer support to assist you with any queries or concerns.',
+          'Hoàn toàn được. Nhiều khách hàng khởi đầu bằng MVP ngắn hoặc prototype trước khi mở rộng thành sản phẩm hoàn chỉnh.',
       },
       {
-        title: 'Is there a trial period for the different plans?',
-        description:
-          "Unfortunately, we don't offer trial periods for the plans. However, you can check out our demo section to preview the quality of our templates.",
+        title: 'Thanh toán diễn ra thế nào?',
+        description: 'Chi phí được chia thành các mốc rõ ràng (thường 50% đầu dự án, 50% khi bàn giao).',
       },
       {
-        title: 'Can I switch between plans?',
-        description:
-          'Certainly! You can easily upgrade or downgrade your plan, at any time, to find the one that best suits your evolving requirements.',
+        title: 'Bạn có hỗ trợ vận hành lâu dài không?',
+        description: 'Có. Tôi cung cấp gói bảo trì linh hoạt hoặc hợp đồng retainer tùy quy mô dự án.',
       },
       {
-        title: 'What payment methods do you accept?',
-        description:
-          'We accept major credit cards and online payment methods to ensure a convenient and secure transaction process.',
-      },
-      {
-        title: 'Are there any hidden fees beyond the displayed cost?',
-        description:
-          'No, the subscription cost covers all the features and templates listed under each plan. There are no hidden fees or extra charges.',
+        title: 'Tôi chỉ muốn thuê tư vấn thì sao?',
+        description: 'Tất nhiên. Tôi nhận review kiến trúc, tối ưu hiệu năng hoặc mentoring cho đội ngũ nội bộ.',
       },
     ]}
   />
 
-  <!-- CallToAction Widget *********** -->
-
+  <!-- CTA -->
   <CallToAction
-    title="Ready to boost your projects?"
-    subtitle="Join our community of satisfied customers who have transformed their work with our templates."
+    title="Bạn đang ấp ủ ý tưởng?"
+    subtitle="Hãy biến nó thành sản phẩm thực tế - tôi sẽ đồng hành cùng bạn trong toàn bộ hành trình."
     actions={[
-      {
-        variant: 'primary',
-        text: 'Get started now',
-        href: '/',
-      },
+      { variant: 'primary', text: 'Liên hệ', href: '/contact' },
+      { variant: 'secondary', text: 'Xem dự án', href: '/personal#projects' },
     ]}
   />
 </Layout>

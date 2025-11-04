@@ -1,0 +1,178 @@
+﻿---
+import BlogLatestPosts from "~/components/widgets/BlogLatestPosts.astro";
+import CallToAction from "~/components/widgets/CallToAction.astro";
+import Content from "~/components/widgets/Content.astro";
+import Features3 from "~/components/widgets/Features3.astro";
+import Header from "~/components/widgets/Header.astro";
+import Hero from "~/components/widgets/Hero.astro";
+import Steps from "~/components/widgets/Steps.astro";
+import Testimonials from "~/components/widgets/Testimonials.astro";
+import Layout from "~/layouts/PageLayout.astro";
+import { getPermalink } from "~/utils/permalinks";
+
+const metadata = {
+  title: 'Phạm Thành Nam - Lập trình viên Fullstack & Maker',
+};
+---
+
+<Layout metadata={metadata}>
+  <Fragment slot="header">
+    <Header
+      links={[
+        { text: 'Trang chủ', href: '#' },
+        { text: 'Dự án', href: '#projects' },
+        { text: 'Kỹ năng', href: '#skills' },
+        { text: 'Blog', href: '#blog' },
+        { text: 'GitHub', href: 'https://github.com/ptndz' },
+      ]}
+      actions={[{ text: 'Liên hệ', href: getPermalink('/contact#form') }]}
+      isSticky
+      showToggleTheme
+    />
+  </Fragment>
+
+  <!-- Hero -->
+  <Hero
+    id="hero"
+    title="Phạm Thành Nam"
+    tagline="Lập trình viên Fullstack & Người làm cà phê ☕"
+    actions={[{ variant: 'primary', text: 'Hợp tác cùng tôi', href: getPermalink('/contact#form') }]}>
+    <Fragment slot="subtitle">
+      Tôi là một lập trình viên web đam mê xây dựng <b>ứng dụng hiện đại, công cụ sáng tạo và kiến trúc hệ thống</b>.<br />
+      Từ <b>backend Node.js</b> đến <b>frontend React</b> và <b>microservice Go</b> - tôi biến ý tưởng thành sản phẩm vận hành ổn định và đẹp mắt.
+    </Fragment>
+  </Hero>
+
+  <!-- About -->
+  <Content
+    id="about"
+    columns={3}
+    image={{
+      src: 'https://avatars.githubusercontent.com/u/14112885?v=4',
+      alt: 'Phạm Thành Nam',
+      loading: 'eager',
+    }}>
+    <Fragment slot="content">
+      <h2 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Về tôi</h2>
+      <p>
+        Tôi là lập trình viên fullstack với niềm vui <b>xây dựng và tối ưu ứng dụng</b>. Tôi tạo ra những hệ thống dung hòa kỹ thuật và sáng tạo - từ
+        <b>trình biên tập React</b> đến <b>reverse proxy viết bằng Go</b> hay <b>nền tảng thanh toán nội bộ</b>.
+      </p>
+      <br />
+      <p>
+        Ngoài việc viết code, tôi còn là một <b>người trồng cà phê</b> - sự kết hợp giữa công nghệ và cuộc sống nông trại giúp tôi tạo ra quy trình hiệu quả hơn và sản phẩm tốt hơn.
+      </p>
+    </Fragment>
+  </Content>
+
+  <!-- Experience -->
+  <Steps
+    id="resume"
+    title="Kinh nghiệm"
+    items={[
+      {
+        title:
+          'Fullstack Developer <br /> <span class="font-normal">Freelance / Independent</span> <br /> <span class="text-sm font-normal">2017 - Hiện tại</span>',
+        description:
+          'Thiết kế và phát triển ứng dụng web với Node.js, React, Prisma, PostgreSQL và Docker. Xây CMS tuỳ chỉnh, tích hợp thanh toán và các công cụ chỉnh sửa sáng tạo. Tư vấn kiến trúc và triển khai có khả năng mở rộng.',
+        icon: 'tabler:code',
+      },
+      {
+        title:
+          'System Builder <br /> <span class="font-normal">Dự án cá nhân & khởi nghiệp</span> <br /> <span class="text-sm font-normal">Liên tục</span>',
+        description:
+          'Tạo ra "UI Builder" (trình dựng giao diện kéo thả bằng React), "Story Composer" (trình biên tập media với Konva + FFmpeg) và reverse proxy viết bằng Go lấy cảm hứng từ Caddy. Quản lý hạ tầng bằng PM2, Docker Compose và Nginx Proxy Manager.',
+        icon: 'tabler:terminal',
+      },
+    ]}
+    classes={{ container: 'max-w-3xl' }}
+  />
+
+  <!-- Skills -->
+  <Features3
+    id="skills"
+    title="Kỹ năng kỹ thuật"
+    subtitle="Sự kết hợp giữa kỹ thuật, sáng tạo và kinh nghiệm DevOps."
+    columns={3}
+    items={[
+      { title: 'Frontend', description: 'React, Next.js, Astro, TailwindCSS, Shadcn UI' },
+      { title: 'Backend', description: 'Node.js (Express/Fastify), Go, PHP, Prisma ORM' },
+      { title: 'Cơ sở dữ liệu', description: 'PostgreSQL, MySQL, Redis' },
+      { title: 'DevOps', description: 'Docker, PM2, Nginx Proxy Manager, triển khai VPS' },
+      { title: 'Công cụ sáng tạo', description: 'FFmpeg, Three.js, Konva.js, huấn luyện mô hình YOLO' },
+      { title: 'Kiến trúc', description: 'Monorepo dạng mô-đun, thiết kế API, hệ thống định tuyến mở rộng' },
+    ]}
+  />
+
+  <!-- Projects -->
+  <Content
+    id="projects"
+    title="Dự án tiêu biểu"
+    subtitle="Những dấu ấn trong hành trình xây hệ thống mở rộng và công cụ sáng tạo."
+    isReversed
+    items={[
+      {
+        title: 'UI Builder (React)',
+        description:
+          'Trình biên tập kéo thả để tạo component giao diện động dựa trên JSON registry và Zustand store. Xây dựng bằng React 19, Tailwind và Shadcn UI.',
+      },
+      {
+        title: 'Story Composer Pro',
+        description:
+          'Trình biên tập media trực quan với Node + React, sử dụng Konva.js và FFmpeg để tạo và render câu chuyện động với hiệu ứng, bộ lọc.',
+      },
+      {
+        title: 'Go Reverse Proxy',
+        description:
+          'Proxy server viết bằng Go, lấy cảm hứng từ Caddy - hỗ trợ cấp chứng chỉ tự động, định tuyến theo tên miền và cấu hình qua JSON.',
+      },
+    ]}
+    image={{
+      src: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=870&q=80',
+      alt: 'Trình diễn dự án',
+    }}
+    callToAction={{
+      text: 'Xem thêm trên GitHub',
+      href: 'https://github.com/ptndz',
+      icon: 'tabler:chevron-right',
+    }}
+  />
+
+  <!-- Testimonials -->
+  <Testimonials
+    title="Cộng sự nhận xét"
+    subtitle="Mọi người đánh giá cao sự rõ ràng, chính xác và tinh thần sáng tạo của tôi."
+    testimonials={[
+      {
+        testimonial:
+          'Nam là sự kết hợp hiếm hoi giữa kỹ sư và nhà thiết kế - anh ấy xây dựng hệ thống vừa vững chắc về kỹ thuật vừa giàu cấu trúc thẩm mỹ.',
+        name: 'Đồng nghiệp lập trình',
+        job: 'Kỹ sư Fullstack',
+      },
+      {
+        testimonial:
+          'Làm việc với Nam rất trôi chảy - anh ấy dự đoán vấn đề sớm và bàn giao codebase có khả năng mở rộng, dễ bảo trì.',
+        name: 'Cộng sự công nghệ',
+        job: 'Kiến trúc sư phần mềm',
+      },
+    ]}
+  />
+
+  <!-- Call to Action -->
+  <CallToAction
+    title="Cùng xây điều tuyệt vời"
+    subtitle="Sẵn sàng cho hợp tác, tư vấn và những thử nghiệm sáng tạo."
+    actions={[{ variant: 'primary', text: 'Xem GitHub', href: 'https://github.com/ptndz' }]}
+  />
+
+  <!-- Blog -->
+  <BlogLatestPosts
+    id="blog"
+    title="Bài viết mới"
+    information="Tôi viết về JavaScript, React, Go và hành trình xây hệ thống sáng tạo - mời bạn khám phá những bài viết gần đây."
+  >
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+    </Fragment>
+  </BlogLatestPosts>
+</Layout>
