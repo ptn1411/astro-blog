@@ -1,0 +1,40 @@
+---
+import { cn } from '~/utils/cn';
+const { heading } = Astro.props;
+
+type Heading = {
+  depth: number;
+  text: string;
+  slug: string;
+  subheadings: Heading[];
+};
+
+export interface Props {
+  heading: Heading;
+}
+---
+
+<li class="flex flex-col">
+  <a
+    href={'#' + heading.slug}
+    class={cn(
+      `block px-3 py-1.5 text-sm rounded-md mb-1 transition-all duration-200
+    text-neutral-700 dark:text-neutral-200
+    hover:text-[color:var(--color-accent)]
+    hover:bg-[color-mix(in srgb, var(--color-accent) 8%, transparent)]
+    focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)]
+    line-clamp-2`
+    )}>
+    {heading.text}
+  </a>
+
+  {
+    heading.subheadings.length > 0 && (
+      <ul class="ml-3 border-l border-gray-200 dark:border-slate-700 pl-3 mt-1 space-y-1">
+        {heading.subheadings.map((subheading) => (
+          <Astro.self heading={subheading} />
+        ))}
+      </ul>
+    )
+  }
+</li>

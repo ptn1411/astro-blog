@@ -14,7 +14,6 @@ import CustomStyles from '~/components/CustomStyles.astro';
 import Favicons from '~/components/Favicons.astro';
 // Comment the line below to disable View Transitions
 import { ClientRouter } from 'astro:transitions';
-import HeartClick from '~/components/common/HeartClick.astro';
 import type { MetaData as MetaDataType } from '~/types';
 
 export interface Props {
@@ -42,7 +41,7 @@ const { language, textDirection } = I18N;
 
   <body class="antialiased text-default bg-page tracking-tight">
     <slot />
-    <HeartClick />
+
     <MatrixRain />
     <BasicScripts />
   </body>

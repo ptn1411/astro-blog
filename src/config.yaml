@@ -1,6 +1,6 @@
 site:
   name: Phạm Thành Nam
-  site: 'https://astrowind.vercel.app'
+  site: 'https://server-message.bug.edu.vn'
   base: '/'
   trailingSlash: false
 

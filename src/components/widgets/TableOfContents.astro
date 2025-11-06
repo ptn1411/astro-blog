@@ -1,0 +1,36 @@
+---
+import TableOfContentsHeading from '~/components/widgets/TabletOfContentsHeading.astro';
+
+const { headings } = Astro.props;
+
+type TableOfContent = {
+  depth: number;
+  text: string;
+  slug: string;
+  subheadings: TableOfContent[];
+};
+
+const toc = buildToc(headings);
+function buildToc(headings: TableOfContent[]) {
+  let toc: TableOfContent[] = [];
+  let parentHeadings = new Map();
+  headings.forEach((h) => {
+    let heading = { ...h, subheadings: [] };
+    parentHeadings.set(heading.depth, heading);
+    // Change 2 to 1 if your markdown includes your <h1>
+    if (heading.depth === 1 || heading.depth === 2) {
+      toc.push(heading);
+    } else {
+      parentHeadings.get(heading.depth - 1).subheadings.push(heading);
+    }
+  });
+  return toc;
+}
+---
+
+<nav class="dark:text-black">
+  <p class="font-semibold mb-3 text-2xl dark:text-white">Mục lục</p>
+  <ul class="[text-wrap:balance] flex flex-col gap-1 text-md">
+    {toc.map((heading) => <TableOfContentsHeading heading={heading} />)}
+  </ul>
+</nav>
