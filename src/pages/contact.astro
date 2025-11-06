@@ -2,10 +2,25 @@
 import ContactUs from '~/components/widgets/Contact.astro';
 import Features2 from '~/components/widgets/Features2.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
-import Layout from '~/layouts/PageLayout.astro';
+import Layout from "~/layouts/PageLayout.astro";
+import { getCanonical } from "~/utils/permalinks";
+import { buildContactPageSchema } from "~/utils/structured-data";
+
+const canonical = String(getCanonical(Astro.url.pathname));
 
 const metadata = {
   title: 'Liên hệ - Phạm Thành Nam',
+  description:
+    'Liên hệ trực tiếp về công việc freelance, hợp tác kỹ thuật hoặc thử nghiệm sáng tạo. Phản hồi trong 24 giờ.',
+  canonical,
+  structuredData: [
+    buildContactPageSchema({
+      url: canonical,
+      email: 'mailto:phamnam.dev@gmail.com',
+      description:
+        'Kênh liên lạc cho hợp tác phát triển phần mềm, tư vấn kỹ thuật và các ý tưởng dự án sáng tạo.',
+    }),
+  ],
 };
 ---
 
@@ -74,3 +89,8 @@ const metadata = {
     ]}
   />
 </Layout>
+
+
+
+
+

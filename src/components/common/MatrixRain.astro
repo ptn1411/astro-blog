@@ -1,0 +1,223 @@
+---
+/**
+ * Matrix Rain Effect (Astro native version)
+ * Ported from React to Astro with pure JS and Canvas API
+ */
+---
+
+<canvas
+  id="matrix-rain"
+  class="matrix-rain hidden fixed inset-0 w-full h-full z-[5]"
+  aria-label="Matrix Rain background"></canvas>
+
+<style>
+  .matrix-rain.hidden {
+    display: none;
+  }
+  .matrix-rain.visible {
+    display: block;
+  }
+</style>
+
+<script is:inline>
+  const startMatrixRain = () => {
+    const canvas = document.getElementById('matrix-rain');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const japaneseChars = [
+      'ア',
+      'イ',
+      'ウ',
+      'エ',
+      'オ',
+      'カ',
+      'キ',
+      'ク',
+      'ケ',
+      'コ',
+      'サ',
+      'シ',
+      'ス',
+      'セ',
+      'ソ',
+      'タ',
+      'チ',
+      'ツ',
+      'テ',
+      'ト',
+      'ナ',
+      'ニ',
+      'ヌ',
+      'ネ',
+      'ノ',
+      'ハ',
+      'ヒ',
+      'フ',
+      'ヘ',
+      'ホ',
+      'マ',
+      'ミ',
+      'ム',
+      'メ',
+      'モ',
+      'ヤ',
+      'ユ',
+      'ヨ',
+      'ラ',
+      'リ',
+      'ル',
+      'レ',
+      'ロ',
+      'ワ',
+      'ヲ',
+      'ン',
+      'あ',
+      'い',
+      'う',
+      'え',
+      'お',
+      'か',
+      'き',
+      'く',
+      'け',
+      'こ',
+      'さ',
+      'し',
+      'す',
+      'せ',
+      'そ',
+      'た',
+      'ち',
+      'つ',
+      'て',
+      'と',
+      'な',
+      'に',
+      'ぬ',
+      'ね',
+      'の',
+      'は',
+      'ひ',
+      'ふ',
+      'へ',
+      'ほ',
+      'ま',
+      'み',
+      'む',
+      'め',
+      'も',
+      'や',
+      'ゆ',
+      'よ',
+      'ら',
+      'り',
+      'る',
+      'れ',
+      'ろ',
+      'わ',
+      'を',
+      'ん',
+      '日',
+      '月',
+      '火',
+      '水',
+      '木',
+      '金',
+      '土',
+      '山',
+      '川',
+      '海',
+      '空',
+      '雨',
+      '雪',
+      '風',
+      '雲',
+      '星',
+      '光',
+      '影',
+      '時',
+      '間',
+    ];
+
+    class Drop {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * -height;
+        this.speed = Math.random() * 0.8 + 0.3;
+        this.characters = Array.from(
+          { length: Math.floor(Math.random() * 15) + 5 },
+          () => japaneseChars[Math.floor(Math.random() * japaneseChars.length)]
+        );
+        this.updateFrequency = Math.floor(Math.random() * 10) + 5;
+        this.lastUpdate = 0;
+      }
+    }
+
+    let drops = Array.from({ length: Math.floor(width / 25) }, () => new Drop());
+    const mouse = { x: 0, y: 0 };
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    window.addEventListener('resize', () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+      drops = Array.from({ length: Math.floor(width / 25) }, () => new Drop());
+    });
+
+    const influenceRadius = 180;
+    const draw = () => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(0, 0, width, height);
+
+      drops.forEach((drop, i) => {
+        const dx = mouse.x - drop.x;
+        const dy = mouse.y - drop.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        drop.characters.forEach((char, j) => {
+          const y = drop.y - j * 24;
+          if (y < height && y > 0) {
+            if (distance < influenceRadius) {
+              const intensity = 1 - distance / influenceRadius;
+              const r = Math.floor(120 * intensity);
+              const g = Math.floor(220 * intensity);
+              const b = Math.floor(255 * intensity);
+              ctx.fillStyle = `rgb(${r},${g},${b})`;
+            } else {
+              const opacity = j === 0 ? 1 : 1 - j / drop.characters.length;
+              ctx.fillStyle = `rgba(180,180,180,${opacity})`;
+            }
+            ctx.font = '18px "Hiragino Sans", "MS Gothic", monospace';
+            ctx.fillText(char, drop.x, y);
+          }
+        });
+        drop.y += drop.speed;
+        drop.lastUpdate++;
+        if (drop.lastUpdate > drop.updateFrequency) {
+          drop.lastUpdate = 0;
+          drop.characters[0] = japaneseChars[Math.floor(Math.random() * japaneseChars.length)];
+        }
+        if (drop.y - drop.characters.length * 24 > height) drops[i] = new Drop();
+      });
+      requestAnimationFrame(draw);
+    };
+    draw();
+  };
+
+  // 🧠 Run once on initial load
+  document.addEventListener('DOMContentLoaded', startMatrixRain);
+
+  // 🔁 Run again after Astro navigation swaps
+  document.addEventListener('astro:after-swap', () => {
+    // Re-init canvas after page navigation
+    startMatrixRain();
+  });
+</script>

@@ -1,17 +1,36 @@
 ﻿---
-import BlogLatestPosts from "~/components/widgets/BlogLatestPosts.astro";
-import CallToAction from "~/components/widgets/CallToAction.astro";
-import Content from "~/components/widgets/Content.astro";
-import Features3 from "~/components/widgets/Features3.astro";
-import Header from "~/components/widgets/Header.astro";
-import Hero from "~/components/widgets/Hero.astro";
-import Steps from "~/components/widgets/Steps.astro";
-import Testimonials from "~/components/widgets/Testimonials.astro";
-import Layout from "~/layouts/PageLayout.astro";
-import { getPermalink } from "~/utils/permalinks";
+import logo from '~/assets/favicons/logo.png';
+import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Content from '~/components/widgets/Content.astro';
+import Features3 from '~/components/widgets/Features3.astro';
+import Header from '~/components/widgets/Header.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import Testimonials from '~/components/widgets/Testimonials.astro';
+import Layout from '~/layouts/PageLayout.astro';
+import { getCanonical, getPermalink } from '~/utils/permalinks';
+import { buildPersonSchema } from '~/utils/structured-data';
+const canonical = String(getCanonical(Astro.url.pathname));
 
 const metadata = {
   title: 'Phạm Thành Nam - Lập trình viên Fullstack & Maker',
+  description:
+    'Portfolio dự án cá nhân của Phạm Thành Nam: sản phẩm số, công cụ nội bộ và trải nghiệm sáng tạo do tôi thiết kế và triển khai.',
+  canonical,
+  structuredData: [
+    buildPersonSchema(canonical, {
+      url: canonical,
+    }),
+    {
+      '@type': 'CollectionPage',
+      name: 'Danh mục dự án cá nhân',
+      url: canonical,
+      description:
+        'Tổng hợp các dự án cá nhân nổi bật: công cụ nội bộ, ứng dụng web và trải nghiệm sáng tạo tôi phát triển.',
+      mainEntity: buildPersonSchema(canonical),
+    },
+  ],
 };
 ---
 
@@ -38,8 +57,10 @@ const metadata = {
     tagline="Lập trình viên Fullstack & Người làm cà phê ☕"
     actions={[{ variant: 'primary', text: 'Hợp tác cùng tôi', href: getPermalink('/contact#form') }]}>
     <Fragment slot="subtitle">
-      Tôi là một lập trình viên web đam mê xây dựng <b>ứng dụng hiện đại, công cụ sáng tạo và kiến trúc hệ thống</b>.<br />
-      Từ <b>backend Node.js</b> đến <b>frontend React</b> và <b>microservice Go</b> - tôi biến ý tưởng thành sản phẩm vận hành ổn định và đẹp mắt.
+      Tôi là một lập trình viên web đam mê xây dựng <b>ứng dụng hiện đại, công cụ sáng tạo và kiến trúc hệ thống</b>.<br
+      />
+      Từ <b>backend Node.js</b> đến <b>frontend React</b> và <b>microservice Go</b> - tôi biến ý tưởng thành sản phẩm vận
+      hành ổn định và đẹp mắt.
     </Fragment>
   </Hero>
 
@@ -48,19 +69,21 @@ const metadata = {
     id="about"
     columns={3}
     image={{
-      src: 'https://avatars.githubusercontent.com/u/14112885?v=4',
+      src: logo,
       alt: 'Phạm Thành Nam',
       loading: 'eager',
     }}>
     <Fragment slot="content">
       <h2 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Về tôi</h2>
       <p>
-        Tôi là lập trình viên fullstack với niềm vui <b>xây dựng và tối ưu ứng dụng</b>. Tôi tạo ra những hệ thống dung hòa kỹ thuật và sáng tạo - từ
+        Tôi là lập trình viên fullstack với niềm vui <b>xây dựng và tối ưu ứng dụng</b>. Tôi tạo ra những hệ thống dung
+        hòa kỹ thuật và sáng tạo - từ
         <b>trình biên tập React</b> đến <b>reverse proxy viết bằng Go</b> hay <b>nền tảng thanh toán nội bộ</b>.
       </p>
       <br />
       <p>
-        Ngoài việc viết code, tôi còn là một <b>người trồng cà phê</b> - sự kết hợp giữa công nghệ và cuộc sống nông trại giúp tôi tạo ra quy trình hiệu quả hơn và sản phẩm tốt hơn.
+        Ngoài việc viết code, tôi còn là một <b>người trồng cà phê</b> - sự kết hợp giữa công nghệ và cuộc sống nông trại
+        giúp tôi tạo ra quy trình hiệu quả hơn và sản phẩm tốt hơn.
       </p>
     </Fragment>
   </Content>
@@ -145,15 +168,39 @@ const metadata = {
     testimonials={[
       {
         testimonial:
-          'Nam là sự kết hợp hiếm hoi giữa kỹ sư và nhà thiết kế - anh ấy xây dựng hệ thống vừa vững chắc về kỹ thuật vừa giàu cấu trúc thẩm mỹ.',
+          'Nam là sự kết hợp hiếm hoi giữa kỹ sư và nhà thiết kế — anh ấy xây dựng hệ thống vừa vững chắc về kỹ thuật vừa tinh tế trong trải nghiệm người dùng.',
         name: 'Đồng nghiệp lập trình',
         job: 'Kỹ sư Fullstack',
       },
       {
         testimonial:
-          'Làm việc với Nam rất trôi chảy - anh ấy dự đoán vấn đề sớm và bàn giao codebase có khả năng mở rộng, dễ bảo trì.',
+          'Làm việc với Nam rất trôi chảy — anh ấy dự đoán vấn đề sớm và bàn giao codebase có khả năng mở rộng, dễ bảo trì.',
         name: 'Cộng sự công nghệ',
         job: 'Kiến trúc sư phần mềm',
+      },
+      {
+        testimonial:
+          'Khả năng tư duy hệ thống và tính tổ chức của Nam giúp đội ngũ tiết kiệm rất nhiều thời gian khi triển khai sản phẩm.',
+        name: 'Quản lý dự án',
+        job: 'Project Manager',
+      },
+      {
+        testimonial:
+          'Anh ấy luôn giữ thái độ cầu thị và tôn trọng mọi ý kiến — nhờ đó, các cuộc trao đổi kỹ thuật với Nam luôn mang lại kết quả tích cực.',
+        name: 'Cộng sự thiết kế',
+        job: 'UI/UX Designer',
+      },
+      {
+        testimonial:
+          'Nam là người truyền cảm hứng — anh ấy thường chia sẻ kiến thức và hỗ trợ thành viên mới học hỏi nhanh chóng, bắt nhịp dự án chỉ trong vài ngày.',
+        name: 'Đồng đội phát triển',
+        job: 'Frontend Developer',
+      },
+      {
+        testimonial:
+          'Sự chuyên nghiệp và trách nhiệm của Nam khiến tôi hoàn toàn yên tâm khi giao các dự án quan trọng. Anh ấy không chỉ hoàn thành, mà luôn làm vượt mong đợi.',
+        name: 'Khách hàng hợp tác',
+        job: 'Founder & CEO',
       },
     ]}
   />
@@ -169,8 +216,7 @@ const metadata = {
   <BlogLatestPosts
     id="blog"
     title="Bài viết mới"
-    information="Tôi viết về JavaScript, React, Go và hành trình xây hệ thống sáng tạo - mời bạn khám phá những bài viết gần đây."
-  >
+    information="Tôi viết về JavaScript, React, Go và hành trình xây hệ thống sáng tạo - mời bạn khám phá những bài viết gần đây.">
     <Fragment slot="bg">
       <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
     </Fragment>

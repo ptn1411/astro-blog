@@ -1,0 +1,206 @@
+---
+import '@pagefind/default-ui/css/ui.css';
+import SearchIcon from '~/components/icons/SearchIcon.astro';
+---
+
+<site-search id="search" class="ms-auto">
+  <!-- 🔍 Nút mở modal -->
+  <button
+    data-open-modal
+    disabled
+    class="text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 inline-flex items-center">
+    <SearchIcon class="w-5 h-5" />
+  </button>
+
+  <!-- 🪟 Modal tìm kiếm -->
+  <dialog
+    aria-label="Tìm kiếm"
+    class="c-search-modal backdrop:backdrop-blur-sm bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-700 max-w-3xl w-11/12 sm:w-4/5 md:w-3/4 lg:w-1/2 p-0 opacity-0 scale-95 transition-all duration-200">
+    <div class="flex flex-col h-full max-h-[80vh] overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-4 py-3">
+        <h2 class="text-lg font-semibold">Tìm kiếm nội dung</h2>
+        <button
+          data-close-modal
+          class="rounded-full px-3 py-1 text-sm bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition">
+          Đóng ✕
+        </button>
+      </div>
+
+      <!-- Nội dung -->
+      <div class="flex-1 p-6 overflow-y-auto">
+        {
+          import.meta.env.DEV ? (
+            <div class="text-center opacity-80">
+              <p>
+                🔧 Chức năng tìm kiếm chỉ khả dụng trong bản build production.
+                <br />
+                Chạy <code>npm run build && npm run preview</code> để thử.
+              </p>
+            </div>
+          ) : (
+            <div class="search-container dark:text-white">
+              <div id="pagefind__search" />
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </dialog>
+</site-search>
+
+<script>
+  import { animate, stagger } from 'motion';
+
+  class SiteSearch extends HTMLElement {
+    constructor() {
+      super();
+
+      const openBtn = this.querySelector('button[data-open-modal]') as HTMLButtonElement | null;
+      const closeBtn = this.querySelector('button[data-close-modal]') as HTMLButtonElement | null;
+
+      const dialog = this.querySelector('dialog');
+      if (!openBtn || !closeBtn || !dialog) return;
+
+      let pagefindLoaded = false;
+      let pagefindInstance = null;
+
+      const openModal = async (event?: MouseEvent) => {
+        dialog.showModal();
+
+        await (animate as any)(
+          dialog,
+          {
+            opacity: [0, 1],
+            scale: [0.92, 1],
+            backdropFilter: ['blur(0px)', 'blur(4px)'],
+          },
+          {
+            duration: 0.3,
+            easing: [0.34, 1.56, 0.64, 1], // cubic-bezier with spring effect
+          }
+        );
+
+        const header = dialog.querySelector('.flex.items-center.justify-between');
+        const content = dialog.querySelector('.flex-1');
+        const rain = document.getElementById('matrix-rain');
+        if (rain) rain.classList.replace('hidden', 'visible');
+        if (header && content) {
+          await (animate as any)(
+            [header, content],
+            {
+              opacity: [0, 1],
+              y: [8, 0],
+            },
+            {
+              duration: 0.25,
+              delay: stagger(0.05),
+              easing: 'ease-out',
+            }
+          );
+        }
+
+        document.body.classList.add('overflow-hidden');
+        event?.stopPropagation();
+
+        // ⚡️ Tái khởi tạo Pagefind khi mở modal
+        if (!import.meta.env.DEV && !pagefindLoaded) {
+          const { PagefindUI } = await import('@pagefind/default-ui');
+          pagefindInstance = new PagefindUI({
+            element: '#pagefind__search',
+            baseUrl: import.meta.env.BASE_URL,
+            bundlePath: import.meta.env.BASE_URL.replace(/\/$/, '') + '/pagefind/',
+            showImages: true,
+            resetStyles: false,
+            // ép link về dạng không có / cuối:
+            processResult: (result) => {
+              result.url = result.url.replace(/\/$/, '');
+              return result;
+            },
+          });
+          pagefindLoaded = true;
+        } else if (pagefindInstance) {
+          // 🧹 Reset input cũ
+          const input = dialog.querySelector('input');
+          if (input) {
+            input.value = '';
+            input.focus();
+          }
+        }
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const input = dialog.querySelector<HTMLInputElement>('.pagefind-ui__search-input');
+            input?.focus();
+          });
+        });
+      };
+
+      const closeModal = () => {
+        (animate as any)(
+          dialog,
+          {
+            opacity: [1, 0],
+            scale: [1, 0.92],
+            backdropFilter: ['blur(4px)', 'blur(0px)'],
+          },
+          {
+            duration: 0.25,
+            easing: 'ease-in',
+          }
+        ).finished.then(() => {
+          dialog.close();
+          document.body.classList.remove('overflow-hidden');
+          const rain = document.getElementById('matrix-rain');
+          if (rain) rain.classList.replace('visible', 'hidden');
+        });
+      };
+
+      // Sự kiện bàn phím ESC
+      const handleEsc = (e) => {
+        if (e.key === 'Escape' && dialog.open) closeModal();
+      };
+
+      openBtn.addEventListener('click', openModal);
+      openBtn.disabled = false;
+      closeBtn.addEventListener('click', closeModal);
+      window.addEventListener('keydown', handleEsc);
+      document.addEventListener('astro:after-swap', closeModal);
+
+      // Phím tắt "/"
+      window.addEventListener('keydown', (e) => {
+        const active = document.activeElement;
+        const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+        if (e.key === '/' && !dialog.open && !isTyping) {
+          openModal();
+          e.preventDefault();
+        }
+      });
+    }
+  }
+
+  customElements.define('site-search', SiteSearch);
+</script>
+
+<style is:global>
+  .dark {
+    --pagefind-ui-primary: #ffffff;
+    --pagefind-ui-text: #f8fafc;
+    --pagefind-ui-background: #0f172a;
+    --pagefind-ui-border: #1e293b;
+    --pagefind-ui-tag: #1e293b;
+  }
+
+  dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+  }
+
+  dialog:focus-visible {
+    outline: none;
+  }
+
+  button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>

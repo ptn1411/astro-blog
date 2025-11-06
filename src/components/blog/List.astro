@@ -12,7 +12,12 @@ const { posts } = Astro.props;
 <ul>
   {
     posts.map((post) => (
-      <li class="mb-12 md:mb-20">
+      <li
+        class="mb-12 md:mb-20"
+        data-post
+        data-category={post.category?.slug ?? ''}
+        data-tags={Array.isArray(post.tags) ? post.tags.map((tag) => tag?.slug).filter(Boolean).join(',') : ''}
+      >
         <Item post={post} />
       </li>
     ))

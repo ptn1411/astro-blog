@@ -5,9 +5,70 @@ import Features3 from "~/components/widgets/Features3.astro";
 import HeroText from "~/components/widgets/HeroText.astro";
 import Prices from "~/components/widgets/Pricing.astro";
 import Layout from "~/layouts/PageLayout.astro";
+import { getCanonical } from "~/utils/permalinks";
+import { buildProfessionalServiceSchema } from "~/utils/structured-data";
+
+const canonical = String(getCanonical(Astro.url.pathname));
 
 const metadata = {
   title: 'Bảng giá - Phạm Thành Nam',
+  description:
+    'Bảng giá minh bạch cho dịch vụ phát triển phần mềm của Phạm Thành Nam, đáp ứng từ MVP cá nhân tới hệ thống doanh nghiệp.',
+  canonical,
+  structuredData: [
+    buildProfessionalServiceSchema({
+      url: canonical,
+      serviceTypes: [
+        'Tư vấn và xây dựng MVP',
+        'Phát triển nền tảng fullstack',
+        'Triển khai hệ thống doanh nghiệp',
+      ],
+      description:
+        'Bảng giá nêu rõ các gói dịch vụ cho nhu cầu phát triển sản phẩm số ở nhiều quy mô.',
+    }),
+    {
+      '@type': 'OfferCatalog',
+      name: 'Bảng giá dịch vụ phát triển phần mềm',
+      url: canonical,
+      description:
+        'Danh mục các gói dịch vụ Starter, Professional và Enterprise cho nhu cầu xây dựng sản phẩm.',
+      itemListElement: [
+        {
+          '@type': 'Offer',
+          name: 'Starter',
+          priceCurrency: 'USD',
+          price: '200',
+          itemOffered: {
+            '@type': 'Service',
+            name: 'Gói Starter',
+            description: 'Phát triển frontend/backend với thiết lập triển khai cơ bản cho MVP nhỏ.',
+          },
+        },
+        {
+          '@type': 'Offer',
+          name: 'Professional',
+          priceCurrency: 'USD',
+          price: '600',
+          itemOffered: {
+            '@type': 'Service',
+            name: 'Gói Professional',
+            description: 'Hệ thống fullstack, CI/CD và hỗ trợ sau bàn giao cho startup tăng trưởng.',
+          },
+        },
+        {
+          '@type': 'Offer',
+          name: 'Enterprise',
+          priceCurrency: 'USD',
+          price: '1500',
+          itemOffered: {
+            '@type': 'Service',
+            name: 'Gói Enterprise',
+            description: 'Giải pháp tùy chỉnh cho hệ thống phức tạp, mở rộng và tư vấn chuyên sâu.',
+          },
+        },
+      ],
+    },
+  ],
 };
 ---
 
@@ -144,3 +205,8 @@ const metadata = {
     ]}
   />
 </Layout>
+
+
+
+
+

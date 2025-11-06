@@ -1,5 +1,6 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
+import { getCanonical } from '~/utils/permalinks';
 
 import type { MetaData } from '~/types';
 
@@ -10,9 +11,27 @@ export interface Props {
 }
 
 const { frontmatter } = Astro.props;
+const canonical = String(getCanonical(Astro.url.pathname));
+const isPrivacy = Astro.url.pathname.includes('privacy');
+const isTerms = Astro.url.pathname.includes('terms');
+const structuredData = isPrivacy
+  ? {
+      '@type': 'PrivacyPolicy',
+      name: frontmatter?.title,
+      url: canonical,
+    }
+  : isTerms
+    ? {
+        '@type': 'TermsOfService',
+        name: frontmatter?.title,
+        url: canonical,
+      }
+    : undefined;
 
 const metadata: MetaData = {
   title: frontmatter?.title,
+  canonical,
+  structuredData,
 };
 ---
 

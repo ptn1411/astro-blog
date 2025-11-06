@@ -1,19 +1,26 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { defineConfig } from 'astro/config';
+import { defineConfig, sharpImageService } from 'astro/config';
 
-import sitemap from '@astrojs/sitemap';
-import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import partytown from '@astrojs/partytown';
-import icon from 'astro-icon';
-import compress from 'astro-compress';
+import sitemap from '@astrojs/sitemap';
+import tailwind from '@astrojs/tailwind';
 import type { AstroIntegration } from 'astro';
+import compress from 'astro-compress';
+import icon from 'astro-icon';
+import pagefind from 'astro-pagefind';
 
 import astrowind from './vendor/integration';
 
-import { readingTimeRemarkPlugin, responsiveTablesRehypePlugin, lazyImagesRehypePlugin } from './src/utils/frontmatter';
+import {
+  extractHeadingsRemarkPlugin,
+  lazyImagesRehypePlugin,
+  readingTimeRemarkPlugin,
+  responsiveTablesRehypePlugin,
+} from './src/utils/frontmatter';
+import { remarkFixImagePaths } from './src/utils/remark-fix-image-paths';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -52,7 +59,7 @@ export default defineConfig({
         config: { forward: ['dataLayer.push'] },
       })
     ),
-
+    pagefind(),
     compress({
       CSS: true,
       HTML: {
@@ -72,11 +79,12 @@ export default defineConfig({
   ],
 
   image: {
+    service: sharpImageService(),
     domains: ['cdn.pixabay.com'],
   },
 
   markdown: {
-    remarkPlugins: [readingTimeRemarkPlugin],
+    remarkPlugins: [remarkFixImagePaths, readingTimeRemarkPlugin, extractHeadingsRemarkPlugin],
     rehypePlugins: [responsiveTablesRehypePlugin, lazyImagesRehypePlugin],
   },
 

@@ -42,12 +42,16 @@ export interface Post {
 
   /**  */
   readingTime?: number;
+
+  headings?: MarkdownHeading[];
 }
 
 export interface Taxonomy {
   slug: string;
   title: string;
 }
+
+export type StructuredData = Record<string, unknown> | Array<Record<string, unknown>>;
 
 export interface MetaData {
   title?: string;
@@ -61,6 +65,7 @@ export interface MetaData {
 
   openGraph?: MetaDataOpenGraph;
   twitter?: MetaDataTwitter;
+  structuredData?: StructuredData;
 }
 
 export interface MetaDataRobots {

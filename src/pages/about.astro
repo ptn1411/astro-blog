@@ -4,9 +4,26 @@ import Features3 from "~/components/widgets/Features3.astro";
 import Hero from "~/components/widgets/Hero.astro";
 import Steps2 from "~/components/widgets/Steps2.astro";
 import Layout from "~/layouts/PageLayout.astro";
+import { getCanonical } from "~/utils/permalinks";
+import { buildPersonSchema } from "~/utils/structured-data";
+
+const canonical = String(getCanonical(Astro.url.pathname));
 
 const metadata = {
   title: 'Giới thiệu - Phạm Thành Nam',
+  description:
+    'Chia sẻ hành trình lập trình viên Fullstack & maker, kết hợp kiến thức kỹ thuật với tinh thần sáng tạo.',
+  canonical,
+  structuredData: [
+    {
+      '@type': 'AboutPage',
+      name: 'Giới thiệu Phạm Thành Nam',
+      url: canonical,
+      description:
+        'Tôi giới thiệu kinh nghiệm phát triển web, kiến trúc hệ thống và triết lý xây dựng sản phẩm mang giá trị thật.',
+      mainEntity: buildPersonSchema(canonical),
+    },
+  ],
 };
 ---
 
@@ -121,3 +138,4 @@ const metadata = {
     ]}
   />
 </Layout>
+

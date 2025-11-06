@@ -3,18 +3,18 @@ import '~/assets/styles/tailwind.css';
 
 import { I18N } from 'astrowind:config';
 
-import CommonMeta from '~/components/common/CommonMeta.astro';
-import Favicons from '~/components/Favicons.astro';
-import CustomStyles from '~/components/CustomStyles.astro';
+import Analytics from '~/components/common/Analytics.astro';
 import ApplyColorMode from '~/components/common/ApplyColorMode.astro';
+import BasicScripts from '~/components/common/BasicScripts.astro';
+import CommonMeta from '~/components/common/CommonMeta.astro';
+import MatrixRain from '~/components/common/MatrixRain.astro';
 import Metadata from '~/components/common/Metadata.astro';
 import SiteVerification from '~/components/common/SiteVerification.astro';
-import Analytics from '~/components/common/Analytics.astro';
-import BasicScripts from '~/components/common/BasicScripts.astro';
-
+import CustomStyles from '~/components/CustomStyles.astro';
+import Favicons from '~/components/Favicons.astro';
 // Comment the line below to disable View Transitions
 import { ClientRouter } from 'astro:transitions';
-
+import HeartClick from '~/components/common/HeartClick.astro';
 import type { MetaData as MetaDataType } from '~/types';
 
 export interface Props {
@@ -42,7 +42,8 @@ const { language, textDirection } = I18N;
 
   <body class="antialiased text-default bg-page tracking-tight">
     <slot />
-
+    <HeartClick />
+    <MatrixRain />
     <BasicScripts />
   </body>
 </html>

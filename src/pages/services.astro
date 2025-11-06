@@ -1,13 +1,32 @@
 ﻿---
-import CallToAction from "~/components/widgets/CallToAction.astro";
-import Content from "~/components/widgets/Content.astro";
-import Features2 from "~/components/widgets/Features2.astro";
-import Hero from "~/components/widgets/Hero.astro";
-import Testimonials from "~/components/widgets/Testimonials.astro";
-import Layout from "~/layouts/PageLayout.astro";
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Content from '~/components/widgets/Content.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Testimonials from '~/components/widgets/Testimonials.astro';
+import Layout from '~/layouts/PageLayout.astro';
+import { getCanonical } from '~/utils/permalinks';
+import { buildProfessionalServiceSchema } from '~/utils/structured-data';
+
+const canonical = String(getCanonical(Astro.url.pathname));
 
 const metadata = {
   title: 'Dịch vụ - Phạm Thành Nam',
+  description:
+    'Gói dịch vụ phát triển phần mềm end-to-end: tư vấn kiến trúc, xây dựng web fullstack, DevOps và công cụ nội bộ cho doanh nghiệp và startup.',
+  canonical,
+  structuredData: [
+    buildProfessionalServiceSchema({
+      url: canonical,
+      serviceTypes: [
+        'Phát triển web Fullstack',
+        'Thiết kế kiến trúc hệ thống',
+        'Xây dựng công cụ nội bộ',
+        'Triển khai DevOps & tự động hóa',
+      ],
+      description: 'Cung cấp dịch vụ từ phát triển API, giao diện, hạ tầng tối ưu hiệu năng tới triển khai vận hành.',
+    }),
+  ],
 };
 ---
 
@@ -62,8 +81,7 @@ const metadata = {
       },
       {
         title: 'Tư vấn & Đồng hành',
-        description:
-          'Tư vấn quy trình phát triển, lựa chọn kiến trúc và chiến lược mở rộng dự án.',
+        description: 'Tư vấn quy trình phát triển, lựa chọn kiến trúc và chiến lược mở rộng dự án.',
         icon: 'tabler:users',
       },
     ]}
@@ -116,6 +134,30 @@ const metadata = {
           'Anh ấy không chỉ viết code - mà tạo ra hệ thống phù hợp cho người dùng. Làm việc với Nam giống như có một đối tác thực sự quan tâm.',
         name: 'Cộng sự thiết kế',
         job: 'UI/UX Designer',
+      },
+      {
+        testimonial:
+          'Trong mỗi dự án, Nam luôn chủ động đề xuất giải pháp và tối ưu hiệu năng. Sự tỉ mỉ của anh ấy khiến cả đội tin tưởng tuyệt đối.',
+        name: 'Quản lý dự án',
+        job: 'Project Manager',
+      },
+      {
+        testimonial:
+          'Nam có khả năng kết nối kỹ thuật với mục tiêu kinh doanh rất tốt. Anh ấy luôn nhìn dự án ở góc nhìn toàn diện — không chỉ là lập trình viên, mà là người kiến tạo sản phẩm.',
+        name: 'Đối tác công nghệ',
+        job: 'Tech Consultant',
+      },
+      {
+        testimonial:
+          'Khả năng truyền đạt và hướng dẫn của Nam thật đáng nể. Anh ấy luôn sẵn sàng chia sẻ kiến thức, giúp các thành viên mới bắt kịp tiến độ rất nhanh.',
+        name: 'Thành viên nhóm mới',
+        job: 'Frontend Developer',
+      },
+      {
+        testimonial:
+          'Tôi đánh giá cao tinh thần trách nhiệm và khả năng giải quyết vấn đề của Nam. Anh ấy không chỉ hoàn thành công việc, mà luôn tìm cách làm tốt hơn mỗi ngày.',
+        name: 'Khách hàng doanh nghiệp',
+        job: 'Founder & CEO',
       },
     ]}
   />

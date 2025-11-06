@@ -1,7 +1,7 @@
 import type { PaginateFunction } from 'astro';
 import { getCollection, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import type { Post } from '~/types';
+import type { Post, Taxonomy } from '~/types';
 import { APP_BLOG } from 'astrowind:config';
 import { cleanSlug, trimSlash, BLOG_BASE, POST_PERMALINK_PATTERN, CATEGORY_BASE, TAG_BASE } from './permalinks';
 
@@ -97,6 +97,7 @@ const getNormalizedPost = async (post: CollectionEntry<'post'>): Promise<Post> =
     // or 'content' in case you consume from API
 
     readingTime: remarkPluginFrontmatter?.readingTime,
+    headings: remarkPluginFrontmatter?.headings,
   };
 };
 
@@ -171,6 +172,44 @@ export const findLatestPosts = async ({ count }: { count?: number }): Promise<Ar
   const posts = await fetchPosts();
 
   return posts ? posts.slice(0, _count) : [];
+};
+
+const sortTaxonomies = (items: Iterable<Taxonomy>) =>
+  Array.from(items).sort((a, b) => a.title.localeCompare(b.title, 'vi', { sensitivity: 'base' }));
+
+/** */
+export const findCategories = async (): Promise<Array<Taxonomy>> => {
+  const posts = await fetchPosts();
+  const map = new Map<string, Taxonomy>();
+
+  posts.forEach((post) => {
+    if (post.category?.slug) {
+      const { slug, title } = post.category;
+      if (!map.has(slug)) {
+        map.set(slug, { slug, title });
+      }
+    }
+  });
+
+  return sortTaxonomies(map.values());
+};
+
+/** */
+export const findTags = async (): Promise<Array<Taxonomy>> => {
+  const posts = await fetchPosts();
+  const map = new Map<string, Taxonomy>();
+
+  posts.forEach((post) => {
+    if (Array.isArray(post.tags)) {
+      post.tags.forEach((tag) => {
+        if (tag?.slug && !map.has(tag.slug)) {
+          map.set(tag.slug, { slug: tag.slug, title: tag.title });
+        }
+      });
+    }
+  });
+
+  return sortTaxonomies(map.values());
 };
 
 /** */

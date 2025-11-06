@@ -1,5 +1,5 @@
 import { glob } from 'astro/loaders';
-import { defineCollection, getCollection, z } from 'astro:content';
+import { defineCollection, getCollection, type SchemaContext, z } from 'astro:content';
 
 /**
  * Định nghĩa Metadata mở rộng (SEO, OpenGraph, Twitter,...)
@@ -41,6 +41,7 @@ const metadataDefinition = () =>
           cardType: z.string().optional(),
         })
         .optional(),
+      structuredData: z.union([z.record(z.any()), z.array(z.record(z.any()))]).optional(),
     })
     .optional();
 
@@ -49,12 +50,13 @@ const metadataDefinition = () =>
  */
 const authorCollection = defineCollection({
   loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/content/author' }),
-  schema: z.object({
-    name: z.string(),
-    avatar: z.string().optional(),
-    bio: z.string().optional(),
-    website: z.string().optional(),
-  }),
+  schema: ({ image }: SchemaContext) =>
+    z.object({
+      name: z.string(),
+      avatar: image().optional(),
+      bio: z.string().optional(),
+      website: z.string().optional(),
+    }),
 });
 
 /**
@@ -84,21 +86,22 @@ const tagCollection = defineCollection({
  */
 const postCollection = defineCollection({
   loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/content/post' }),
-  schema: z.object({
-    publishDate: z.date().optional(),
-    updateDate: z.date().optional(),
-    draft: z.boolean().optional(),
+  schema: ({ image }: SchemaContext) =>
+    z.object({
+      publishDate: z.date().optional(),
+      updateDate: z.date().optional(),
+      draft: z.boolean().optional(),
 
-    title: z.string(),
-    excerpt: z.string().optional(),
-    image: z.string().optional(),
+      title: z.string().optional(),
+      excerpt: z.string().optional(),
+      image: image().optional(),
 
-    category: z.string().optional(), // sẽ được map sang object
-    tags: z.array(z.string()).optional(), // sẽ được map sang array object
-    author: z.string().optional(), // sẽ được map sang object
+      category: z.string().optional(), // sẽ được map sang object
+      tags: z.array(z.string()).optional(), // sẽ được map sang array object
+      author: z.string().optional(), // sẽ được map sang object
 
-    metadata: metadataDefinition(),
-  }),
+      metadata: metadataDefinition(),
+    }),
 });
 
 /**

@@ -22,6 +22,7 @@ const {
   description,
   openGraph = {},
   twitter = {},
+  structuredData: structuredDataProp,
 } = Astro.props;
 
 const seoProps: AstroSeoProps = merge(
@@ -63,6 +64,65 @@ const seoProps: AstroSeoProps = merge(
     twitter: twitter,
   }
 );
+
+const adaptedOpenGraph = await adaptOpenGraphImages(seoProps?.openGraph, Astro.site);
+const finalSeoProps = {
+  ...seoProps,
+  openGraph: adaptedOpenGraph,
+} as AstroSeoProps;
+
+const canonicalUrl = finalSeoProps.canonical || canonical;
+const siteUrl = SITE?.site || (Astro.site ? String(Astro.site) : undefined);
+const language = I18N?.language || 'en';
+
+const structuredNodes: Array<Record<string, unknown>> = [];
+
+if (siteUrl) {
+  const trimmedSiteUrl = siteUrl.replace(/\/+$/, '');
+  structuredNodes.push({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE?.name || finalSeoProps.title || METADATA?.title?.default,
+    url: trimmedSiteUrl || siteUrl,
+    inLanguage: language,
+  });
+}
+
+if (canonicalUrl) {
+  const pageNode: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: finalSeoProps.title || METADATA?.title?.default || SITE?.name,
+    url: canonicalUrl,
+    description: finalSeoProps.description || METADATA?.description,
+    inLanguage: language,
+  };
+
+  const ogImages = finalSeoProps.openGraph?.images?.map((image) => image?.url).filter(Boolean) as string[] | undefined;
+  if (ogImages?.length) {
+    pageNode.image = ogImages;
+  }
+
+  structuredNodes.push(pageNode);
+}
+
+const extraStructuredData = Array.isArray(structuredDataProp)
+  ? structuredDataProp
+  : structuredDataProp
+    ? [structuredDataProp]
+    : [];
+
+extraStructuredData.forEach((node) => {
+  if (node && typeof node === 'object') {
+    structuredNodes.push(node['@context'] ? node : { '@context': 'https://schema.org', ...node });
+  }
+});
+
+const structuredDataJson =
+  structuredNodes.length > 0
+    ? JSON.stringify(structuredNodes.length === 1 ? structuredNodes[0] : structuredNodes, null, 2)
+    : undefined;
 ---
 
-<AstroSeo {...{ ...seoProps, openGraph: await adaptOpenGraphImages(seoProps?.openGraph, Astro.site) }} />
+<AstroSeo {...finalSeoProps} />
+{structuredDataJson && <script type="application/ld+json" set:html={structuredDataJson} />}

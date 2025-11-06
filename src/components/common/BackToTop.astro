@@ -1,0 +1,63 @@
+---
+const thresholdValue = Astro.props?.threshold ?? 200;
+---
+
+<button type="button" class="c-back-to-top" data-back-to-top data-threshold={thresholdValue} aria-label="Lên đầu trang">
+  <span aria-hidden="true">↑</span>
+</button>
+
+<style is:inline>
+  .c-back-to-top {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 9999;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    background-color: #0f172a;
+    color: #ffffff;
+    font-size: 1.35rem;
+    border: none;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition:
+      opacity 200ms ease,
+      transform 200ms ease;
+    cursor: pointer;
+  }
+  .c-back-to-top.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  :global(.dark .c-back-to-top) {
+    background-color: #e2e8f0;
+    color: #0f172a;
+  }
+</style>
+
+<script is:inline>
+  window.addEventListener('load', () => {
+    const btn = document.querySelector('[data-back-to-top]');
+    if (!btn) return;
+
+    const threshold = Number(btn.dataset.threshold ?? 200);
+    const toggle = () => {
+      btn.classList.toggle('is-visible', window.scrollY > threshold);
+    };
+
+    // chỉ kích hoạt sau khi trang load xong (vị trí cuộn ổn định)
+    window.addEventListener('scroll', toggle, { passive: true });
+    toggle();
+
+    btn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+</script>

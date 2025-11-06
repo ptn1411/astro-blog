@@ -1,0 +1,68 @@
+---
+/**
+ * Emoji floating click effect (Astro native, full-page version)
+ * 💖✨🌸⭐💎
+ */
+---
+
+<script is:inline>
+  const emojis = ["💖", "🌸", "⭐", "💎", "✨", "💫", "🩷", "🌈", "🪽"];
+
+  function createEmoji(x, y) {
+    const el = document.createElement("div");
+    el.className = "float-emoji";
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+    el.style.left = `${x - 10}px`;
+    el.style.top = `${y - 10}px`;
+    el.style.fontSize = `${16 + Math.random() * 14}px`;
+    el.style.setProperty("--tx", `${Math.random() * 80 - 40}px`); // lệch ngang nhẹ
+
+    document.body.appendChild(el);
+
+    const duration = 1000 + Math.random() * 800;
+
+    el.animate(
+      [
+        { transform: "translate(var(--tx), 0px) scale(1)", opacity: 1 },
+        { transform: "translate(var(--tx), -120px) scale(1.4)", opacity: 0 },
+      ],
+      { duration, easing: "ease-out" }
+    );
+
+    setTimeout(() => el.remove(), duration);
+  }
+
+  function bindClick() {
+    document.addEventListener("click", (e) => {
+      createEmoji(e.pageX, e.pageY);
+    });
+  }
+
+  // chạy khi trang load
+  document.addEventListener("DOMContentLoaded", bindClick);
+  // và rebind khi Astro chuyển trang
+  document.addEventListener("astro:after-swap", bindClick);
+</script>
+
+<style is:global>
+  .float-emoji {
+    position: fixed;
+    pointer-events: none;
+    user-select: none;
+    z-index: 99999;
+    filter: drop-shadow(0 0 8px rgba(255, 100, 180, 0.8));
+    will-change: transform, opacity;
+  }
+
+  @keyframes glow-pop {
+    0% {
+      transform: scale(0.8);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+</style>

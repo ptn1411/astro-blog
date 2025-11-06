@@ -1,17 +1,44 @@
 ﻿---
-import BlogLatestPosts from "~/components/widgets/BlogLatestPosts.astro";
-import CallToAction from "~/components/widgets/CallToAction.astro";
-import Content from "~/components/widgets/Content.astro";
-import Features from "~/components/widgets/Features.astro";
-import Hero from "~/components/widgets/Hero.astro";
-import Note from "~/components/widgets/Note.astro";
-import Stats from "~/components/widgets/Stats.astro";
-import Steps from "~/components/widgets/Steps.astro";
-import Layout from "~/layouts/PageLayout.astro";
+import logo from '~/assets/favicons/logo.png';
+import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Content from '~/components/widgets/Content.astro';
+import Features from '~/components/widgets/Features.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Note from '~/components/widgets/Note.astro';
+import Stats from '~/components/widgets/Stats.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import Layout from '~/layouts/PageLayout.astro';
+import { getCanonical } from '~/utils/permalinks';
+import { buildPersonSchema, buildProfessionalServiceSchema } from '~/utils/structured-data';
+const canonical = String(getCanonical(Astro.url.pathname));
 
 const metadata = {
   title: 'Phạm Thành Nam - Lập trình viên Fullstack & Maker',
   ignoreTitleTemplate: true,
+  description:
+    'Phát triển web fullstack, thiết kế hệ thống và xây dựng công cụ sáng tạo giúp doanh nghiệp triển khai ý tưởng thành sản phẩm thực tế.',
+  canonical,
+  structuredData: [
+    buildPersonSchema(canonical, {
+      jobTitle: 'Fullstack Developer & Maker',
+      worksFor: {
+        '@type': 'Organization',
+        name: 'Freelance Studio',
+      },
+    }),
+    buildProfessionalServiceSchema({
+      url: canonical,
+      serviceTypes: [
+        'Phát triển web Fullstack',
+        'Kiến trúc hệ thống',
+        'Xây dựng công cụ sáng tạo',
+        'Tối ưu hiệu năng & bảo mật',
+      ],
+      description:
+        'Dịch vụ phát triển sản phẩm số: từ API Node.js, giao diện React đến hệ thống Go và tự động hóa hạ tầng.',
+    }),
+  ],
 };
 ---
 
@@ -23,7 +50,7 @@ const metadata = {
       { text: 'Liên hệ', href: '/contact' },
     ]}
     image={{
-      src: 'https://avatars.githubusercontent.com/u/57529765?v=4',
+      src: logo,
       alt: 'Phạm Thành Nam',
     }}>
     <Fragment slot="title">
@@ -56,8 +83,7 @@ const metadata = {
       },
       {
         title: 'Kiến trúc hệ thống',
-        description:
-          'Thiết kế hạ tầng gọn nhẹ, dễ mở rộng - bao gồm microservice, API nội bộ và luồng tự động hóa.',
+        description: 'Thiết kế hạ tầng gọn nhẹ, dễ mở rộng - bao gồm microservice, API nội bộ và luồng tự động hóa.',
         icon: 'tabler:server',
       },
       {
@@ -68,8 +94,7 @@ const metadata = {
       },
       {
         title: 'Hiệu năng & Bảo mật',
-        description:
-          'Tối ưu tốc độ, cải thiện SEO, bảo vệ API và củng cố triển khai với PM2, Nginx và HTTPS.',
+        description: 'Tối ưu tốc độ, cải thiện SEO, bảo vệ API và củng cố triển khai với PM2, Nginx và HTTPS.',
         icon: 'tabler:lock',
       },
       {
@@ -126,7 +151,8 @@ const metadata = {
     items={[
       {
         title: 'Bước 1: <span class="font-medium">Lên kế hoạch</span>',
-        description: 'Tìm hiểu ý tưởng và mục tiêu của bạn. Tôi xác định tính năng cốt lõi, stack và cấu trúc hệ thống.',
+        description:
+          'Tìm hiểu ý tưởng và mục tiêu của bạn. Tôi xác định tính năng cốt lõi, stack và cấu trúc hệ thống.',
         icon: 'tabler:list',
       },
       {

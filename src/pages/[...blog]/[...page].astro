@@ -1,13 +1,15 @@
 ﻿---
-import type { InferGetStaticPropsType, GetStaticPaths } from 'astro';
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
 
-import Layout from '~/layouts/PageLayout.astro';
-import BlogList from '~/components/blog/List.astro';
 import Headline from '~/components/blog/Headline.astro';
+import BlogList from '~/components/blog/List.astro';
 import Pagination from '~/components/blog/Pagination.astro';
-// import PostTags from "~/components/blog/Tags.astro";
+import Layout from '~/layouts/PageLayout.astro';
+import BackToTop from '~/components/common/BackToTop.astro';
 
-import { blogListRobots, getStaticPathsBlogList } from '~/utils/blog';
+import { blogListRobots, findCategories, findTags, getStaticPathsBlogList } from '~/utils/blog';
+import { getCanonical, getBlogPermalink } from '~/utils/permalinks';
+import { buildBlogListingSchema, buildBreadcrumbList, ensureAbsolute } from '~/utils/structured-data';
 
 export const prerender = true;
 
@@ -19,34 +21,250 @@ type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { page } = Astro.props as Props;
 const currentPage = page.currentPage ?? 1;
+const canonical = String(getCanonical(Astro.url.pathname));
 
-// const allCategories = await findCategories();
-// const allTags = await findTags();
+const [allCategories, allTags] = await Promise.all([findCategories(), findTags()]);
+
+const pageSize = typeof page.size === 'number' ? page.size : page.data.length;
+const totalPages = typeof page.lastPage === 'number' ? page.lastPage : undefined;
+const startIndex = currentPage > 1 ? (currentPage - 1) * pageSize : 0;
+
+const breadcrumbItems = [
+  { name: 'Trang chủ', url: ensureAbsolute('/') },
+  { name: 'Blog', url: ensureAbsolute(getBlogPermalink()) },
+];
+
+if (currentPage > 1) {
+  breadcrumbItems.push({ name: `Trang ${currentPage}`, url: canonical });
+}
+
+const listingDescription =
+  currentPage > 1
+    ? `Trang ${currentPage} của blog Phạm Thành Nam với các bài viết về lập trình và công nghệ.`
+    : 'Blog Phạm Thành Nam với các bài viết về lập trình, kiến trúc hệ thống và sản phẩm số.';
 
 const metadata = {
   title: `Blog${currentPage > 1 ? ` - Trang ${currentPage}` : ''}`,
+  description: listingDescription,
+  canonical,
   robots: {
     index: blogListRobots?.index && currentPage === 1,
     follow: blogListRobots?.follow,
   },
   openGraph: {
-    type: 'blog',
+    type: 'website',
   },
+  structuredData: [
+    buildBlogListingSchema({
+      url: canonical,
+      name: 'Blog Phạm Thành Nam',
+      description: listingDescription,
+      posts: page.data,
+      currentPage,
+      totalPages,
+      startIndex,
+    }),
+    buildBreadcrumbList(breadcrumbItems),
+  ],
 };
 ---
 
 <Layout metadata={metadata}>
   <section class="px-6 sm:px-6 py-12 sm:py-16 lg:py-20 mx-auto max-w-4xl">
     <Headline
-      subtitle="Blog được sinh tĩnh với tin tức, hướng dẫn, tài nguyên và nhiều nội dung thú vị liên quan tới AstroWind"
-    >
-      Blog
+      subtitle="Chia sẻ kiến thức, kinh nghiệm và dự án thực tế trong lĩnh vực lập trình, công nghệ và phát triển web.">
+      Nhật ký Công nghệ
     </Headline>
+
+    <div class="mb-8" data-blog-filters>
+      {
+        allCategories.length > 0 && (
+          <div class="mb-6">
+            <p class="text-sm font-semibold uppercase tracking-wide text-muted mb-2">Chuyên mục</p>
+            <div class="flex flex-wrap gap-2" role="group" aria-label="Lọc theo chuyên mục">
+              <button
+                type="button"
+                class="filter-chip is-active"
+                data-filter-type="category"
+                data-filter-value=""
+                aria-pressed="true">
+                Tất cả
+              </button>
+              {allCategories.map((category) => (
+                <button
+                  type="button"
+                  class="filter-chip"
+                  data-filter-type="category"
+                  data-filter-value={category.slug}
+                  aria-pressed="false">
+                  {category.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
+      {
+        allTags.length > 0 && (
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-wide text-muted mb-2">Thẻ liên quan</p>
+            <div class="flex flex-wrap gap-2" role="group" aria-label="Lọc theo thẻ">
+              {allTags.map((tag) => (
+                <button
+                  type="button"
+                  class="filter-chip"
+                  data-filter-type="tag"
+                  data-filter-value={tag.slug}
+                  aria-pressed="false">
+                  {tag.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      }
+    </div>
+
     <BlogList posts={page.data} />
+    <p data-blog-empty hidden class="mt-10 text-center text-muted">Chưa có bài viết nào khớp với bộ lọc bạn đã chọn.</p>
     <Pagination prevUrl={page.url.prev} nextUrl={page.url.next} />
-    <!--
-      <PostTags tags={allCategories} class="mb-2" title="Tìm theo chuyên mục:" isCategory />
-      <PostTags tags={allTags}  title="Tìm theo thẻ:" />
-    -->
+    <BackToTop threshold={100} />
   </section>
 </Layout>
+
+<style is:inline>
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(148, 163, 184, 1);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+    background-color: transparent;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .filter-chip:hover,
+  .filter-chip:focus-visible {
+    background-color: #f1f5f9;
+    color: #0f172a;
+  }
+
+  .filter-chip.is-active {
+    background-color: #0f172a;
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2);
+  }
+
+  :global(.dark) .filter-chip {
+    border-color: rgba(71, 85, 105, 1);
+    color: #e2e8f0;
+  }
+
+  :global(.dark) .filter-chip:hover,
+  :global(.dark) .filter-chip:focus-visible {
+    background-color: rgba(51, 65, 85, 1);
+    color: #ffffff;
+  }
+
+  :global(.dark) .filter-chip.is-active {
+    background-color: #ffffff;
+    color: #0f172a;
+    border-color: transparent;
+  }
+
+  [data-post].is-hidden {
+    display: none;
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const filters = document.querySelector('[data-blog-filters]');
+    if (!filters) return;
+
+    const posts = Array.from(document.querySelectorAll('[data-post]'));
+    const emptyMsg = document.querySelector('[data-blog-empty]');
+
+    const state = {
+      category: '',
+      tags: new Set(),
+    };
+
+    const updateButtons = () => {
+      filters.querySelectorAll('[data-filter-type="category"]').forEach((button) => {
+        const value = button.dataset.filterValue ?? '';
+        const isActive = state.category ? value === state.category : value === '';
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+      });
+
+      filters.querySelectorAll('[data-filter-type="tag"]').forEach((button) => {
+        const value = button.dataset.filterValue ?? '';
+        const isActive = state.tags.has(value);
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+      });
+    };
+
+    const filterPosts = () => {
+      let visibleCount = 0;
+
+      posts.forEach((post) => {
+        const category = post.dataset.category ?? '';
+        const tags = (post.dataset.tags ?? '').split(',').filter(Boolean);
+
+        const categoryMatch = !state.category || state.category === category;
+        const tagsMatch = state.tags.size === 0 || Array.from(state.tags).every((tag) => tags.includes(tag));
+
+        const isVisible = categoryMatch && tagsMatch;
+        post.hidden = !isVisible;
+        post.classList.toggle('is-hidden', !isVisible);
+
+        if (isVisible) {
+          visibleCount += 1;
+        }
+      });
+
+      if (emptyMsg) {
+        emptyMsg.hidden = visibleCount > 0;
+      }
+    };
+
+    filters.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-filter-type]');
+      if (!button) return;
+
+      const type = button.dataset.filterType;
+      const value = button.dataset.filterValue ?? '';
+
+      if (type === 'category') {
+        state.category = state.category === value ? '' : value;
+      }
+
+      if (type === 'tag') {
+        if (!value) return;
+        if (state.tags.has(value)) {
+          state.tags.delete(value);
+        } else {
+          state.tags.add(value);
+        }
+      }
+
+      updateButtons();
+      filterPosts();
+    });
+
+    updateButtons();
+    filterPosts();
+  })();
+</script>
