@@ -47,14 +47,12 @@ const thresholdValue = Astro.props?.threshold ?? 200;
     const btn = document.querySelector('[data-back-to-top]');
     if (!btn) return;
 
-    const backToTopBtn = /** @type {HTMLElement & { __btScrollListener?: EventListener; __btClickListener?: EventListener; __btMenuObserver?: MutationObserver }} */ (btn);
+    const backToTopBtn = /** @type {HTMLElement & { __btScrollListener?: EventListener; __btClickListener?: EventListener }} */ (btn);
 
     const threshold = Number(backToTopBtn.dataset.threshold ?? 200);
-    const headerMenu = document.querySelector('[data-toggle-menu]');
 
     const existingScrollListener = /** @type {EventListener | undefined} */ (backToTopBtn.__btScrollListener);
     const existingClickListener = /** @type {EventListener | undefined} */ (backToTopBtn.__btClickListener);
-    const existingObserver = backToTopBtn.__btMenuObserver;
 
     if (existingScrollListener) {
       window.removeEventListener('scroll', existingScrollListener);
@@ -62,15 +60,10 @@ const thresholdValue = Astro.props?.threshold ?? 200;
     if (existingClickListener) {
       backToTopBtn.removeEventListener('click', existingClickListener);
     }
-    if (existingObserver) {
-      existingObserver.disconnect();
-    }
 
     const toggle = () => {
-      const menuExpanded = headerMenu instanceof HTMLElement && headerMenu.getAttribute('aria-expanded') === 'true';
       const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-      const shouldShow = scrollTop > threshold && !menuExpanded;
-      backToTopBtn.classList.toggle('is-visible', shouldShow);
+      backToTopBtn.classList.toggle('is-visible', scrollTop > threshold);
     };
 
     const handleScroll = () => toggle();
@@ -85,12 +78,6 @@ const thresholdValue = Astro.props?.threshold ?? 200;
     backToTopBtn.__btClickListener = handleClick;
 
     toggle();
-
-    if (headerMenu) {
-      const observer = new MutationObserver(toggle);
-      observer.observe(headerMenu, { attributes: true, attributeFilter: ['aria-expanded'] });
-      backToTopBtn.__btMenuObserver = observer;
-    }
   };
 
   const runWhenReady = () => {

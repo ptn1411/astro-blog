@@ -19,11 +19,12 @@ export interface Props {
     href={'#' + heading.slug}
     class={cn(
       `block px-3 py-1.5 text-sm rounded-md mb-1 transition-all duration-200
-    text-neutral-700 dark:text-neutral-200
-    hover:text-[color:var(--color-accent)]
-    hover:bg-[color-mix(in srgb, var(--color-accent) 8%, transparent)]
-    focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)]
-    line-clamp-2`
+    text-[#4b5a5c] dark:text-[#d9f0f2]
+    hover:text-[#367980]
+    hover:bg-[color-mix(in srgb, #367980 15%, transparent)]
+    focus-visible:ring-2 focus-visible:ring-[#367980]
+    focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[color:var(--aw-color-bg-page)]
+      line-clamp-2`
     )}>
     {heading.text}
   </a>
