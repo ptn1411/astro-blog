@@ -10,7 +10,7 @@ const thresholdValue = Astro.props?.threshold ?? 200;
   .c-back-to-top {
     position: fixed;
     right: 1.5rem;
-    bottom: 1.5rem;
+    bottom: 2.5rem;
     z-index: 9999;
     display: inline-flex;
     align-items: center;
@@ -43,21 +43,68 @@ const thresholdValue = Astro.props?.threshold ?? 200;
 </style>
 
 <script is:inline>
-  window.addEventListener('load', () => {
+  const initBackToTop = () => {
     const btn = document.querySelector('[data-back-to-top]');
     if (!btn) return;
 
-    const threshold = Number(btn.dataset.threshold ?? 200);
+    const backToTopBtn = /** @type {HTMLElement & { __btScrollListener?: EventListener; __btClickListener?: EventListener; __btMenuObserver?: MutationObserver }} */ (btn);
+
+    const threshold = Number(backToTopBtn.dataset.threshold ?? 200);
+    const headerMenu = document.querySelector('[data-toggle-menu]');
+
+    const existingScrollListener = /** @type {EventListener | undefined} */ (backToTopBtn.__btScrollListener);
+    const existingClickListener = /** @type {EventListener | undefined} */ (backToTopBtn.__btClickListener);
+    const existingObserver = backToTopBtn.__btMenuObserver;
+
+    if (existingScrollListener) {
+      window.removeEventListener('scroll', existingScrollListener);
+    }
+    if (existingClickListener) {
+      backToTopBtn.removeEventListener('click', existingClickListener);
+    }
+    if (existingObserver) {
+      existingObserver.disconnect();
+    }
+
     const toggle = () => {
-      btn.classList.toggle('is-visible', window.scrollY > threshold);
+      const menuExpanded = headerMenu instanceof HTMLElement && headerMenu.getAttribute('aria-expanded') === 'true';
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      const shouldShow = scrollTop > threshold && !menuExpanded;
+      backToTopBtn.classList.toggle('is-visible', shouldShow);
     };
 
-    // chỉ kích hoạt sau khi trang load xong (vị trí cuộn ổn định)
-    window.addEventListener('scroll', toggle, { passive: true });
+    const handleScroll = () => toggle();
+    const handleClick = () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    backToTopBtn.addEventListener('click', handleClick);
+
+    backToTopBtn.__btScrollListener = handleScroll;
+    backToTopBtn.__btClickListener = handleClick;
+
     toggle();
 
-    btn.addEventListener('click', () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (headerMenu) {
+      const observer = new MutationObserver(toggle);
+      observer.observe(headerMenu, { attributes: true, attributeFilter: ['aria-expanded'] });
+      backToTopBtn.__btMenuObserver = observer;
+    }
+  };
+
+  const runWhenReady = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(initBackToTop);
     });
-  });
+  };
+
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', runWhenReady, { once: true });
+  } else {
+    runWhenReady();
+  }
+
+  document.addEventListener('astro:after-swap', runWhenReady);
+  document.addEventListener('astro:page-load', runWhenReady);
 </script>
