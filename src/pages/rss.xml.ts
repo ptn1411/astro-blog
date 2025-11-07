@@ -4,6 +4,14 @@ import { SITE, METADATA, APP_BLOG } from 'astrowind:config';
 import { fetchPosts } from '~/utils/blog';
 import { getPermalink } from '~/utils/permalinks';
 
+const escapeXml = (value: string = '') =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+
 export const GET = async () => {
   if (!APP_BLOG.isEnabled) {
     return new Response(null, {
@@ -24,6 +32,13 @@ export const GET = async () => {
       title: post.title,
       description: post.excerpt,
       pubDate: post.publishDate,
+      customData: [
+        post.category ? `<category domain="category">${escapeXml(post.category.title)}</category>` : '',
+        ...(post.tags?.map((tag) => `<category domain="tag">${escapeXml(tag.title)}</category>`) ?? []),
+        post.author ? `<category domain="author">${escapeXml(post.author)}</category>` : '',
+      ]
+        .filter(Boolean)
+        .join(''),
     })),
 
     trailingSlash: SITE.trailingSlash,

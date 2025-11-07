@@ -4,10 +4,12 @@ import { getCollection, render } from 'astro:content';
 
 import AuthorLayout from '~/layouts/AuthorLayout.astro';
 import { findPostsByAuthor } from '~/utils/blog';
-import { cleanSlug, getAuthorPermalink, getCanonical } from '~/utils/permalinks';
+import { cleanSlug, getAuthorPermalink, getAuthorsPermalink, getCanonical } from '~/utils/permalinks';
+import { buildBreadcrumbList, ensureAbsolute } from '~/utils/structured-data';
 
 import type { MetaData } from '~/types';
 import type { CollectionEntry } from 'astro:content';
+import type { ImageMetadata } from 'astro';
 
 export const prerender = true;
 
@@ -30,11 +32,31 @@ const { Content } = await render(author);
 const posts = await findPostsByAuthor(author.data.name);
 const slug = cleanSlug(author.data.username ?? author.id);
 const canonical = String(getCanonical(getAuthorPermalink(slug)));
+const authorsListUrl = ensureAbsolute(getAuthorsPermalink());
+const avatar = author.data.avatar;
+const avatarSrc =
+  typeof avatar === 'object' && avatar ? (avatar as ImageMetadata).src : (avatar as string | undefined);
+const structuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: author.data.name,
+    description: author.data.bio,
+    url: canonical,
+    image: avatarSrc,
+  },
+  buildBreadcrumbList([
+    { name: 'Trang chủ', url: ensureAbsolute('/') },
+    { name: 'Tác giả', url: authorsListUrl },
+    { name: author.data.name, url: canonical },
+  ]),
+];
 
 const metadata: MetaData = {
   title: `Tác giả: ${author.data.name}`,
   description: author.data.bio,
   canonical,
+  structuredData,
 };
 ---
 
