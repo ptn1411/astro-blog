@@ -77,15 +77,19 @@ collections:
     label: 'Author'
     folder: 'src/content/author'
     create: true
-    slug: '{{slug}}'
+    slug: '{{fields.username}}'
     extension: 'mdx'
     format: 'frontmatter'
     fields:
       - { label: 'Name', name: 'name', widget: 'string' }
+      - label: 'Username'
+        name: 'username'
+        widget: 'string'
+        hint: 'Chi dung chu thuong, so va dau gach ngang'
       - { label: 'Avatar', name: 'avatar', widget: 'image', required: false }
       - { label: 'Bio', name: 'bio', widget: 'text', required: false }
       - { label: 'Website', name: 'website', widget: 'string', required: false }
-
+      - { label: 'Content', name: 'body', minimal: false, widget: 'markdown' }
   # ========== CATEGORY ==========
   - name: 'category'
     label: 'Category'

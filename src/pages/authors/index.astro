@@ -1,0 +1,87 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import BackToTop from '~/components/common/BackToTop.astro';
+
+import { findAuthorsWithStats } from '~/utils/blog';
+import { cleanSlug, getAuthorPermalink, getAuthorsPermalink, getCanonical } from '~/utils/permalinks';
+
+import type { MetaData } from '~/types';
+import type { ImageMetadata } from 'astro';
+
+export const prerender = true;
+
+const authors = await findAuthorsWithStats();
+const canonical = String(getCanonical(getAuthorsPermalink()));
+
+const metadata: MetaData = {
+  title: 'Tác giả',
+  description: 'Danh sách tác giả và cộng tác viên trên blog.',
+  canonical,
+};
+---
+
+<Layout metadata={metadata}>
+  <section class="px-4 py-16 sm:px-6 mx-auto lg:px-8 max-w-6xl">
+    <header class="text-center mb-12">
+      <h1 class="text-3xl md:text-4xl font-bold font-heading text-slate-900 dark:text-slate-100">
+        Đội ngũ tác giả
+      </h1>
+      <p class="mt-3 text-slate-600 dark:text-slate-300">
+        Gặp gỡ những người đứng sau các bài viết trên blog.
+      </p>
+    </header>
+
+    {authors.length ? (
+      <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        {authors.map((author) => {
+          const avatar = author.data.avatar;
+          const avatarSrc =
+            typeof avatar === 'object' && avatar ? (avatar as ImageMetadata).src : (avatar as string | undefined);
+          const authorSlug = cleanSlug(author.data.username ?? author.id);
+          return (
+            <article class="group rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/60 backdrop-blur p-6 shadow-sm hover:shadow-lg transition-shadow">
+              <a href={getAuthorPermalink(authorSlug)} class="flex flex-col gap-4 h-full">
+                <div class="flex items-center gap-4">
+                  {avatarSrc ? (
+                    <img
+                      src={avatarSrc}
+                      alt={`Ảnh của ${author.data.name}`}
+                      width="72"
+                      height="72"
+                      loading="lazy"
+                      class="h-16 w-16 rounded-full object-cover ring-4 ring-[#367980]/20"
+                    />
+                  ) : (
+                    <div class="h-16 w-16 rounded-full bg-[#367980]/15 text-[#367980] flex items-center justify-center text-2xl font-semibold">
+                      {author.data.name.slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
+                  <div class="space-y-1">
+                    <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100 group-hover:text-[#367980]">
+                      {author.data.name}
+                    </h2>
+                    {author.data.bio && <p class="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">{author.data.bio}</p>}
+                  </div>
+                </div>
+                <div class="mt-auto flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+                  <span>{author.postCount} bài viết</span>
+                  <span class="inline-flex items-center gap-2 text-[#367980] group-hover:translate-x-1 transition-transform">
+                    Xem chi tiết
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                      <path d="M5.22 4.72a.75.75 0 0 1 1.06 0l5.47 5.47-5.47 5.47a.75.75 0 1 1-1.06-1.06L9.94 10 5.22 5.28a.75.75 0 0 1 0-1.06z" />
+                    </svg>
+                  </span>
+                </div>
+              </a>
+            </article>
+          );
+        })}
+      </div>
+    ) : (
+      <p class="text-center text-slate-600 dark:text-slate-300">Chưa có tác giả nào được thêm.</p>
+    )}
+  </section>
+
+  <BackToTop threshold={240} />
+</Layout>
+

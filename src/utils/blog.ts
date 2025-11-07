@@ -213,6 +213,35 @@ export const findTags = async (): Promise<Array<Taxonomy>> => {
 };
 
 /** */
+export const findPostsByAuthor = async (authorName: string): Promise<Array<Post>> => {
+  if (!authorName) return [];
+
+  const normalized = authorName.trim().toLowerCase();
+  const posts = await fetchPosts();
+
+  return posts.filter((post) => post.author?.trim().toLowerCase() === normalized);
+};
+
+type AuthorEntry = CollectionEntry<'author'>;
+
+export interface AuthorWithStats extends AuthorEntry {
+  postCount: number;
+}
+
+/** */
+export const findAuthorsWithStats = async (): Promise<Array<AuthorWithStats>> => {
+  const [authors, posts] = await Promise.all([getCollection('author'), fetchPosts()]);
+
+  return authors.map((author) => {
+    const postCount = posts.filter((post) => post.author === author.data.name).length;
+    return {
+      ...author,
+      postCount,
+    } satisfies AuthorWithStats;
+  });
+};
+
+/** */
 export const getStaticPathsBlogList = async ({ paginate }: { paginate: PaginateFunction }) => {
   if (!isBlogEnabled || !isBlogListRouteEnabled) return [];
   return paginate(await fetchPosts(), {
@@ -236,23 +265,39 @@ export const getStaticPathsBlogPost = async () => {
 export const getStaticPathsBlogCategory = async ({ paginate }: { paginate: PaginateFunction }) => {
   if (!isBlogEnabled || !isBlogCategoryRouteEnabled) return [];
 
-  const posts = await fetchPosts();
-  const categories = {};
-  posts.map((post) => {
-    if (post.category?.slug) {
-      categories[post.category?.slug] = post.category;
-    }
+  const [posts, categoryEntries] = await Promise.all([fetchPosts(), getCollection('category')]);
+
+  const categoryMeta = new Map<string, Taxonomy>();
+  categoryEntries.forEach((entry) => {
+    const slug = cleanSlug(entry.data.name);
+    categoryMeta.set(slug, {
+      slug,
+      title: entry.data.name,
+      description: entry.data.description,
+    });
   });
 
-  return Array.from(Object.keys(categories)).flatMap((categorySlug) =>
-    paginate(
-      posts.filter((post) => post.category?.slug && categorySlug === post.category?.slug),
-      {
-        params: { category: categorySlug, blog: CATEGORY_BASE || undefined },
-        pageSize: blogPostsPerPage,
-        props: { category: categories[categorySlug] },
-      }
-    )
+  const postsByCategory = new Map<string, Post[]>();
+  posts.forEach((post) => {
+    const slug = post.category?.slug;
+    if (!slug) return;
+    if (!postsByCategory.has(slug)) {
+      postsByCategory.set(slug, []);
+    }
+    postsByCategory.get(slug)?.push(post);
+  });
+
+  return Array.from(postsByCategory.entries()).flatMap(([categorySlug, categoryPosts]) =>
+    paginate(categoryPosts, {
+      params: { category: categorySlug, blog: CATEGORY_BASE || undefined },
+      pageSize: blogPostsPerPage,
+      props: {
+        category: categoryMeta.get(categorySlug) ?? {
+          slug: categorySlug,
+          title: categoryPosts[0]?.category?.title ?? categorySlug,
+        },
+      },
+    })
   );
 };
 
@@ -260,25 +305,43 @@ export const getStaticPathsBlogCategory = async ({ paginate }: { paginate: Pagin
 export const getStaticPathsBlogTag = async ({ paginate }: { paginate: PaginateFunction }) => {
   if (!isBlogEnabled || !isBlogTagRouteEnabled) return [];
 
-  const posts = await fetchPosts();
-  const tags = {};
-  posts.map((post) => {
-    if (Array.isArray(post.tags)) {
-      post.tags.map((tag) => {
-        tags[tag?.slug] = tag;
-      });
-    }
+  const [posts, tagEntries] = await Promise.all([fetchPosts(), getCollection('tag')]);
+
+  const tagMeta = new Map<string, Taxonomy>();
+  tagEntries.forEach((entry) => {
+    const slug = cleanSlug(entry.data.name);
+    tagMeta.set(slug, {
+      slug,
+      title: entry.data.name,
+      description: entry.data.description,
+    });
   });
 
-  return Array.from(Object.keys(tags)).flatMap((tagSlug) =>
-    paginate(
-      posts.filter((post) => Array.isArray(post.tags) && post.tags.find((elem) => elem.slug === tagSlug)),
-      {
-        params: { tag: tagSlug, blog: TAG_BASE || undefined },
-        pageSize: blogPostsPerPage,
-        props: { tag: tags[tagSlug] },
+  const postsByTag = new Map<string, Post[]>();
+  posts.forEach((post) => {
+    if (!Array.isArray(post.tags)) return;
+    post.tags.forEach((tag) => {
+      if (!tag?.slug) return;
+      if (!postsByTag.has(tag.slug)) {
+        postsByTag.set(tag.slug, []);
       }
-    )
+      postsByTag.get(tag.slug)?.push(post);
+    });
+  });
+
+  return Array.from(postsByTag.entries()).flatMap(([tagSlug, tagPosts]) =>
+    paginate(tagPosts, {
+      params: { tag: tagSlug, blog: TAG_BASE || undefined },
+      pageSize: blogPostsPerPage,
+      props: {
+        tag:
+          tagMeta.get(tagSlug) ??
+          ({
+            slug: tagSlug,
+            title: tagPosts[0]?.tags?.find((t) => t.slug === tagSlug)?.title ?? tagSlug,
+          } satisfies Taxonomy),
+      },
+    })
   );
 };
 

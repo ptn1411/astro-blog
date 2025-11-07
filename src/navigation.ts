@@ -44,17 +44,18 @@ export const footerData = {
         { text: 'Dịch vụ', href: '/services' },
         { text: 'Dự án', href: '/personal#projects' },
         { text: 'Blog', href: '/blog' },
+        { text: 'Tác giả', href: '/authors' },
         { text: 'Liên hệ', href: '/contact' },
       ],
     },
     {
       title: 'Công nghệ',
       links: [
-        { text: 'Node.js', href: '#' },
-        { text: 'React / Next.js', href: '#' },
-        { text: 'Go', href: '#' },
-        { text: 'Prisma / PostgreSQL', href: '#' },
-        { text: 'Docker', href: '#' },
+        { text: 'Node.js', href: '/category/node-js' },
+        { text: 'React / Next.js', href: '/category/react/next-js' },
+        { text: 'Go', href: '/category/go' },
+        { text: 'Prisma / PostgreSQL', href: '/category/prisma/postgresql' },
+        { text: 'Docker', href: '/category/docker' },
       ],
     },
     {

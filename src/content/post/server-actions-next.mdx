@@ -1,0 +1,34 @@
+---
+title: Server Actions trong Next.js 15 kinh nghiệm thực chiến
+excerpt: Cách mình dùng Server Actions để đơn giản hóa form và tránh code API lặp lại.
+category: React / Next.js
+tags:
+  - react
+  - nextjs
+author: Pham Thanh Nam
+publishDate: 2025-11-08T09:30:00
+---
+
+## Vì sao chọn Server Actions
+
+Ứng dụng dashboard nội bộ có hàng chục form nhỏ. Trước đây mình phải tạo API route riêng cho từng form, vừa dài dòng vừa khó kiểm soát. Server Actions giúp gọi trực tiếp hàm trên server mà không viết thêm layer REST.
+
+## Tổ chức thư mục
+
+```js
+app/
+  actions/
+    team.ts
+  dashboard/
+    page.tsx
+```
+
+Trong `team.ts` mình gom các thao tác CRUD và export từng hàm. Ở component, chỉ cần `useTransition` để bắt trạng thái gửi dữ liệu.
+
+## Một số lưu ý
+
+- Validate dữ liệu ngay trong action, đừng rely vào client.
+- Trả về object thống nhất `{ success, message }` để UI xử lý dễ dàng.
+- Khi cần cache, kết hợp `revalidatePath` hoặc `revalidateTag`.
+
+Nhờ vậy, codebase sạch hơn ~600 dòng và onboarding thành viên mới cũng nhanh hơn đáng kể.

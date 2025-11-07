@@ -1,0 +1,31 @@
+---
+title: Tối ưu API streaming với Node.js
+excerpt: Kinh nghiệm thiết kế endpoint stream dữ liệu dài hơi bằng Node.js và giữ độ trễ ổn định.
+category: Node.js
+tags:
+  - node
+  - performance
+author: Pham Thanh Nam
+publishDate: 2025-11-08T09:00:00
+---
+
+## Vấn đề khi stream dữ liệu lớn
+
+Khi backend phải trả về hàng nghìn record, việc gom toàn bộ dữ liệu vào bộ nhớ trước khi gửi khiến API chậm, tốn RAM và dễ timeout. Với Node.js, mình chuyển sang streaming response để gửi dữ liệu thành từng chunk nhỏ.
+
+## Tối ưu buffer và backpressure
+
+```ts
+import { Readable } from 'node:stream';
+
+export function streamLogs(logs: AsyncGenerator<string>) {
+  return Readable.from(logs, { objectMode: true });
+}
+```
+
+- Luôn thiết lập `highWaterMark` hợp lý (32 hoặc 64) để tránh backpressure.
+- Gửi dữ liệu dạng JSON Lines để client đọc từng phần dễ hơn.
+
+## Kết quả
+
+Sau khi áp dụng, API trả về 50k log giảm thời gian phản hồi từ 18s xuống 4.5s, memory giảm còn 35%. Đây cũng là nền tảng để mình chuẩn bị cho các endpoint realtime khác.

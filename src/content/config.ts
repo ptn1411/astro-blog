@@ -53,6 +53,7 @@ const authorCollection = defineCollection({
   schema: ({ image }: SchemaContext) =>
     z.object({
       name: z.string(),
+      username: z.string().optional(),
       avatar: image().optional(),
       bio: z.string().optional(),
       website: z.string().optional(),

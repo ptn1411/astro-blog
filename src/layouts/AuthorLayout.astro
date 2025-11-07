@@ -1,0 +1,90 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import BlogList from '~/components/blog/List.astro';
+import BackToTop from '~/components/common/BackToTop.astro';
+
+import type { MetaData, Post } from '~/types';
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+import type { ImageMetadata } from 'astro';
+
+export interface Props {
+  metadata?: MetaData;
+  author: {
+    name: string;
+    bio?: string;
+    website?: string;
+    avatar?: ImageMetadata | string;
+  };
+  posts: Array<Post>;
+  Content?: AstroComponentFactory;
+}
+
+const { metadata, author, posts, Content } = Astro.props;
+
+const hasContent = typeof Content === 'function';
+const hasPosts = Array.isArray(posts) && posts.length > 0;
+
+const avatar = author?.avatar;
+const avatarSrc = typeof avatar === 'object' && avatar ? (avatar as ImageMetadata).src : avatar;
+const avatarAlt = author?.name ? `Ảnh chân dung của ${author.name}` : 'Ảnh tác giả';
+---
+
+<Layout metadata={metadata}>
+  <section class="px-4 py-16 sm:px-6 mx-auto lg:px-8 max-w-4xl">
+    <div class="flex flex-col items-center text-center gap-6">
+      {avatarSrc && (
+        <img
+          src={avatarSrc}
+          alt={avatarAlt}
+          width="160"
+          height="160"
+          loading="lazy"
+          class="h-32 w-32 rounded-full object-cover shadow-lg ring-4 ring-[#367980]/30"
+        />
+      )}
+      <div class="space-y-3">
+        <h1 class="font-heading text-3xl md:text-4xl font-semibold text-slate-900 dark:text-slate-100">
+          {author.name}
+        </h1>
+        {author.bio && <p class="text-lg text-slate-600 dark:text-slate-300">{author.bio}</p>}
+        {author.website && (
+          <p>
+            <a
+              href={author.website}
+              class="inline-flex items-center gap-2 text-[#367980] hover:text-[#27575c] font-medium"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <span>Website cá nhân</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                <path d="M12.5 3.75a.75.75 0 0 0 0 1.5h1.69l-6.22 6.22a.75.75 0 1 0 1.06 1.06l6.22-6.22v1.69a.75.75 0 0 0 1.5 0v-4a.75.75 0 0 0-.75-.75h-4z" />
+                <path d="M5.5 5.5a2.5 2.5 0 0 0-2.5 2.5v6a2.5 2.5 0 0 0 2.5 2.5h6a2.5 2.5 0 0 0 2.5-2.5v-1.75a.75.75 0 0 0-1.5 0V14a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h1.75a.75.75 0 0 0 0-1.5H5.5z" />
+              </svg>
+            </a>
+          </p>
+        )}
+      </div>
+    </div>
+  </section>
+
+  {hasContent && (
+    <section class="px-4 sm:px-6 lg:px-8 mx-auto max-w-4xl pb-12">
+      <div class="prose prose-lg max-w-none dark:prose-invert prose-headings:text-slate-800 dark:prose-headings:text-slate-100">
+        <Content />
+      </div>
+    </section>
+  )}
+
+  <section class="px-4 sm:px-6 lg:px-8 mx-auto max-w-5xl pb-20">
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
+      <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Bài viết của {author.name}</h2>
+      <span class="text-sm text-slate-500 dark:text-slate-400">
+        {hasPosts ? `${posts.length} bài viết` : 'Chưa có bài viết nào'}
+      </span>
+    </div>
+    {hasPosts ? <BlogList posts={posts} /> : <p class="text-slate-600 dark:text-slate-300">Đang cập nhật nội dung...</p>}
+  </section>
+
+  <BackToTop threshold={300} />
+</Layout>
+

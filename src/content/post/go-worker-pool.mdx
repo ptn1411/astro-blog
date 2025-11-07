@@ -1,0 +1,35 @@
+---
+title: Thiết kế worker pool linh hoạt bằng Go
+excerpt: Mẹo xây worker pool tái sử dụng cho job IO-bound và CPU-bound.
+category: Go
+tags:
+  - go
+  - concurrency
+author: Pham Thanh Nam
+publishDate: 2025-11-08T10:00:00
+---
+
+## Lý do cần worker pool
+
+Hệ thống crawling của mình phải xử lý hàng nghìn URL mỗi phút. Nếu tạo goroutine vô hạn, chương trình sẽ ngốn RAM và dễ bị giới hạn file descriptor. Worker pool giúp giới hạn số job chạy song song.
+
+## Cấu trúc cơ bản
+
+```go
+type Job func(context.Context) error
+
+type Pool struct {
+    jobs chan Job
+}
+```
+
+- `jobs` nhận task mới.
+- N worker goroutine sẽ đọc từ channel và thực thi.
+
+## Theo dõi trạng thái job
+
+Mình thêm `WaitGroup` và context để hủy job khi service shutdown. Đồng thời log thời gian xử lý từng job để cân chỉnh số lượng worker.
+
+## Kết quả
+
+Worker pool với 32 worker xử lý được ~12k job/phút mà vẫn giữ usage ổn định. Khi cần tăng throughput, chỉ việc scale worker theo cấu hình.

@@ -8,7 +8,7 @@ import { APP_BLOG } from 'astrowind:config';
 import type { Post } from '~/types';
 
 import { findImage } from '~/utils/images';
-import { getPermalink } from '~/utils/permalinks';
+import { getAuthorPermalink, getPermalink } from '~/utils/permalinks';
 import { getFormattedDate } from '~/utils/utils';
 
 export interface Props {
@@ -72,7 +72,11 @@ const link = APP_BLOG?.post?.isEnabled ? getPermalink(post.permalink, 'post') : 
               <>
                 {' '}
                 · <Icon name="tabler:user" class="w-3.5 h-3.5 inline-block -mt-0.5 dark:text-gray-400" />
-                <span>{post.author.replaceAll('-', ' ')}</span>
+                <a
+                  class="hover:underline text-primary dark:text-blue-400"
+                  href={getAuthorPermalink(post.author.toLowerCase())}>
+                  {post.author.replaceAll('-', ' ')}
+                </a>
               </>
             )
           }

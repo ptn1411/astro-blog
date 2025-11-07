@@ -1,0 +1,31 @@
+---
+title: Tối ưu Docker layer cache cho CI/CD
+excerpt: Cách mình giảm 40% thời gian build image bằng việc tổ chức Dockerfile và cache hợp lý.
+category: Docker
+tags:
+  - docker
+  - devops
+author: Pham Thanh Nam
+publishDate: 2025-11-08T11:00:00
+---
+
+## Vấn đề
+
+Mỗi lần CI chạy build image mất gần 6 phút vì phải cài dependency lại từ đầu. Sau khi phân tích, nguyên nhân đến từ Dockerfile chưa tận dụng cache.
+
+## Chiến lược mới
+
+1. **Chia Dockerfile thành hai stage**: `deps` cài node_modules và `runner` chứa code.
+2. **Copy package.json trước**:
+
+```Dockerfile
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY . .
+```
+
+3. **Lưu cache layer**: với GitHub Actions, mình dùng `actions/cache` cho `/tmp/.buildx-cache`.
+
+## Kết quả
+
+Sau khi áp dụng, build trung bình còn 3.4 phút, deploy nhanh hơn mà không ảnh hưởng kích thước image.

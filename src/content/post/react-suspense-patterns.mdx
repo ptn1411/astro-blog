@@ -1,0 +1,38 @@
+---
+title: Quản lý dữ liệu với React Suspense và Next.js App Router
+excerpt: Cách mình tận dụng Suspense để tối ưu cảm giác tải dữ liệu trong Next.js 15.
+category: React / Next.js
+tags:
+  - react
+  - suspense
+  - nextjs
+author: Pham Thanh Nam
+publishDate: 2025-11-08T11:30:00
+---
+
+## Tại sao nên dùng Suspense?
+
+Khi App Router hỗ trợ streaming, Suspense giúp hiển thị skeleton ngay lập tức và chỉ tải phần dữ liệu hoàn tất sau. Điều này giảm cảm giác giật cục khi chuyển trang dashboard.
+
+## Kiến trúc mình áp dụng
+
+```
+app/
+  reports/
+    layout.tsx
+    page.tsx
+    loading.tsx
+    @charts/ChartList.tsx
+```
+
+- `layout.tsx` bọc `Suspense fallback={<ReportsSkeleton />}`.
+- `ChartList` fetch dữ liệu bằng `cache(async () => getCharts())`.
+- Khi dữ liệu cập nhật, dùng `revalidateTag('reports')` để refresh.
+
+## Tips nhỏ
+
+- Tạo fallback riêng cho từng slot để người dùng thấy UI "sống".
+- Đừng lạm dụng Suspense lồng nhau quá sâu; chỉ nhóm theo khu vực người dùng quan tâm.
+- Kết hợp `useTransition` để submit form trong cùng trang mà không chặn UI.
+
+Nhờ cấu hình này, thời gian tương tác (TTI) trang báo cáo của mình giảm còn ~1.2s và số lượng "user rage clicks" giảm rõ rệt.

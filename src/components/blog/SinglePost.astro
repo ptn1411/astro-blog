@@ -4,7 +4,7 @@ import PostTags from '~/components/blog/Tags.astro';
 import Image from '~/components/common/Image.astro';
 import SocialShare from '~/components/common/SocialShare.astro';
 import TableOfContents from '~/components/widgets/TableOfContents.astro';
-import { getPermalink } from '~/utils/permalinks';
+import { getAuthorPermalink, getPermalink } from '~/utils/permalinks';
 import { getFormattedDate } from '~/utils/utils';
 import type { Post } from '~/types';
 
@@ -29,8 +29,13 @@ const headings = post.headings;
         {
           post.author && (
             <>
-              · <Icon name="tabler:user" class="w-4 h-4 inline-block -mt-0.5" />
-              <span>{post.author}</span>
+              {' '}
+              · <Icon name="tabler:user" class="w-3.5 h-3.5 inline-block -mt-0.5 dark:text-gray-400" />
+              <a
+                class="hover:underline text-primary dark:text-blue-400"
+                href={getAuthorPermalink(post.author.toLowerCase())}>
+                {post.author.replaceAll('-', ' ')}
+              </a>
             </>
           )
         }
@@ -81,7 +86,7 @@ const headings = post.headings;
         )
       }
     </header>
-    <hr class="border-t border-gray-200 dark:border-slate-700" />
+
     <!-- Layout -->
     <div
       class:list={[

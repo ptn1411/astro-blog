@@ -49,6 +49,7 @@ export interface Post {
 export interface Taxonomy {
   slug: string;
   title: string;
+  description?: string;
 }
 
 export type StructuredData = Record<string, unknown> | Array<Record<string, unknown>>;

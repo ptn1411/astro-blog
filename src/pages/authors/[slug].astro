@@ -1,0 +1,42 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+
+import AuthorLayout from '~/layouts/AuthorLayout.astro';
+import { findPostsByAuthor } from '~/utils/blog';
+import { cleanSlug, getAuthorPermalink, getCanonical } from '~/utils/permalinks';
+
+import type { MetaData } from '~/types';
+import type { CollectionEntry } from 'astro:content';
+
+export const prerender = true;
+
+export const getStaticPaths = (async () => {
+  const authors = await getCollection('author');
+
+  return authors.map((author) => ({
+    params: { slug: cleanSlug(author.data.username ?? author.id) },
+    props: { author },
+  }));
+}) satisfies GetStaticPaths;
+
+type Props = {
+  author: CollectionEntry<'author'>;
+};
+
+const { author } = Astro.props as Props;
+const { Content } = await render(author);
+
+const posts = await findPostsByAuthor(author.data.name);
+const slug = cleanSlug(author.data.username ?? author.id);
+const canonical = String(getCanonical(getAuthorPermalink(slug)));
+
+const metadata: MetaData = {
+  title: `Tác giả: ${author.data.name}`,
+  description: author.data.bio,
+  canonical,
+};
+---
+
+<AuthorLayout metadata={metadata} author={author.data} posts={posts} Content={Content} />
+

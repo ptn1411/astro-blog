@@ -1,12 +1,11 @@
-﻿---
-import type { InferGetStaticPropsType, GetStaticPaths } from 'astro';
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
 import { blogTagRobots, getStaticPathsBlogTag } from '~/utils/blog';
 
-import Layout from '~/layouts/PageLayout.astro';
 import BlogList from '~/components/blog/List.astro';
-import Headline from '~/components/blog/Headline.astro';
 import Pagination from '~/components/blog/Pagination.astro';
-import { getCanonical, getBlogPermalink } from '~/utils/permalinks';
+import Layout from '~/layouts/PageLayout.astro';
+import { getBlogPermalink, getCanonical } from '~/utils/permalinks';
 import { buildBlogListingSchema, buildBreadcrumbList, ensureAbsolute } from '~/utils/structured-data';
 
 export const prerender = true;
@@ -26,7 +25,7 @@ const totalPages = typeof page.lastPage === 'number' ? page.lastPage : undefined
 const startIndex = currentPage > 1 ? (currentPage - 1) * pageSize : 0;
 
 const breadcrumbItems = [
-  { name: 'Trang chủ', url: ensureAbsolute('/') },
+  { name: 'Trang chu', url: ensureAbsolute('/') },
   { name: 'Blog', url: ensureAbsolute(getBlogPermalink()) },
   { name: tag.title, url: canonical },
 ];
@@ -39,7 +38,7 @@ const structuredData = [
   buildBlogListingSchema({
     url: canonical,
     name: `Bài viết theo thẻ ${tag.title}`,
-    description: `Danh sách các bài viết có thẻ ${tag.title}.`,
+    description: `Danh sách bài viết theo thẻ ${tag.title}.`,
     posts: page.data,
     taxonomy: { type: 'tag', name: tag.title },
     currentPage,
@@ -51,7 +50,7 @@ const structuredData = [
 
 const metadata = {
   title: `Bài viết theo thẻ '${tag.title}'${currentPage > 1 ? ` - Trang ${currentPage}` : ''}`,
-  description: `Danh sách bài viết gắn thẻ ${tag.title}${currentPage > 1 ? ` (trang ${currentPage})` : ''}.`,
+  description: `Danh sách bài viết theo thẻ ${tag.title}${currentPage > 1 ? ` (trang ${currentPage})` : ''}.`,
   canonical,
   robots: {
     index: blogTagRobots?.index,
@@ -63,7 +62,14 @@ const metadata = {
 
 <Layout metadata={metadata}>
   <section class="px-4 md:px-6 py-12 sm:py-16 lg:py-20 mx-auto max-w-4xl">
-    <Headline>Thẻ: {tag.title}</Headline>
+    <header class="text-center mb-12">
+      <h1 class="text-3xl md:text-4xl font-bold font-heading text-slate-900 dark:text-slate-100">
+        Thẻ: {tag.title}
+      </h1>
+      <p class="mt-3 text-slate-600 dark:text-slate-300">{tag.description}</p>
+    </header>
+
+    <hr class="border-t border-gray-200 dark:border-slate-700 mb-10" />
     <BlogList posts={page.data} />
     <Pagination prevUrl={page.url.prev} nextUrl={page.url.next} />
   </section>
