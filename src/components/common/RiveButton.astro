@@ -1,0 +1,262 @@
+---
+interface Props {
+  rivePath: string;
+  stateMachine?: string;
+  iconWidth?: number;
+  iconHeight?: number;
+  href?: string;
+  target?: '_self' | '_blank';
+  variant?: 'tertiary' | 'primary' | 'secondary';
+  class?: string;
+}
+
+const {
+  rivePath,
+  stateMachine = 'State Machine 1',
+  iconWidth = 40,
+  iconHeight = 40,
+  href = '/',
+  target = '_self',
+  variant = 'tertiary',
+  class: className = '',
+} = Astro.props;
+
+const uniqueId = `rive-${Math.random().toString(36).substr(2, 9)}`;
+const containerId = `container-${uniqueId}`;
+const canvasId = `canvas-${uniqueId}`;
+---
+
+<button
+  id={containerId}
+  class={`rive-button-wrapper ${variant} ${className}`}
+  data-rive-path={rivePath}
+  data-state-machine={stateMachine}
+  data-href={href}
+  data-target={target}>
+  <slot />
+  <div
+    class="rive-icon-container"
+    style={`width: ${iconWidth}px; height: ${iconHeight}px; min-width: ${iconWidth}px; min-height: ${iconHeight}px;`}>
+    <canvas id={canvasId} style={`width: ${iconWidth}px; height: ${iconHeight}px;`}></canvas>
+  </div>
+</button>
+
+<script>
+  import { Rive } from '@rive-app/canvas';
+
+  // Global flag to prevent duplicate initialization
+  const initializedContainers = new Set<string>();
+
+  function initRiveButtons() {
+    const containers = document.querySelectorAll('.rive-button-wrapper');
+
+    console.log('🔄 Initializing Rive buttons, found:', containers.length);
+
+    containers.forEach((container, index) => {
+      const htmlContainer = container as HTMLElement;
+      const containerId = htmlContainer.id;
+
+      // Skip if already initialized
+      if (initializedContainers.has(containerId)) {
+        console.log('⏭️ Skipping already initialized:', containerId);
+        return;
+      }
+
+      initializedContainers.add(containerId);
+
+      const iconContainer = htmlContainer.querySelector('.rive-icon-container') as HTMLElement;
+      const canvas = iconContainer?.querySelector('canvas') as HTMLCanvasElement;
+      const rivePath = htmlContainer.dataset.rivePath!;
+      const stateMachine = htmlContainer.dataset.stateMachine!;
+      const href = htmlContainer.dataset.href!;
+      const target = htmlContainer.dataset.target!;
+
+      console.log(`Initializing Rive ${index}:`, {
+        rivePath,
+        stateMachine,
+        canvas: !!canvas,
+      });
+
+      if (!canvas || !iconContainer) {
+        console.error('Canvas or icon container not found!');
+        return;
+      }
+
+      // Set canvas size explicitly
+      canvas.width = iconContainer.offsetWidth;
+      canvas.height = iconContainer.offsetHeight;
+
+      let riveInstance: Rive | null = null;
+
+      try {
+        riveInstance = new Rive({
+          src: rivePath,
+          canvas: canvas,
+          stateMachines: stateMachine,
+          autoplay: true,
+
+          onLoad: () => {
+            console.log('✅ Rive loaded successfully!');
+
+            if (riveInstance) {
+              riveInstance.resizeDrawingSurfaceToCanvas();
+
+              setTimeout(() => {
+                if (riveInstance) {
+                  riveInstance.resizeDrawingSurfaceToCanvas();
+                }
+              }, 50);
+
+              // Get inputs
+              setTimeout(() => {
+                try {
+                  const inputs = riveInstance?.stateMachineInputs(stateMachine);
+                  console.log('📋 Available inputs:', inputs);
+
+                  if (inputs && inputs.length > 0) {
+                    const onHover = inputs.find((i) => i.name === 'onHover');
+                    const onMousedown = inputs.find((i) => i.name === 'onMousedown');
+
+                    if (onHover || onMousedown) {
+                      // Event handlers for the entire button
+                      htmlContainer.addEventListener('mouseenter', () => {
+                        console.log('🖱️ Mouse enter button');
+                        if (onHover) {
+                          onHover.value = true;
+                        }
+                      });
+
+                      htmlContainer.addEventListener('mouseleave', () => {
+                        console.log('🖱️ Mouse leave button');
+                        if (onHover) {
+                          onHover.value = false;
+                        }
+                      });
+
+                      htmlContainer.addEventListener('mousedown', () => {
+                        console.log('🖱️ Mouse down button');
+                        if (onMousedown) {
+                          onMousedown.value = true;
+                        }
+                      });
+
+                      htmlContainer.addEventListener('mouseup', () => {
+                        console.log('🖱️ Mouse up button');
+                        if (onMousedown) {
+                          onMousedown.value = false;
+                        }
+                      });
+                    } else {
+                      console.warn('⚠️ No onHover or onMousedown inputs found!');
+                    }
+                  } else {
+                    console.warn('⚠️ No inputs found in state machine:', stateMachine);
+                  }
+                } catch (error) {
+                  console.error('❌ Error getting inputs:', error);
+                }
+              }, 200);
+              setTimeout(() => {
+                const inputs = riveInstance?.stateMachineInputs(stateMachine);
+                const darkInput = inputs?.find((i) => i.name === 'DarkMode');
+
+                if (darkInput) {
+                  const updateDark = () => {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    darkInput.value = isDark;
+                  };
+
+                  updateDark(); // thiết lập ban đầu
+                  const observer = new MutationObserver(updateDark);
+                  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+                }
+              }, 200);
+            }
+          },
+          onLoadError: (error) => {
+            console.error('❌ Rive load error:', error);
+          },
+        });
+
+        // Navigate on click
+        htmlContainer.addEventListener('click', (e) => {
+          e.preventDefault();
+          console.log('🔗 Clicked! Navigating to:', href);
+          if (href) {
+            if (target === '_blank') {
+              window.open(href, '_blank');
+            } else {
+              window.location.href = href;
+            }
+          }
+        });
+      } catch (error) {
+        console.error('❌ Error initializing Rive:', error);
+      }
+    });
+  }
+
+  // Initialize on page load and after navigation
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initRiveButtons);
+  } else {
+    initRiveButtons();
+  }
+
+  // Re-initialize after Astro View Transitions
+  document.addEventListener('astro:page-load', initRiveButtons);
+
+  // Re-initialize after any navigation
+  window.addEventListener('load', initRiveButtons);
+</script>
+
+<style>
+  .rive-button-wrapper {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: none;
+    transition: all 0.3s ease;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  .rive-button-wrapper.tertiary {
+    background: transparent;
+  }
+
+  .rive-button-wrapper.tertiary:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .rive-button-wrapper:hover {
+    transform: translateY(-2px);
+  }
+
+  .rive-button-wrapper:active {
+    transform: translateY(0);
+  }
+
+  .rive-icon-container {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .rive-button-wrapper:hover .rive-icon-container {
+    transform: scale(1.1);
+  }
+
+  .rive-icon-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
