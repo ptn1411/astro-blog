@@ -50,15 +50,12 @@ const canvasId = `canvas-${uniqueId}`;
   function initRiveButtons() {
     const containers = document.querySelectorAll('.rive-button-wrapper');
 
-    console.log('🔄 Initializing Rive buttons, found:', containers.length);
-
     containers.forEach((container, index) => {
       const htmlContainer = container as HTMLElement;
       const containerId = htmlContainer.id;
 
       // Skip if already initialized
       if (initializedContainers.has(containerId)) {
-        console.log('⏭️ Skipping already initialized:', containerId);
         return;
       }
 
@@ -70,12 +67,6 @@ const canvasId = `canvas-${uniqueId}`;
       const stateMachine = htmlContainer.dataset.stateMachine!;
       const href = htmlContainer.dataset.href!;
       const target = htmlContainer.dataset.target!;
-
-      console.log(`Initializing Rive ${index}:`, {
-        rivePath,
-        stateMachine,
-        canvas: !!canvas,
-      });
 
       if (!canvas || !iconContainer) {
         console.error('Canvas or icon container not found!');
@@ -96,8 +87,6 @@ const canvasId = `canvas-${uniqueId}`;
           autoplay: true,
 
           onLoad: () => {
-            console.log('✅ Rive loaded successfully!');
-
             if (riveInstance) {
               riveInstance.resizeDrawingSurfaceToCanvas();
 
@@ -111,7 +100,6 @@ const canvasId = `canvas-${uniqueId}`;
               setTimeout(() => {
                 try {
                   const inputs = riveInstance?.stateMachineInputs(stateMachine);
-                  console.log('📋 Available inputs:', inputs);
 
                   if (inputs && inputs.length > 0) {
                     const onHover = inputs.find((i) => i.name === 'onHover');
@@ -120,28 +108,24 @@ const canvasId = `canvas-${uniqueId}`;
                     if (onHover || onMousedown) {
                       // Event handlers for the entire button
                       htmlContainer.addEventListener('mouseenter', () => {
-                        console.log('🖱️ Mouse enter button');
                         if (onHover) {
                           onHover.value = true;
                         }
                       });
 
                       htmlContainer.addEventListener('mouseleave', () => {
-                        console.log('🖱️ Mouse leave button');
                         if (onHover) {
                           onHover.value = false;
                         }
                       });
 
                       htmlContainer.addEventListener('mousedown', () => {
-                        console.log('🖱️ Mouse down button');
                         if (onMousedown) {
                           onMousedown.value = true;
                         }
                       });
 
                       htmlContainer.addEventListener('mouseup', () => {
-                        console.log('🖱️ Mouse up button');
                         if (onMousedown) {
                           onMousedown.value = false;
                         }
@@ -181,7 +165,7 @@ const canvasId = `canvas-${uniqueId}`;
         // Navigate on click
         htmlContainer.addEventListener('click', (e) => {
           e.preventDefault();
-          console.log('🔗 Clicked! Navigating to:', href);
+
           if (href) {
             if (target === '_blank') {
               window.open(href, '_blank');

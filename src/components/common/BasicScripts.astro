@@ -8,13 +8,19 @@ import { UI } from 'astrowind:config';
   }
 
   window.basic_script = true;
-
+  const broadcastThemeChange = () =>
+    window.dispatchEvent(
+      new CustomEvent('aw:theme-change', {
+        detail: { theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light' },
+      })
+    );
   function applyTheme(theme) {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+    broadcastThemeChange();
   }
 
   const initTheme = function () {
@@ -73,6 +79,7 @@ import { UI } from 'astrowind:config';
 
       document.documentElement.classList.toggle('dark');
       localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      broadcastThemeChange();
     });
 
     attachEvent('[data-aw-social-share]', 'click', function (_, elem) {
