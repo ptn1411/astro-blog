@@ -31,21 +31,15 @@ jobs:
           REPO_URL="https://github.com/${{ github.repository }}"
           COMMIT_URL="$REPO_URL/commit/${{ github.sha }}"
           DEPLOY_URL="https://bug.edu.vn"
+          TIME="$(date '+%Y-%m-%d %H:%M:%S') (GMT+7)"
 
-          # Escape MarkdownV2 reserved characters safely (không chứa backtick trong regex!)
-          COMMIT_MESSAGE=$(printf '%s' "${{ github.event.head_commit.message }}" | sed -E 's/([_*\[\]()~>#+\-=|{}.!\\])/\\\\\1/g')
-
-          MESSAGE="✅ *AstroWind đã build & deploy thành công\\!*%0A\
-          🪄 *Branch:* \`${{ github.ref_name }}\`%0A\
-          🧩 *Commit:* [${COMMIT_MESSAGE}](${COMMIT_URL})%0A\
-          🌐 *Website:* [Xem trang](${DEPLOY_URL})%0A\
-          🕓 *Thời gian:* $(date '+%Y-%m-%d %H:%M:%S') \\(GMT\\+7\\)%0A\
-          👤 *Người commit:* \`${{ github.actor }}\`"
+          MESSAGE=$(printf "✅ *AstroWind đã build & deploy thành công\\!*\n🪄 *Branch:* \`${{ github.ref_name }}\`\n🧩 *Commit:* [${{ github.event.head_commit.message }}](%s)\n🌐 *Website:* [Xem trang](%s)\n🕓 *Thời gian:* %s\n👤 *Người commit:* \`${{ github.actor }}\`" "$COMMIT_URL" "$DEPLOY_URL" "$TIME")
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
             -d text="$MESSAGE" \
             -d parse_mode="MarkdownV2"
+
 
 
 
