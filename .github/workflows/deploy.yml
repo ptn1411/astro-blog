@@ -30,16 +30,19 @@ jobs:
         run: |
           REPO_URL="https://github.com/${{ github.repository }}"
           COMMIT_URL="$REPO_URL/commit/${{ github.sha }}"
-          DEPLOY_URL="https://phamnam.dev" # 🔹 đổi sang domain của bạn
+          DEPLOY_URL="https://bug.edu.vn"
 
-          MESSAGE="✅ *AstroWind đã build & deploy thành công!*%0A
-          🪄 *Branch:* \`${{ github.ref_name }}\`%0A
-          🧩 *Commit:* [${{ github.event.head_commit.message }}]($COMMIT_URL)%0A
-          🌐 *Website:* [Xem trang]($DEPLOY_URL)%0A
-          🕓 *Thời gian:* $(date '+%Y-%m-%d %H:%M:%S') (GMT+7)%0A
-          👤 *Người commit:* ${{ github.actor }}"
+          COMMIT_MESSAGE=$(echo "${{ github.event.head_commit.message }}" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+
+          MESSAGE="✅ <b>AstroWind đã build &amp; deploy thành công!</b>%0A
+          🪄 <b>Branch:</b> <code>${{ github.ref_name }}</code>%0A
+          🧩 <b>Commit:</b> <a href='$COMMIT_URL'>$COMMIT_MESSAGE</a>%0A
+          🌐 <b>Website:</b> <a href='$DEPLOY_URL'>Xem trang</a>%0A
+          🕓 <b>Thời gian:</b> $(date '+%Y-%m-%d %H:%M:%S') (GMT+7)%0A
+          👤 <b>Người commit:</b> ${{ github.actor }}"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
             -d text="$MESSAGE" \
-            -d parse_mode="Markdown"
+            -d parse_mode="HTML"
+
