@@ -25,35 +25,11 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: dist/
           server-dir: ./
-      - name: Notify Telegram
+      - name: Notify Telegram on Success
         if: success()
         run: |
-          REPO_URL="https://github.com/${{ github.repository }}"
-          COMMIT_URL="$REPO_URL/commit/${{ github.sha }}"
           DEPLOY_URL="https://bug.edu.vn"
-          TIME="$(date '+%Y-%m-%d %H:%M:%S') (GMT+7)"
-
-          # --- PHẦN QUAN TRỌNG: "LÀM SẠCH" BIẾN CHO HTML ---
-          # Hàm này sẽ thay thế &, <, > bằng các ký tự an toàn
-          escape_html() {
-            echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g'
-          }
-
-          # "Làm sạch" tất cả các biến động
-          REF_NAME_HTML=$(escape_html "${{ github.ref_name }}")
-          COMMIT_MSG_HTML=$(escape_html "${{ github.event.head_commit.message }}")
-          TIME_HTML=$(escape_html "$TIME")
-          ACTOR_HTML=$(escape_html "${{ github.actor }}")
-          # --- KẾT THÚC PHẦN LÀM SẠCH ---
-
-          # Sử dụng các biến _HTML đã "làm sạch"
-          MESSAGE=$(printf "✅ <b>AstroWind đã build & deploy thành công!</b>\n🪄 <b>Branch:</b> <code>%s</code>\n🧩 <b>Commit:</b> <a href=\"%s\">%s</a>\n🌐 <b>Website:</b> <a href=\"%s\">Xem trang</a>\n🕓 <b>Thời gian:</b> %s\n👤 <b>Người commit:</b> <code>%s</code>" \
-            "$REF_NAME_HTML" \
-            "$COMMIT_URL" \
-            "$COMMIT_MSG_HTML" \
-            "$DEPLOY_URL" \
-            "$TIME_HTML" \
-            "$ACTOR_HTML")
+          MESSAGE=$(printf "✅ <b>Build & Deploy Thành Công!</b>\n\n🌐 <a href=\"%s\">Xem website</a>\n🕓 <i>%s</i>" "$DEPLOY_URL")
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
