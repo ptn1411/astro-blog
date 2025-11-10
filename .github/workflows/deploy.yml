@@ -32,8 +32,8 @@ jobs:
           COMMIT_URL="$REPO_URL/commit/${{ github.sha }}"
           DEPLOY_URL="https://bug.edu.vn"
 
-          # Escape MarkdownV2 reserved characters
-          COMMIT_MESSAGE=$(echo "${{ github.event.head_commit.message }}" | sed -E 's/([_*\[\]()~`>#+\-=|{}.!])/\\\1/g')
+          # Escape MarkdownV2 special characters safely
+          COMMIT_MESSAGE=$(printf '%s' "${{ github.event.head_commit.message }}" | sed -E 's/([_*\[\]()~`>#+\-=|{}.!\\])/\\\\\1/g')
 
           MESSAGE="✅ *AstroWind đã build & deploy thành công\\!*%0A\
           🪄 *Branch:* \`${{ github.ref_name }}\`%0A\
@@ -46,5 +46,6 @@ jobs:
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
             -d text="$MESSAGE" \
             -d parse_mode="MarkdownV2"
+
 
 
