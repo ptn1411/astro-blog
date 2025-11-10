@@ -25,3 +25,21 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: dist/
           server-dir: ./
+      - name: Notify Telegram
+        if: success()
+        run: |
+          REPO_URL="https://github.com/${{ github.repository }}"
+          COMMIT_URL="$REPO_URL/commit/${{ github.sha }}"
+          DEPLOY_URL="https://phamnam.dev" # 🔹 đổi sang domain của bạn
+
+          MESSAGE="✅ *AstroWind đã build & deploy thành công!*%0A
+          🪄 *Branch:* \`${{ github.ref_name }}\`%0A
+          🧩 *Commit:* [${{ github.event.head_commit.message }}]($COMMIT_URL)%0A
+          🌐 *Website:* [Xem trang]($DEPLOY_URL)%0A
+          🕓 *Thời gian:* $(date '+%Y-%m-%d %H:%M:%S') (GMT+7)%0A
+          👤 *Người commit:* ${{ github.actor }}"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -d text="$MESSAGE" \
+            -d parse_mode="Markdown"
