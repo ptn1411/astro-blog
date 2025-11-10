@@ -11,7 +11,7 @@ import type { AstroIntegration } from 'astro';
 import compress from 'astro-compress';
 import icon from 'astro-icon';
 import pagefind from 'astro-pagefind';
-
+import { visualizer } from 'rollup-plugin-visualizer';
 import astrowind from './vendor/integration';
 
 import {
@@ -33,41 +33,51 @@ const whenExternalScripts = (items: (() => AstroIntegration) | (() => AstroInteg
 export default defineConfig({
   output: 'static',
 
-  integrations: [tailwind({
-    applyBaseStyles: false,
-  }), sitemap(), mdx(), icon({
-    include: {
-      tabler: ['*'],
-      'flat-color-icons': [
-        'template',
-        'gallery',
-        'approval',
-        'document',
-        'advertising',
-        'currency-exchange',
-        'voice-presentation',
-        'business-contact',
-        'database',
-      ],
-    },
-  }), ...whenExternalScripts(() =>
-    partytown({
-      config: { forward: ['dataLayer.push'] },
-    })
-  ), pagefind(), compress({
-    CSS: true,
-    HTML: {
-      'html-minifier-terser': {
-        removeAttributeQuotes: false,
+  integrations: [
+    tailwind({
+      applyBaseStyles: false,
+    }),
+    sitemap(),
+    mdx(),
+    icon({
+      include: {
+        tabler: ['*'],
+        'flat-color-icons': [
+          'template',
+          'gallery',
+          'approval',
+          'document',
+          'advertising',
+          'currency-exchange',
+          'voice-presentation',
+          'business-contact',
+          'database',
+        ],
       },
-    },
-    Image: false,
-    JavaScript: true,
-    SVG: false,
-    Logger: 1,
-  }), astrowind({
-    config: './src/config.yaml',
-  }), react()],
+    }),
+    ...whenExternalScripts(() =>
+      partytown({
+        config: { forward: ['dataLayer.push'] },
+      })
+    ),
+    pagefind(),
+    compress({
+      CSS: true,
+      HTML: {
+        'html-minifier-terser': {
+          removeAttributeQuotes: false,
+        },
+      },
+      Image: false,
+      JavaScript: true,
+      SVG: false,
+      Logger: 1,
+    }),
+    astrowind({
+      config: './src/config.yaml',
+    }),
+    react(),
+  ],
 
   image: {
     service: sharpImageService(),
@@ -85,5 +95,6 @@ export default defineConfig({
         '~': path.resolve(__dirname, './src'),
       },
     },
+    plugins: [visualizer({ open: true })],
   },
 });
