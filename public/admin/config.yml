@@ -17,6 +17,10 @@ collections:
     slug: '{{slug}}'
     extension: 'mdx'
     format: 'frontmatter'
+    slugify:
+      encoding: 'ascii'
+      clean_accents: true
+      sanitize_replacement: '-'
     fields:
       - { label: 'Title', name: 'title', widget: 'string' }
       - { label: 'Excerpt', name: 'excerpt', widget: 'string' }
