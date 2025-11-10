@@ -29,7 +29,7 @@ jobs:
         if: success()
         run: |
           DEPLOY_URL="https://bug.edu.vn"
-          MESSAGE=$(printf "✅ <b>Build & Deploy Thành Công!</b>\n\n🌐 <a href=\"%s\">Xem website</a>\n🕓 <i>%s</i>" "$DEPLOY_URL")
+          MESSAGE=$(printf "✅ Build & Deploy Thành Công!\n\n🌐 <a href=\"%s\">Xem website</a>\n🕓 <i>%s</i>" "$DEPLOY_URL")
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
