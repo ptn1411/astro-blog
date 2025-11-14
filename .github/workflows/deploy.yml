@@ -1,4 +1,4 @@
-name: Build & Deploy AstroWind
+name: Deploy AstroWind to Cloudflare Pages
 
 on:
   push:
@@ -11,20 +11,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-      - run: npm ci
-      - run: npm run build
-      - name: Upload via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: dist/
-          server-dir: ./
+      - name: Trigger Cloudflare Deploy
+        run: |
+          curl -X POST "${{ secrets.CF_DEPLOY_HOOK }}"
+
       - name: Notify Telegram on Success
         if: success()
         run: |
