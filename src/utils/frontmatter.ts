@@ -3,7 +3,7 @@ import GithubSlugger from 'github-slugger';
 import { toString } from 'mdast-util-to-string';
 import getReadingTime from 'reading-time';
 import { visit } from 'unist-util-visit';
-
+const slugger = new GithubSlugger();
 export const readingTimeRemarkPlugin: RemarkPlugin = () => {
   return function (tree, file) {
     const textOnPage = toString(tree);
@@ -16,9 +16,6 @@ export const readingTimeRemarkPlugin: RemarkPlugin = () => {
 };
 export const extractHeadingsRemarkPlugin: RemarkPlugin = () => {
   return (tree, file) => {
-    // Tạo slugger mới cho mỗi file
-    const slugger = new GithubSlugger();
-
     const headings: { depth: number; text: string; slug: string }[] = [];
 
     visit(tree, 'heading', (node) => {
