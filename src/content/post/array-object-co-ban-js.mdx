@@ -1,0 +1,317 @@
+---
+title: "Array & Object cơ bản trong JavaScript: Toàn tập dành cho Web Developer"
+excerpt: "Hướng dẫn chi tiết Array & Object cơ bản trong JavaScript giúp bạn hiểu rõ cách hoạt động, thao tác, và áp dụng vào dự án thực tế."
+category: JavaScript
+tags:
+  - javascript
+  - array
+  - object
+  - js-basic
+  - web-development
+author: "Phạm Thành Nam"
+image: /src/assets/images/hero-image.png
+publishDate: 2025-11-16T00:00:00.000Z
+---
+
+# Array & Object cơ bản trong JavaScript: Toàn tập dành cho Web Developer
+
+Khi bắt đầu hành trình trở thành web developer, một trong những điều quan trọng nhất bạn phải nắm vững chính là **Array & Object cơ bản** trong JavaScript. Đây là hai cấu trúc dữ liệu xuất hiện trong mọi ứng dụng — từ một trang web đơn giản đến hệ thống backend phức tạp. Không hiểu rõ chúng đồng nghĩa với việc bạn sẽ rất dễ gặp bug, viết code không tối ưu và khó làm việc với thư viện hoặc framework lớn như React, Vue, Node.js hay Next.js.
+
+Trong bài viết này, chúng ta sẽ đi sâu vào:
+
+- Array là gì, cách hoạt động và những thao tác quan trọng
+- Object là gì, dùng khi nào
+- Các thao tác nâng cao giúp bạn viết code rõ ràng hơn
+- Ví dụ thực tế trong phát triển web
+- Những best practices dành cho developer
+
+Nội dung được viết tự nhiên, dễ hiểu, tối ưu SEO theo từ khóa **“Array & Object cơ bản”**.
+
+---
+
+## 1. Array & Object cơ bản là gì?
+
+Trong JavaScript, Array và Object là hai kiểu dữ liệu quan trọng thuộc nhóm **non-primitive (phức tạp)**. Chúng có khả năng chứa nhiều giá trị và hỗ trợ tổ chức dữ liệu theo cấu trúc linh hoạt.
+
+### Array là gì?
+
+Array là **danh sách có thứ tự**, nơi mỗi phần tử được đánh chỉ số từ 0.
+
+Ví dụ:
+
+```js
+const numbers = [10, 20, 30, 40];
+```
+
+### Object là gì?
+
+Object là **tập hợp các cặp key-value**, thường dùng để mô tả một thực thể.
+
+```js
+const user = {
+  name: "Nam",
+  age: 22,
+  isAdmin: false
+};
+```
+
+Cả Array và Object đều là xương sống của mọi kiểu dữ liệu phức tạp mà bạn sẽ gặp trong dự án.
+
+---
+
+## 2\. Array cơ bản: Cách khai báo và sử dụng
+
+Array có thể chứa bất kỳ kiểu dữ liệu nào: number, string, boolean, object thậm chí là function.
+
+### Khai báo Array
+
+```js
+const fruits = ["apple", "banana", "orange"];
+```
+
+Hoặc:
+
+```js
+const mixed = [1, "hello", true, { x: 10 }];
+```
+
+### Truy cập phần tử
+
+```js
+console.log(fruits[0]); // apple
+console.log(fruits[2]); // orange
+```
+
+### Thay đổi giá trị
+
+```js
+fruits[1] = "mango";
+```
+
+### Lấy độ dài Array
+
+```js
+console.log(fruits.length);
+```
+
+---
+
+## 3\. Các phương thức Array thường dùng nhất
+
+Dưới đây là danh sách các method mà mọi web developer cần biết:
+
+### 3.1. push() – Thêm phần tử vào cuối
+
+```js
+fruits.push("grape");
+```
+
+### 3.2. pop() – Xóa phần tử cuối
+
+```js
+fruits.pop();
+```
+
+### 3.3. shift() – Xóa phần tử đầu
+
+```js
+fruits.shift();
+```
+
+### 3.4. unshift() – Thêm phần tử đầu
+
+```js
+fruits.unshift("kiwi");
+```
+
+### 3.5. map() – Tạo array mới từ array cũ
+
+```js
+const numbers = [1, 2, 3];
+const doubled = numbers.map(n => n * 2); // [2, 4, 6]
+```
+
+### 3.6. filter() – Lọc phần tử
+
+```js
+const evens = numbers.filter(n => n % 2 === 0);
+```
+
+### 3.7. reduce() – Tính toán giá trị cuối cùng
+
+```js
+const total = numbers.reduce((sum, n) => sum + n, 0);
+```
+
+---
+
+## 4\. Object cơ bản: Cách khai báo và thao tác
+
+### Khai báo Object
+
+```js
+const user = {
+  name: "Nam",
+  age: 22
+};
+```
+
+### Truy cập thuộc tính
+
+```js
+console.log(user.name);
+console.log(user["age"]);
+```
+
+### Thêm thuộc tính
+
+```js
+user.email = "nam@example.com";
+```
+
+### Xóa thuộc tính
+
+```js
+delete user.age;
+```
+
+### Duyệt Object với for...in
+
+```js
+for (let key in user) {
+  console.log(key, user[key]);
+}
+```
+
+---
+
+## 5\. Destructuring – Cách rút gọn code hiệu quả
+
+Destructuring giúp bạn “tách” dữ liệu ra khỏi Array hoặc Object một cách ngắn gọn.
+
+### Với Array
+
+```js
+const [a, b] = [10, 20];
+```
+
+### Với Object
+
+```js
+const { name, email } = user;
+```
+
+Rất hữu ích trong React:
+
+```jsx
+function Profile({ name, age }) {
+  return <div>{name} - {age}</div>;
+}
+```
+
+---
+
+## 6\. Spread & Rest – Công cụ mạnh mẽ khi xử lý dữ liệu
+
+### Spread (...)
+
+Dùng để “trải” dữ liệu ra:
+
+```js
+const arr1 = [1, 2];
+const arr2 = [...arr1, 3, 4];
+```
+
+Object:
+
+```js
+const user2 = { ...user, age: 23 };
+```
+
+### Rest (...)
+
+Dùng để gom dữ liệu lại:
+
+```js
+const [first, ...others] = [1, 2, 3, 4];
+```
+
+Object:
+
+```js
+const { name, ...info } = user;
+```
+
+---
+
+## 7\. Example thực tế: Render danh sách sản phẩm
+
+### Array of Object – kiểu dữ liệu phổ biến nhất
+
+```js
+const products = [
+  { id: 1, name: "iPhone", price: 2000 },
+  { id: 2, name: "MacBook", price: 3000 }
+];
+```
+
+### Map để hiển thị UI (React)
+
+```jsx
+{products.map(p => (
+  <div key={p.id}>
+    <h3>{p.name}</h3>
+    <p>Giá: {p.price}$</p>
+  </div>
+))}
+```
+
+### Filter để tìm sản phẩm
+
+```js
+const expensive = products.filter(p => p.price > 2500);
+```
+
+---
+
+## 8\. Những lưu ý quan trọng khi làm việc với Array & Object cơ bản
+
+- Không mutate (thay đổi trực tiếp) dữ liệu khi không cần thiết  
+    → dùng spread để tạo bản sao
+
+- Luôn kiểm tra dữ liệu null/undefined
+
+- Không lạm dụng loop lồng nhau (nested loop)
+
+- Dùng map/filter thay vì for truyền thống khi phù hợp
+
+- Object không đảm bảo thứ tự key — không dùng để lưu danh sách có thứ tự
+
+---
+
+## 9\. Best Practices dành cho web developer
+
+- Ưu tiên sử dụng **const** cho Array & Object  
+    → tránh override biến
+
+- Sử dụng destructuring để code gọn và dễ đọc
+
+- Khi xử lý API, luôn validate dữ liệu nhận được
+
+- Dùng TypeScript để mô tả chính xác cấu trúc dữ liệu (nếu có)
+
+---
+
+## 10\. Kết luận
+
+Hiểu rõ **Array & Object cơ bản** là bước quan trọng trong hành trình trở thành web developer chuyên nghiệp. Chúng không chỉ là kiến thức nền mà còn liên quan trực tiếp đến mọi công nghệ bạn sẽ học sau này như JSON, REST API, React state, context, Redux, backend Node.js, database và nhiều hơn nữa.
+
+Nếu bạn đã hiểu kỹ bài này, bạn có thể tự tin chuyển sang các chủ đề nâng cao hơn như:
+
+- Array nâng cao (flatMap, sort, slice/splice…)
+
+- Object nâng cao (prototype, cloning, deep copy…)
+
+- JSON và API
+
+- Xử lý dữ liệu bất đồng bộ

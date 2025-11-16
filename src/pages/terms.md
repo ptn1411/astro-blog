@@ -1,6 +1,6 @@
 ﻿---
 title: 'Điều khoản sử dụng'
-layout: "~/layouts/MarkdownLayout.astro"
+layout: '~/layouts/MarkdownLayout.astro'
 ---
 
 _Cập nhật lần cuối_: 03 tháng 11, 2025
@@ -18,7 +18,7 @@ Các từ viết hoa ở đầu câu hoặc cụm từ được hiểu theo đ�
 Trong phạm vi Điều khoản này:
 
 - **Tôi** ("tôi", "của tôi") là Phạm Thành Nam.
-- **Website** là trang ptndz.dev và mọi tên miền phụ liên quan.
+- **Website** là trang bug.edu.vn và mọi tên miền phụ liên quan.
 - **Dịch vụ** là toàn bộ nội dung, tính năng và biểu mẫu do Website cung cấp.
 - **Bạn** là cá nhân, tổ chức truy cập hoặc sử dụng Dịch vụ.
 - **Thiết bị** là mọi thiết bị có thể truy cập Website như máy tính, điện thoại hoặc máy tính bảng.
@@ -61,4 +61,4 @@ Nếu bạn có câu hỏi về Điều khoản sử dụng, vui lòng liên h�
 
 - **Email:** <ptndev18@gmail.com>
 - **Telegram:** [t.me/Ptn1411](https://t.me/Ptn1411)
-- **Website:** [https://ptndz.dev](https://ptndz.dev)
+- **Website:** [https://bug.edu.vn](https://bug.edu.vn)

@@ -78,6 +78,6 @@ export const footerData = {
     { ariaLabel: 'X (Twitter)', icon: 'tabler:brand-x', href: '#' },
   ],
   footNote: `
-    Copyright ${new Date().getFullYear()} - Xây dựng bởi <a class="text-blue-600 underline dark:text-muted" href="https://ptndz.dev">Phạm Thành Nam</a> - Crafted with Astro + TailwindCSS.
+    Copyright ${new Date().getFullYear()} - Xây dựng bởi <a class="text-blue-600 underline dark:text-muted" href="https://bug.edu.vn">Phạm Thành Nam</a> - Crafted with Astro + TailwindCSS.
   `,
 };

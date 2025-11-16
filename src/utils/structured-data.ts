@@ -28,7 +28,7 @@ export const PROFILE = {
   description:
     'Phát triển web fullstack, kiến trúc hệ thống và tạo ra những công cụ sáng tạo giúp ý tưởng trở thành sản phẩm.',
   image: 'https://avatars.githubusercontent.com/u/57529765?v=4',
-  email: 'mailto:phamnam.dev@gmail.com',
+  email: 'mailto:contact@bug.edu.vn',
   location: {
     '@type': 'Country',
     name: 'Vietnam',
@@ -37,7 +37,7 @@ export const PROFILE = {
     'https://github.com/ptndz',
     'https://www.linkedin.com/in/ptn1411',
     'https://t.me/Ptn1411',
-    'https://ptndz.dev',
+    'https://bug.edu.vn',
   ],
 } as const;
 
@@ -95,9 +95,9 @@ export const buildProfessionalServiceSchema = ({
     inLanguage: DEFAULT_LANGUAGE,
 
     // ✅ Bổ sung thông tin liên hệ & thương hiệu
-    image: 'https://bug.edu.vn/assets/cover.jpg',
-    logo: 'https://bug.edu.vn/assets/logo.png',
-    telephone: '+84-912-345-678',
+    image: 'https://bug.edu.vn/cover.jpg',
+    logo: 'https://bug.edu.vn/logo.png',
+    telephone: '+84-346-038-772',
     email: PROFILE.email,
     priceRange: '$$',
     openingHours: 'Mo-Fr 09:00-18:00',
@@ -116,7 +116,7 @@ export const buildProfessionalServiceSchema = ({
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Customer Support',
-      telephone: '+84-912-345-678',
+      telephone: '+84-345-038-772',
       email: 'contact@bug.edu.vn',
       availableLanguage: ['Vietnamese', 'English'],
     },
@@ -135,7 +135,6 @@ export const buildProfessionalServiceSchema = ({
 
   return schema;
 };
-
 
 export const buildContactPageSchema = ({
   url,

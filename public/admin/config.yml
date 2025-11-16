@@ -2,7 +2,7 @@ backend:
   name: github
   repo: ptn1411/astro-blog
   branch: main
-  site_domain: server-message.bug.edu.vn
+  site_domain: bug.edu.vn
   base_url: https://sveltia-cms-auth.zvw180ptn1411.workers.dev
 
 media_folder: 'src/assets/images'

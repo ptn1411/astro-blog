@@ -1,0 +1,359 @@
+---
+title: "Hàm (Function) trong JavaScript: Hiểu sâu bản chất và cách sử dụng hiệu quả"
+excerpt: "Bài viết giúp bạn hiểu rõ hàm (function) trong JavaScript, cách hoạt động, các dạng hàm, scope, closure và cách dùng hàm tối ưu trong dự án web."
+category: JavaScript
+tags:
+  - javascript
+  - function
+  - web-development
+  - js-basic
+  - closure
+author: "Phạm Thành Nam"
+image: /src/assets/images/hero-image.png
+publishDate: 2025-11-16T00:00:00.000Z
+---
+
+# Hàm (Function) trong JavaScript: Hiểu sâu bản chất và cách sử dụng hiệu quả
+
+Trong JavaScript, **hàm (function)** là một trong những khái niệm quan trọng nhất mà mọi web developer đều phải nắm vững. Không chỉ là "một khối mã được tái sử dụng", hàm còn là nền tảng của lập trình hướng hàm (functional programming), là yếu tố tạo nên scope, closure, module, callback, và async/await.  
+Vì vậy, việc hiểu đúng bản chất của function sẽ giúp bạn viết code sạch hơn, tối ưu hơn và tránh được những lỗi khó chịu trong môi trường browser lẫn Node.js.
+
+---
+
+## 1. Function là gì?
+
+Hàm là một **khối mã được định nghĩa một lần và có thể được gọi nhiều lần**.  
+Trong JavaScript, hàm là **first-class citizen** — tức là chúng có thể:
+
+- Được gán vào biến
+- Được truyền làm tham số
+- Được trả về từ một hàm khác
+- Có thể được lưu trong object hoặc array
+
+Điều này mở ra khả năng lập trình rất linh hoạt.
+
+### Ví dụ đơn giản
+
+```js
+function sayHello() {
+  console.log("Hello Nam!");
+}
+
+sayHello();
+```
+
+---
+
+## 2\. Các cách khai báo hàm trong JavaScript
+
+JavaScript hỗ trợ nhiều cách định nghĩa hàm, mỗi cách có ưu và nhược điểm riêng.
+
+### 2.1. Function Declaration
+
+```js
+function sum(a, b) {
+  return a + b;
+}
+```
+
+**Đặc điểm:**
+
+- Có **hoisting** → có thể gọi trước khi khai báo
+
+- Thường dùng trong các hàm logic độc lập
+
+### 2.2. Function Expression
+
+```js
+const sum = function(a, b) {
+  return a + b;
+};
+```
+
+**Đặc điểm:**
+
+- Không được hoist như declaration
+
+- Dùng trong callback hoặc gán vào biến
+
+### 2.3. Arrow Function
+
+```js
+const sum = (a, b) => a + b;
+```
+
+**Đặc điểm:**
+
+- Ngắn gọn, phù hợp xử lý nhanh
+
+- **Không có this, arguments, super, new**
+
+- Không dùng làm constructor
+
+### 2.4. Anonymous Function (Hàm vô danh)
+
+```js
+setTimeout(function() {
+  console.log("Run after 1s");
+}, 1000);
+```
+
+Dùng nhiều trong callback.
+
+### 2.5. IIFE (Immediately Invoked Function Expression)
+
+```js
+(function() {
+  console.log("IIFE chạy ngay lập tức!");
+})();
+```
+
+Dùng để tạo scope riêng — rất quan trọng trước thời ES6.
+
+---
+
+## 3\. Tham số và đối số (Parameter vs Argument)
+
+Nhiều người mới học thường nhầm hai khái niệm này:
+
+- **Parameter**: tham số, xuất hiện trong khai báo hàm
+
+- **Argument**: đối số, chính là giá trị truyền vào khi gọi hàm
+
+```js
+function greet(name) { // name là parameter
+  console.log("Hello " + name);
+}
+
+greet("Nam"); // "Nam" là argument
+```
+
+---
+
+## 4\. Default Parameter (Tham số mặc định)
+
+Tính năng hữu ích từ ES6.
+
+```js
+function multiply(a, b = 1) {
+  return a * b;
+}
+
+multiply(5); // => 5
+```
+
+---
+
+## 5\. Rest Parameter và Spread
+
+### Rest Parameter (...)
+
+Dùng để gom nhiều đối số thành một array.
+
+```js
+function total(...numbers) {
+  return numbers.reduce((sum, n) => sum + n, 0);
+}
+
+total(1, 2, 3, 4); // => 10
+```
+
+### Spread (...)
+
+Dùng để “trải” một mảng thành nhiều phần tử.
+
+```js
+const arr = [1, 2, 3];
+console.log(...arr);
+```
+
+---
+
+## 6\. This trong hàm — cơn ác mộng với nhiều dev
+
+Trong function truyền thống, giá trị của `this` **phụ thuộc vào cách hàm được gọi**, không phải cách hàm được khai báo.
+
+### Ví dụ
+
+```js
+const person = {
+  name: "Nam",
+  show() {
+    console.log(this.name);
+  }
+};
+
+person.show(); // Nam
+```
+
+Nhưng nếu tách ra:
+
+```js
+const fn = person.show;
+fn(); // undefined hoặc lỗi tùy strict mode
+```
+
+### Arrow function loại bỏ vấn đề này
+
+Arrow function không có `this` riêng → nó lấy this từ phạm vi cha.
+
+```js
+const person = {
+  name: "Nam",
+  show: () => {
+    console.log(this.name); // undefined
+  }
+};
+```
+
+Do đó, arrow function **không dùng để định nghĩa method trong object**.
+
+---
+
+## 7\. Function Scope và Block Scope
+
+### Function Scope
+
+Chỉ áp dụng cho `var`.
+
+```js
+function test() {
+  var x = 10;
+}
+console.log(x); // lỗi
+```
+
+### Block Scope
+
+Áp dụng cho `let` và `const`.
+
+```js
+if (true) {
+  let y = 20;
+}
+console.log(y); // lỗi
+```
+
+---
+
+## 8\. Closure — thứ khiến JavaScript trở nên mạnh mẽ
+
+Closure là khả năng của một hàm **ghi nhớ phạm vi nơi nó được tạo**, ngay cả khi phạm vi đó đã kết thúc.
+
+```js
+function createCounter() {
+  let count = 0;
+  return function() {
+    return ++count;
+  };
+}
+
+const counter = createCounter();
+
+counter(); // 1
+counter(); // 2
+```
+
+Ứng dụng closure:
+
+- Tạo module
+
+- Tạo biến private
+
+- Xử lý callback
+
+- Tối ưu memory
+
+---
+
+## 9\. Higher-Order Functions
+
+Là những hàm:
+
+- Nhận hàm khác làm tham số  
+    hoặc
+
+- Trả về hàm khác
+
+Ví dụ: map, filter, reduce.
+
+```js
+const numbers = [1, 2, 3];
+
+const doubled = numbers.map(n => n * 2);
+```
+
+---
+
+## 10\. Function trong bất đồng bộ: callback, promise, async/await
+
+### Callback
+
+```js
+setTimeout(() => {
+  console.log("Done!");
+}, 1000);
+```
+
+Nhược điểm: dễ dẫn đến “callback hell”.
+
+### Promise
+
+```js
+fetch(url)
+  .then(res => res.json())
+  .then(data => console.log(data));
+```
+
+### Async/Await
+
+Đơn giản, dễ đọc:
+
+```js
+async function loadData() {
+  const res = await fetch(url);
+  return await res.json();
+}
+```
+
+---
+
+## 11\. Những sai lầm phổ biến khi dùng function
+
+Một số lỗi nhiều dev gặp:
+
+- Không hiểu “this” hoạt động thế nào
+
+- Dùng arrow function sai chỗ (ví dụ trong object method)
+
+- Lạm dụng callback thay vì sử dụng promise
+
+- Không rõ sự khác nhau giữa declaration và expression
+
+- Không quản lý scope dẫn đến leak biến
+
+---
+
+## 12\. Best Practices khi sử dụng function
+
+- Ưu tiên arrow function cho xử lý đơn giản
+
+- Dùng function declaration cho logic core
+
+- Tránh dùng `var`
+
+- Đặt tên hàm rõ ràng, mô tả đúng chức năng
+
+- Hạn chế function quá dài → chia nhỏ
+
+- Tận dụng default parameter
+
+- Nên viết pure function nếu có thể
+
+---
+
+## Kết luận
+
+“Hàm (function)” là nền tảng cực kỳ quan trọng trong JavaScript — hiểu kỹ về nó đồng nghĩa bạn có thể làm chủ mọi thứ còn lại: module, class, async, event loop, performance…
+
+Nếu bạn đang xây dựng kỹ năng JavaScript từ cơ bản đến nâng cao, hãy dành thời gian luyện tập function, experiment với closure, this, async/await… Bạn sẽ thấy code của mình tiến bộ rõ rệt.

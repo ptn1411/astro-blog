@@ -1,10 +1,9 @@
 ﻿---
-import ContactUs from '~/components/widgets/Contact.astro';
 import Features2 from '~/components/widgets/Features2.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
-import Layout from "~/layouts/PageLayout.astro";
-import { getCanonical } from "~/utils/permalinks";
-import { buildContactPageSchema } from "~/utils/structured-data";
+import Layout from '~/layouts/PageLayout.astro';
+import { getCanonical } from '~/utils/permalinks';
+import { buildContactPageSchema } from '~/utils/structured-data';
 
 const canonical = String(getCanonical(Astro.url.pathname));
 
@@ -17,8 +16,7 @@ const metadata = {
     buildContactPageSchema({
       url: canonical,
       email: 'mailto:phamnam.dev@gmail.com',
-      description:
-        'Kênh liên lạc cho hợp tác phát triển phần mềm, tư vấn kỹ thuật và các ý tưởng dự án sáng tạo.',
+      description: 'Kênh liên lạc cho hợp tác phát triển phần mềm, tư vấn kỹ thuật và các ý tưởng dự án sáng tạo.',
     }),
   ],
 };
@@ -33,22 +31,33 @@ const metadata = {
   />
 
   <!-- Contact Form -->
-  <ContactUs
-    id="form"
-    title="Gửi tôi một lời nhắn"
-    subtitle="Tôi thường phản hồi trong vòng 24 giờ - cứ thoải mái chia sẻ ý tưởng hoặc câu hỏi của bạn."
-    action="https://docs.google.com/forms/d/e/1FAIpQLSe5lZtZbEXAMPLE/formResponse"
-    method="POST"
-    inputs={[
-      { type: 'text', name: 'name', label: 'Họ tên' },
-      { type: 'email', name: 'email', label: 'Email của bạn' },
-    ]}
-    textarea={{ name: 'message', label: 'Nội dung' }}
-    disclaimer={{
-      label: 'Tôi chỉ sử dụng thông tin liên hệ để trả lời bạn. Không spam, không đăng ký.',
-    }}
-    description="Tin nhắn của bạn sẽ đến thẳng hộp thư của tôi."
-  />
+
+  <section id="form" class="py-12">
+    <div class="mx-auto max-w-3xl">
+      <h2 class="text-3xl font-bold mb-4">Gửi tôi một lời nhắn</h2>
+      <p class="text-lg mb-8">
+        Tôi thường phản hồi trong vòng 24 giờ - cứ thoải mái chia sẻ ý tưởng hoặc câu hỏi của bạn.
+      </p>
+
+      <div class="w-full min-h-[900px] rounded-xl overflow-hidden shadow-lg">
+        <iframe
+          src="https://docs.google.com/forms/d/e/1FAIpQLScQJwOpLGFrES6Ah5wg3BohZ2P4MCGj816-N8Szxvale5K2Zg/viewform?embedded=true"
+          width="100%"
+          height="900"
+          frameborder="0"
+          marginheight="0"
+          marginwidth="0">
+          Đang tải…
+        </iframe>
+      </div>
+
+      <p class="mt-4 text-sm text-gray-500">Tin nhắn của bạn sẽ đến thẳng hộp thư của tôi.</p>
+
+      <p class="mt-2 text-sm text-gray-500">
+        Tôi chỉ sử dụng thông tin liên hệ để trả lời bạn. Không spam, không đăng ký.
+      </p>
+    </div>
+  </section>
 
   <!-- Contact Info -->
   <Features2
@@ -83,14 +92,9 @@ const metadata = {
       },
       {
         title: 'Portfolio',
-        description: 'ptndz.dev',
+        description: 'bug.edu.vn',
         icon: 'tabler:world',
       },
     ]}
   />
 </Layout>
-
-
-
-
-

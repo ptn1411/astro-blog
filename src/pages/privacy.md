@@ -79,7 +79,7 @@ Bạn có quyền:
 - Rút lại sự đồng ý cho bất cứ hoạt động xử lý dữ liệu nào.
 - Liên hệ trực tiếp để được giải đáp.
 
-Để thực hiện, hãy gửi email tới **<contact@ptndz.dev>** hoặc nhắn qua [t.me/Ptn1411](https://t.me/Ptn1411).
+Để thực hiện, hãy gửi email tới **<contact@bug.edu.vn>** hoặc nhắn qua [t.me/Ptn1411](https://t.me/Ptn1411).
 
 ---
 
@@ -103,4 +103,4 @@ Nếu bạn có câu hỏi hoặc lo ngại về Chính sách quyền riêng tư
 
 - **Email:** <ptndev18@gmail.com>
 - **Telegram:** [t.me/Ptn1411](https://t.me/Ptn1411)
-- **Website:** [https://ptndz.dev](https://ptndz.dev)
+- **Website:** [https://bug.edu.vn](https://bug.edu.vn)
