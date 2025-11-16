@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Badge3D from './Badge3D';
+import ForceDarkMode from './ForceDarkMode';
 
 /**
  * Đồng bộ theme + style với AstroWind
@@ -48,6 +49,7 @@ export default function BadgeShowcase({ attendee }) {
 
   return (
     <>
+      <ForceDarkMode />
       {isDesktop ? (
         <div className="h-screen">
           <Badge3D attendee={attendee} isDark={isDark} />
@@ -56,7 +58,7 @@ export default function BadgeShowcase({ attendee }) {
         <div className="container">
           <div className="h-screen pt-40">
             <h1 className="bg-zinc-800 from-foreground bg-clip-text text-[12vw] font-bold tracking-tighter text-transparent dark:bg-gradient-to-b dark:to-zinc-400 md:text-8xl">
-              omsimos.com
+              bug.edu.vn
             </h1>
             <p className="max-w-2xl text-muted-foreground md:text-xl">
               Mobile version of 3D badge is{' '}

@@ -28,7 +28,7 @@ function buildToc(headings: TableOfContent[]) {
 }
 ---
 
-<nav class="dark:text-black">
+<nav class="dark:text-black max-h-[calc(100vh-7rem)] overflow-y-auto pr-2">
   <p class="font-semibold mb-3 text-2xl dark:text-white">Mục lục</p>
   <ul class="[text-wrap:balance] flex flex-col gap-1 text-md">
     {toc.map((heading) => <TableOfContentsHeading heading={heading} />)}

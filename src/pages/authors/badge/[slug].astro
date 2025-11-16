@@ -1,0 +1,53 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+
+import type { CollectionEntry } from 'astro:content';
+import BadgeShowcase from '~/components/badge/BadgeShowcase.jsx';
+import Layout from '~/layouts/PageLayout.astro';
+import { cleanSlug } from '~/utils/permalinks';
+
+export const prerender = true;
+
+export const getStaticPaths = (async () => {
+  const authors = await getCollection('author');
+
+  return authors.map((author) => ({
+    params: { slug: cleanSlug(author.data.username ?? author.id) },
+    props: { author },
+  }));
+}) satisfies GetStaticPaths;
+
+type Props = {
+  author: CollectionEntry<'author'>;
+};
+
+const { author } = Astro.props as Props;
+const attendee = {
+  name: author.data.name,
+  username: author.data.username,
+  email: author.data.email,
+  avatar: author.data.avatar,
+  website: author.data.website,
+  bio: author.data.bio,
+};
+const title = `Huy hiệu 3D | ${author.data.name}`;
+---
+
+<script is:inline>
+  if (typeof document !== 'undefined') {
+    const root = document.documentElement;
+    if (!root.classList.contains('dark')) {
+      root.classList.add('dark');
+    }
+    try {
+      localStorage.setItem('theme', 'dark');
+    } catch (error) {
+      console.warn('Unable to persist theme preference', error);
+    }
+  }
+</script>
+
+<Layout metadata={{ title }}>
+  <BadgeShowcase client:load attendee={attendee} />
+</Layout>

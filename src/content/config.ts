@@ -54,6 +54,7 @@ const authorCollection = defineCollection({
     z.object({
       name: z.string(),
       username: z.string().optional(),
+      email: z.string().optional(),
       avatar: image().optional(),
       bio: z.string().optional(),
       website: z.string().optional(),
