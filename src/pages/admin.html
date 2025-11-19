@@ -7,10 +7,98 @@
   <meta name="robots" content="noindex" />
   <link href="/admin/config.yml" type="text/yaml" rel="cms-config-url" />
   <title>Trình quản lý nội dung</title>
+  <style>
+    .highlight {
+      color: #07689f;
+    }
+  </style>
 </head>
 
 <body>
   <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+  <script>
+    const importStatement = `import { YouTube, Tweet, Vimeo } from 'astro-embed';`;
+
+    const removeVietnamesePunctuation = (str) => {
+      str = str.replace(/[\u0300-\u036f]/g, ''); // Remove diacritics
+      str = str.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Normalize and remove diacritics
+      str = str.replace(/đ/g, 'd').replace(/Đ/g, 'D'); // Replace Vietnamese 'đ'
+      return str;
+    };
+
+    const insertImportStatement = (content) => {
+      const hasEmbedTags = content.includes('<YouTube') || content.includes('<Tweet') || content.includes('<Vimeo');
+      if (hasEmbedTags) {
+        if (!content.includes(importStatement)) {
+          return `${importStatement}\n\n${content}`;
+        }
+      } else {
+        return removeImportStatement(content);
+      }
+
+      return content;
+    };
+
+    const removeImportStatement = (content) => {
+      return content.replace(importStatement, '').trim();
+    };
+
+    CMS.registerEditorComponent({
+      id: 'youtube',
+      label: 'YouTube',
+      fields: [{ name: 'id', label: 'YouTube Video ID', widget: 'string' }],
+      pattern: /^<YouTube id="(\S+)" \/>$/,
+      fromBlock: (match) => ({
+        id: match[1],
+      }),
+      toBlock: (obj) => `<YouTube id="${obj.id}" />`,
+      toPreview: (obj) => `<YouTube id="${obj.id}" />`,
+    });
+
+    CMS.registerEditorComponent({
+      id: 'tweet',
+      label: 'Tweet',
+      fields: [{ name: 'id', label: 'Tweet ID', widget: 'string' }],
+      pattern: /^<Tweet id="(\S+)" \/>$/,
+      fromBlock: (match) => ({
+        id: match[1],
+      }),
+      toBlock: (obj) => `<Tweet id="${obj.id}" />`,
+      toPreview: (obj) => `<Tweet id="${obj.id}" />`,
+    });
+
+    CMS.registerEditorComponent({
+      id: 'vimeo',
+      label: 'Vimeo',
+      fields: [{ name: 'id', label: 'Vimeo Video ID', widget: 'string' }],
+      pattern: /^<Vimeo id="(\S+)" \/>$/,
+      fromBlock: (match) => ({
+        id: match[1],
+      }),
+      toBlock: (obj) => `<Vimeo id="${obj.id}" />`,
+      toPreview: (obj) => `<Vimeo id="${obj.id}" />`,
+    });
+
+    CMS.registerEventListener({
+      name: 'preSave',
+      handler: ({ entry }) => {
+        const title = entry.get('data').get('title');
+        if (title) {
+          const cleanTitle = removeVietnamesePunctuation(title);
+          entry.get('data').set('title', cleanTitle);
+        }
+
+        const body = entry.get('data').get('body');
+        if (body) {
+          const updatedBody = insertImportStatement(body);
+          entry = entry.setIn(['data', 'body'], updatedBody);
+        }
+        return entry;
+      },
+    });
+
+
+  </script>
 </body>
 
 </html>

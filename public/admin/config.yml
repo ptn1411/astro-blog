@@ -8,6 +8,11 @@ backend:
 media_folder: 'src/assets/images'
 public_folder: 'src/assets/images'
 
+slug:
+  encoding: 'ascii'
+  clean_accents: true
+  sanitize_replacement: '-'
+
 collections:
   # ========== POST ==========
   - name: 'post'
@@ -17,10 +22,13 @@ collections:
     slug: '{{slug}}'
     extension: 'mdx'
     format: 'frontmatter'
-    slugify:
-      encoding: 'ascii'
-      clean_accents: true
-      sanitize_replacement: '-'
+    editor:
+      preview: true
+    sortable_fields:
+      fields: [title, publishDate, author]
+      default:
+        field: publishDate
+        direction: descending # default: ascending
     fields:
       - { label: 'Title', name: 'title', widget: 'string' }
       - { label: 'Excerpt', name: 'excerpt', widget: 'string' }
@@ -39,6 +47,16 @@ collections:
         search_fields: ['name']
         value_field: 'name'
         display_fields: ['name']
+      - label: 'Series'
+        name: 'series'
+        widget: 'object'
+        required: false
+        collapsed: true
+        fields:
+          - { label: 'Mã series', name: 'id', widget: 'string', required: false, hint: 'Ví dụ: ai-co-ban' }
+          - { label: 'Tiêu đề series', name: 'title', widget: 'string', required: false }
+          - { label: 'Phần số', name: 'part', widget: 'number', required: false, value_type: 'int', min: 1 }
+          - { label: 'Tổng số phần', name: 'totalParts', widget: 'number', required: false, value_type: 'int', min: 1 }
       - label: 'Author'
         name: 'author'
         widget: 'relation'
@@ -47,7 +65,7 @@ collections:
         value_field: 'name'
         display_fields: ['name']
       - { label: 'Image', name: 'image', widget: 'image', required: false }
-      - { label: 'Publish Date', name: 'publishDate', widget: 'datetime', required: false }
+      - { label: 'Publish Date', name: 'publishDate', widget: 'datetime', required: true }
       - {
           label: 'Content',
           name: 'body',
@@ -63,6 +81,7 @@ collections:
               'heading-three',
               'heading-four',
               'heading-five',
+              'heading-six',
               'quote',
               'code',
               'code-block',

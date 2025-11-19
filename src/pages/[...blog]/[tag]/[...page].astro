@@ -24,6 +24,11 @@ const pageSize = typeof page.size === 'number' ? page.size : page.data.length;
 const totalPages = typeof page.lastPage === 'number' ? page.lastPage : undefined;
 const startIndex = currentPage > 1 ? (currentPage - 1) * pageSize : 0;
 
+const rawTagDescription = typeof tag.description === 'string' ? tag.description : '';
+const tagDescription = rawTagDescription.trim();
+const fallbackDescription = `Danh sách bài viết theo thẻ ${tag.title}${currentPage > 1 ? ` (trang ${currentPage})` : ''}.`;
+const resolvedDescription = tagDescription.length > 0 ? tagDescription : fallbackDescription;
+
 const breadcrumbItems = [
   { name: 'Trang chu', url: ensureAbsolute('/') },
   { name: 'Blog', url: ensureAbsolute(getBlogPermalink()) },
@@ -38,7 +43,7 @@ const structuredData = [
   buildBlogListingSchema({
     url: canonical,
     name: `Bài viết theo thẻ ${tag.title}`,
-    description: `Danh sách bài viết theo thẻ ${tag.title}.`,
+    description: resolvedDescription,
     posts: page.data,
     taxonomy: { type: 'tag', name: tag.title },
     currentPage,
@@ -50,7 +55,7 @@ const structuredData = [
 
 const metadata = {
   title: `Bài viết theo thẻ '${tag.title}'${currentPage > 1 ? ` - Trang ${currentPage}` : ''}`,
-  description: `Danh sách bài viết theo thẻ ${tag.title}${currentPage > 1 ? ` (trang ${currentPage})` : ''}.`,
+  description: resolvedDescription,
   canonical,
   robots: {
     index: blogTagRobots?.index,

@@ -8,6 +8,7 @@ import TableOfContents from '~/components/widgets/TableOfContents.astro';
 import { cleanSlug, getAuthorPermalink, getPermalink } from '~/utils/permalinks';
 import { getFormattedDate } from '~/utils/utils';
 import type { Post } from '~/types';
+import { findSeriesPosts } from '~/utils/blog';
 
 export interface Props {
   post: Post;
@@ -19,6 +20,13 @@ const headings = post.headings;
 const authorEntries = await getCollection('author');
 const authorSlugMap = new Map(authorEntries.map((entry) => [entry.data.name, cleanSlug(entry.data.username)]));
 const authorSlug = post.author ? (authorSlugMap.get(post.author) ?? cleanSlug(post.author)) : undefined;
+const seriesPosts = post.series ? await findSeriesPosts(post) : [];
+const currentSeriesIndex = seriesPosts.findIndex((p) => p.slug === post.slug);
+const previousSeriesPost = currentSeriesIndex > 0 ? seriesPosts[currentSeriesIndex - 1] : undefined;
+const nextSeriesPost =
+  currentSeriesIndex >= 0 && currentSeriesIndex < seriesPosts.length - 1
+    ? seriesPosts[currentSeriesIndex + 1]
+    : undefined;
 ---
 
 <section class="py-10 sm:py-16 lg:py-20 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -116,6 +124,78 @@ const authorSlug = post.author ? (authorSlugMap.get(post.author) ?? cleanSlug(po
           class="prose dark:prose-invert prose-img:rounded-md prose-img:shadow-lg prose-headings:scroll-mt-[90px] prose-headings:font-heading prose-headings:font-semibold prose-a:text-primary dark:prose-a:text-blue-400 prose-p:text-justify">
           <slot />
         </div>
+
+        {
+          post.series && seriesPosts.length > 0 && (
+            <section class="mt-12 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 shadow-sm">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm uppercase tracking-widest text-muted dark:text-slate-400">Chuỗi bài viết</p>
+                  <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">
+                    {post.series.title ?? 'Series liên quan'}
+                  </h2>
+                  {post.series.part && (
+                    <p class="text-sm text-gray-600 dark:text-slate-400">
+                      Phần {post.series.part}
+                      {post.series.totalParts ? ` / ${post.series.totalParts}` : ''}
+                    </p>
+                  )}
+                </div>
+                <div class="text-sm font-medium text-primary dark:text-blue-400">{seriesPosts.length} bài viết</div>
+              </div>
+
+              <ol class="mt-6 space-y-3">
+                {seriesPosts.map((seriesPost, index) => {
+                  const isActive = seriesPost.slug === post.slug;
+                  return (
+                    <li
+                      class:list="flex items-start gap-4 rounded-xl border px-4 py-3 transition hover:border-primary/60 dark:hover:border-blue-400/60"
+                      class={
+                        (isActive
+                          ? 'border-primary/60 dark:border-blue-400/80 bg-primary/5 dark:bg-blue-400/10'
+                          : 'border-slate-200 dark:border-slate-700') as string
+                      }>
+                      <span class="text-sm font-semibold text-slate-500 dark:text-slate-300 shrink-0 pt-1">
+                        Phần {seriesPost.series?.part ?? index + 1}
+                      </span>
+                      <a
+                        href={getPermalink(seriesPost.permalink, 'post')}
+                        class:list={[
+                          'flex-1 text-left',
+                          isActive
+                            ? 'text-primary dark:text-blue-300 font-semibold'
+                            : 'text-slate-900 dark:text-white hover:text-primary dark:hover:text-blue-300',
+                        ]}>
+                        {seriesPost.title}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                {previousSeriesPost ? (
+                  <a
+                    class="inline-flex items-center gap-2 text-sm text-primary dark:text-blue-400 hover:underline"
+                    href={getPermalink(previousSeriesPost.permalink, 'post')}>
+                    ← Phần trước: {previousSeriesPost.title}
+                  </a>
+                ) : (
+                  <span class="text-sm text-slate-400">Đang ở phần đầu tiên</span>
+                )}
+                {nextSeriesPost ? (
+                  <a
+                    class="inline-flex items-center gap-2 text-sm text-primary dark:text-blue-400 hover:underline"
+                    href={getPermalink(nextSeriesPost.permalink, 'post')}>
+                    Phần tiếp theo: {nextSeriesPost.title} →
+                  </a>
+                ) : (
+                  <span class="text-sm text-slate-400 text-right">Đã đến phần cuối cùng</span>
+                )}
+              </div>
+            </section>
+          )
+        }
 
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-10 gap-4">
           <PostTags tags={post.tags} />

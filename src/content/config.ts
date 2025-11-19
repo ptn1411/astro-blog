@@ -102,6 +102,17 @@ const postCollection = defineCollection({
       tags: z.array(z.string()).optional(), // sẽ được map sang array object
       author: z.string().optional(), // sẽ được map sang object
 
+      series: z
+        .object({
+          id: z.string().optional(),
+          title: z.string().optional(),
+          part: z.number().int().min(1).optional(),
+          totalParts: z.number().int().min(1).optional(),
+        })
+        .optional()
+        .nullable()
+        .transform((value) => (value ? value : undefined)),
+
       metadata: metadataDefinition(),
     }),
 });

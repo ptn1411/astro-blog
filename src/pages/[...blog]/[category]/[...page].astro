@@ -23,6 +23,10 @@ const canonical = String(getCanonical(Astro.url.pathname));
 const pageSize = typeof page.size === 'number' ? page.size : page.data.length;
 const totalPages = typeof page.lastPage === 'number' ? page.lastPage : undefined;
 const startIndex = currentPage > 1 ? (currentPage - 1) * pageSize : 0;
+const rawCategoryDescription = typeof category.description === 'string' ? category.description : '';
+const categoryDescription = rawCategoryDescription.trim();
+const fallbackDescription = `Những bài viết trong chuyên mục ${category.title}${currentPage > 1 ? ` (trang ${currentPage})` : ''}.`;
+const resolvedDescription = categoryDescription.length > 0 ? categoryDescription : fallbackDescription;
 
 const breadcrumbItems = [
   { name: 'Trang chủ', url: ensureAbsolute('/') },
@@ -38,7 +42,7 @@ const structuredData = [
   buildBlogListingSchema({
     url: canonical,
     name: `Chuyên mục ${category.title}`,
-    description: `Danh sách bài viết thuộc chuyên mục ${category.title}.`,
+    description: resolvedDescription,
     posts: page.data,
     taxonomy: { type: 'category', name: category.title },
     currentPage,
@@ -50,7 +54,7 @@ const structuredData = [
 
 const metadata = {
   title: `Chuyên mục '${category.title}'${currentPage > 1 ? ` - Trang ${currentPage}` : ''}`,
-  description: `Những bài viết trong chuyên mục ${category.title}${currentPage > 1 ? ` (trang ${currentPage})` : ''}.`,
+  description: resolvedDescription,
   canonical,
   robots: {
     index: blogCategoryRobots?.index,
@@ -66,7 +70,7 @@ const metadata = {
       <h1 class="text-3xl md:text-4xl font-bold font-heading text-slate-900 dark:text-slate-100">
         Chuyên mục: {category.title}
       </h1>
-      <p class="mt-3 text-slate-600 dark:text-slate-300">{category.description}</p>
+      <p class="mt-3 text-slate-600 dark:text-slate-300">{resolvedDescription}</p>
     </header>
     <hr class="border-t border-gray-200 dark:border-slate-700 mb-10" />
     <BlogList posts={page.data} />

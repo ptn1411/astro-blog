@@ -1,0 +1,158 @@
+---
+title: 10 loại bug kinh điển mà 99% lập trình viên từng gặp (và cách fix nhanh 2025)
+excerpt: NullPointer, off-by-one, race condition, CORS… bạn đã từng “đau đầu” vì những bug này chưa? Tổng hợp 10 bug kinh điển nhất cùng cách fix nhanh gọn nhẹ nhất năm 2025.
+category: Lập trình cơ bản
+tags:
+  - Bug kinh điển
+  - Debugging tips
+  - Fix bug nhanh
+  - JavaScript
+  - Lập trình viên
+  - Lỗi lập trình phổ biến
+series: null
+author: Phạm Thành Nam
+image: /src/assets/images/hero-image.png
+publishDate: 2025-11-19T16:25:00
+---
+# 10 loại bug kinh điển mà 99% lập trình viên từng gặp (và cách fix nhanh 2025)
+
+Nếu bạn đã từng thức trắng đêm chỉ vì một dòng code “vô thưởng vô phạt”, thì xin chúc mừng – bạn đã chính thức gia nhập hội “săn bug chuyên nghiệp”!
+
+Dưới đây là **10 loại bug kinh điển** mà gần như lập trình viên nào cũng từng gặp ít nhất 1 lần, kèm cách fix nhanh nhất năm 2025.
+
+## 1. NullPointerException / Undefined is not an object
+
+**Tần suất xuất hiện**: 10/10 lập trình viên
+**Cảm xúc**: Muốn đập bàn phím
+
+```javascript
+// Sai
+user.profile.address.street.length
+
+// Fix nhanh 2025
+user?.profile?.address?.street?.length ?? 0
+// Hoặc dùng Lodash
+_.get(user, 'profile.address.street.length', 0)
+```
+
+## 2. Off-by-one error (sai lệch 1)js
+
+```javascript
+// Sai 99% rookie
+for (let i = 0; i <= array.length; i++) { ... }
+
+// Đúng
+for (let i = 0; i < array.length; i++) { ... }
+
+// Fix nhanh: dùng .slice(0, 10) thay vì tự tính toán
+items.slice(0, 10)
+```
+
+## 3. CORS error – “No 'Access-Control-Allow-Origin'”bash
+
+```javascript
+Access to fetch at 'https://api.example.com' from origin 'http://localhost:3000' has been blocked by CORS policy
+```
+
+Fix nhanh nhất 2025:Dev: Dùng extension “CORS Unblock” hoặc proxy qua vite-plugin-cors-proxy
+Production: Thêm header server (Node.js/Express):
+
+```javascript
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Headers', '*')
+  next()
+})
+```
+
+## 4.Race Condition (cuộc đua giữa các request)ts
+
+```plain
+// Sai
+const a = await getUser()
+const b = await getPosts()
+setData({ user: a, posts: b }) // có thể b về trước a → flash data
+
+// Fix: Promise.all hoặc TanStack Query
+const [user, posts] = await Promise.all([getUser(), getPosts()])
+```
+
+## 5.Memory leak trong React (useEffect không cleanup)tsx
+
+```plain
+useEffect(() => {
+  const timer = setInterval(() => { ... }, 1000)
+  // Quên return cleanup → leak!
+  return () => clearInterval(timer)
+}, [])
+```
+
+## 6.Infinite re-render trong Reacttsx
+
+```plain
+// Sai lầm kinh điển
+const [count, setCount] = useState(0)
+setCount(count + 1) // trong render → infinite loop
+```
+
+Fix nhanh: Đưa logic vào useEffect hoặc event handler.7. Async/await bị “quên await”ts
+
+```plain
+// Sai
+user.save() // trả về Promise nhưng quên await → save không thực sự chạy
+console.log('Đã lưu!') // in ra trước khi lưu xong
+
+// Đúng
+await user.save()
+```
+
+## 8.Heisenbug – bug biến mất khi debug
+
+Thêm console.log → bug biến mất. Bỏ → bug quay lại.
+
+Fix 2025:
+
+1. Dùng debugger thay console.log
+2. Hoặc bật React StrictMode (nó sẽ gọi 2 lần để lộ bug)
+
+## 9.Dependency array sai trong useEffecttsx
+
+```plain
+useEffect(() => {
+  fetchData()
+}, []) // chỉ chạy 1 lần → data cũ mãi mãi
+
+// Fix: thêm đúng dependency
+}, [userId, page])
+```
+
+## 10.Lỗi “Cannot read properties of undefined” khi map arraytsx
+
+```plain
+{items.map(item => <div>{item.name}</div>)}
+// items = undefined → crash
+```
+
+**Fix an toàn nhất 2025:tsx**
+
+```plain
+{items?.map(item => <div key={item.id}>{item.name}</div>) ?? null}
+```
+
+## Bonus: Checklist “không bao giờ gặp lại 10 bug trên”
+
+- Luôn dùng TypeScript (bắt được 70% bug ở compile-time)
+- Bật ESLint + Prettier + strict mode
+- Viết test cho mọi function quan trọng
+- Dùng GitHub Copilot / Cursor để cảnh báo ngay khi gõ code
+- Code review bắt buộc trước khi merge
+
+## Kết luận
+
+Bug không bao giờ hết, nhưng **90% bug kinh điển trên đều có thể tránh** chỉ bằng một chút cẩn thận và công cụ phù hợp.
+
+Bạn đã từng “dính” bao nhiêu bug trong Top 10 này rồi?
+Comment số thứ tự bên dưới nhé! Mình đoán chắc chắn không dưới 6 đâu 
+
+Nếu thấy bài hữu ích, share cho đồng nghiệp để cùng… ít bug hơn nha!Chúc bạn ít bug hơn hôm qua,
+**Phạm Thành Nam**

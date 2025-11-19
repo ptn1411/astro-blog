@@ -29,6 +29,8 @@ export interface Post {
   tags?: Taxonomy[];
   /**  */
   author?: string;
+  /**  */
+  series?: PostSeries;
 
   /**  */
   metadata?: MetaData;
@@ -44,6 +46,13 @@ export interface Post {
   readingTime?: number;
 
   headings?: MarkdownHeading[];
+}
+
+export interface PostSeries {
+  id?: string;
+  title?: string;
+  part?: number;
+  totalParts?: number;
 }
 
 export interface Taxonomy {

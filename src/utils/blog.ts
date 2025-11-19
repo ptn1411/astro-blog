@@ -1,9 +1,9 @@
 import type { PaginateFunction } from 'astro';
-import { getCollection, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import type { Post, Taxonomy } from '~/types';
+import { getCollection, render } from 'astro:content';
 import { APP_BLOG } from 'astrowind:config';
-import { cleanSlug, trimSlash, BLOG_BASE, POST_PERMALINK_PATTERN, CATEGORY_BASE, TAG_BASE } from './permalinks';
+import type { Post, Taxonomy } from '~/types';
+import { BLOG_BASE, CATEGORY_BASE, cleanSlug, POST_PERMALINK_PATTERN, TAG_BASE, trimSlash } from './permalinks';
 
 const generatePermalink = async ({
   id,
@@ -55,6 +55,7 @@ const getNormalizedPost = async (post: CollectionEntry<'post'>): Promise<Post> =
     author,
     draft = false,
     metadata = {},
+    series: rawSeries,
   } = data;
 
   const slug = cleanSlug(id); // cleanSlug(rawSlug.split('/').pop());
@@ -73,6 +74,17 @@ const getNormalizedPost = async (post: CollectionEntry<'post'>): Promise<Post> =
     title: tag,
   }));
 
+  const seriesId = rawSeries?.id ? cleanSlug(rawSeries.id) : undefined;
+  const series =
+    rawSeries && (seriesId || rawSeries.title || rawSeries.part || rawSeries.totalParts)
+      ? {
+          id: seriesId,
+          title: rawSeries.title || rawSeries.id,
+          part: rawSeries.part,
+          totalParts: rawSeries.totalParts,
+        }
+      : undefined;
+
   return {
     id: id,
     slug: slug,
@@ -88,6 +100,7 @@ const getNormalizedPost = async (post: CollectionEntry<'post'>): Promise<Post> =
     category: category,
     tags: tags,
     author: author,
+    series,
 
     draft: draft,
 
@@ -110,6 +123,31 @@ const load = async function (): Promise<Array<Post>> {
     .filter((post) => !post.draft);
 
   return results;
+};
+
+const compareSeriesPosts = (a: Post, b: Post) => {
+  const aPart = a.series?.part;
+  const bPart = b.series?.part;
+
+  if (typeof aPart === 'number' && typeof bPart === 'number') {
+    return aPart - bPart;
+  }
+
+  if (typeof aPart === 'number') return -1;
+  if (typeof bPart === 'number') return 1;
+
+  return a.publishDate.valueOf() - b.publishDate.valueOf();
+};
+
+const matchesSeries = (seriesA?: Post['series'], seriesB?: Post['series']) => {
+  if (!seriesA || !seriesB) return false;
+  if (seriesA.id && seriesB.id && seriesA.id === seriesB.id) return true;
+
+  const normalizedA = seriesA.title?.trim().toLowerCase();
+  const normalizedB = seriesB.title?.trim().toLowerCase();
+  if (normalizedA && normalizedB && normalizedA === normalizedB) return true;
+
+  return false;
 };
 
 let _posts: Array<Post>;
@@ -136,6 +174,13 @@ export const fetchPosts = async (): Promise<Array<Post>> => {
   }
 
   return _posts;
+};
+
+export const findSeriesPosts = async (post: Post): Promise<Array<Post>> => {
+  if (!post.series) return [];
+
+  const posts = await fetchPosts();
+  return posts.filter((p) => matchesSeries(p.series, post.series)).sort(compareSeriesPosts);
 };
 
 /** */
@@ -354,6 +399,9 @@ export async function getRelatedPosts(originalPost: Post, maxResults: number = 4
     if (iteratedPost.slug === originalPost.slug) return acc;
 
     let score = 0;
+    if (matchesSeries(iteratedPost.series, originalPost.series)) {
+      score += 20;
+    }
     if (iteratedPost.category && originalPost.category && iteratedPost.category.slug === originalPost.category.slug) {
       score += 5;
     }
