@@ -28,7 +28,7 @@ import cloudflare from '@astrojs/cloudflare';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const hasExternalScripts = false;
+const hasExternalScripts = true;
 const whenExternalScripts = (items: (() => AstroIntegration) | (() => AstroIntegration)[] = []) =>
   hasExternalScripts ? (Array.isArray(items) ? items.map((item) => item()) : [items()]) : [];
 
@@ -59,7 +59,7 @@ export default defineConfig({
     }),
     ...whenExternalScripts(() =>
       partytown({
-        config: { forward: ['dataLayer.push', 'gtag'] },
+        config: { forward: ['dataLayer.push'] },
       })
     ),
     pagefind(),
@@ -97,7 +97,7 @@ export default defineConfig({
         '~': path.resolve(__dirname, './src'),
       },
     },
-    plugins: [visualizer({ open: true })],
+    plugins: [visualizer({ open: false })],
   },
 
   adapter: cloudflare(),
