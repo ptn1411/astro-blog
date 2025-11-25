@@ -25,7 +25,22 @@
       str = str.replace(/đ/g, 'd').replace(/Đ/g, 'D'); // Replace Vietnamese 'đ'
       return str;
     };
+    // Hàm giới hạn slug
+    const limitSlug = (slug, maxLength = 70) => {
+      if (slug.length <= maxLength) return slug;
 
+      // Cắt ở maxLength
+      let truncated = slug.slice(0, maxLength);
+
+      // Tìm dấu gạch ngang cuối cùng để tránh cắt giữa từ
+      const lastDash = truncated.lastIndexOf('-');
+      if (lastDash > maxLength - 10) { // Nếu dấu - gần cuối
+        truncated = truncated.slice(0, lastDash);
+      }
+
+      // Loại bỏ dấu - ở cuối nếu có
+      return truncated.replace(/-+$/, '');
+    };
     const insertImportStatement = (content) => {
       const hasEmbedTags = content.includes('<YouTube') || content.includes('<Tweet') || content.includes('<Vimeo');
       if (hasEmbedTags) {
@@ -87,7 +102,14 @@
           const cleanTitle = removeVietnamesePunctuation(title);
           entry.get('data').set('title', cleanTitle);
         }
+        const slug = entry.get('slug');
+        if (slug && slug.length > 70) {
+          const limitedSlug = limitSlug(slug, 70);
+          console.log("limitedSlug", limitedSlug);
 
+          entry = entry.set('slug', limitedSlug);
+          console.log("entry", entry);
+        }
         const body = entry.get('data').get('body');
         if (body) {
           const updatedBody = insertImportStatement(body);

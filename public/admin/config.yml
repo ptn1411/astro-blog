@@ -19,7 +19,7 @@ collections:
     label: 'Post'
     folder: 'src/content/post'
     create: true
-    slug: '{{slug | truncate(100, "")}}'
+    slug: '{{slug | upper | truncate(70)}}'
     extension: 'mdx'
     format: 'frontmatter'
     editor:
