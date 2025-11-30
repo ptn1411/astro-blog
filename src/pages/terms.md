@@ -59,6 +59,6 @@ Tôi có thể cập nhật Điều khoản sử dụng bất kỳ lúc nào. M�
 
 Nếu bạn có câu hỏi về Điều khoản sử dụng, vui lòng liên hệ:
 
-- **Email:** <ptndev18@gmail.com>
+- **Email:** <contact@bug.edu.vn>
 - **Telegram:** [t.me/Ptn1411](https://t.me/Ptn1411)
 - **Website:** [https://bug.edu.vn](https://bug.edu.vn)

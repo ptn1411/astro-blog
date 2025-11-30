@@ -34,6 +34,17 @@ const { language, textDirection } = I18N;
     <Metadata {...metadata} />
     <SiteVerification />
     <Analytics />
+    <script async type="application/javascript" src="https://news.google.com/swg/js/v1/swg-basic.js"></script>
+    <script is:inline>
+      (self.SWG_BASIC = self.SWG_BASIC || []).push((basicSubscriptions) => {
+        basicSubscriptions.init({
+          type: 'NewsArticle',
+          isPartOfType: ['Product'],
+          isPartOfProductId: 'CAowmp_eCw:openaccess',
+          clientOptions: { theme: 'light', lang: 'vi' },
+        });
+      });
+    </script>
 
     <!-- Comment the line below to disable View Transitions -->
     <ClientRouter fallback="swap" />

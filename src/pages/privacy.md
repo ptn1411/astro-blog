@@ -101,6 +101,6 @@ Mọi thay đổi sẽ được đăng ở đây cùng ngày "Cập nhật lần
 
 Nếu bạn có câu hỏi hoặc lo ngại về Chính sách quyền riêng tư, vui lòng liên hệ:
 
-- **Email:** <ptndev18@gmail.com>
+- **Email:** <contact@bug.edu.vn>
 - **Telegram:** [t.me/Ptn1411](https://t.me/Ptn1411)
 - **Website:** [https://bug.edu.vn](https://bug.edu.vn)
