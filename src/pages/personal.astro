@@ -1,5 +1,6 @@
 ﻿---
 import logo from '~/assets/favicons/logo.png';
+
 import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import Content from '~/components/widgets/Content.astro';
@@ -11,6 +12,7 @@ import Testimonials from '~/components/widgets/Testimonials.astro';
 import Layout from '~/layouts/PageLayout.astro';
 import { getCanonical, getPermalink } from '~/utils/permalinks';
 import { buildPersonSchema } from '~/utils/structured-data';
+
 const canonical = String(getCanonical(Astro.url.pathname));
 
 const metadata = {
@@ -48,9 +50,26 @@ const metadata = {
       isSticky
       showToggleTheme
     />
+    <!-- Particles.js lazy loaded on interaction -->
+    <script is:inline>
+      // Lazy load particles.js only when needed
+      let particlesLoaded = false;
+      function loadParticles() {
+        if (particlesLoaded) return;
+        particlesLoaded = true;
+        const script = document.createElement('script');
+        script.src = '/particles.min.js';
+        script.async = true;
+        document.head.appendChild(script);
+      }
+      // Load on first scroll or after 3 seconds
+      window.addEventListener('scroll', loadParticles, { once: true, passive: true });
+      setTimeout(loadParticles, 3000);
+    </script>
   </Fragment>
 
   <!-- Hero -->
+
   <Hero
     id="hero"
     title="Phạm Thành Nam"
@@ -62,6 +81,106 @@ const metadata = {
       Từ <b>backend Node.js</b> đến <b>frontend React</b> và <b>microservice Go</b> - tôi biến ý tưởng thành sản phẩm vận
       hành ổn định và đẹp mắt.
     </Fragment>
+    <Fragment slot="bg">
+      <div id="hero-particles" class="absolute inset-0 pointer-events-none">
+        <div
+          class="absolute inset-0 bg-gradient-to-br from-indigo-100/60 via-white/0 to-blue-200/50 dark:from-slate-900 dark:via-slate-900/30 dark:to-indigo-950">
+        </div>
+      </div>
+
+      <script type="module" is:inline>
+        const PARTICLE_CONTAINER_ID = 'hero-particles';
+        const particlesConfig = {
+          particles: {
+            number: {
+              value: 90,
+              density: { enable: true, value_area: 900 },
+            },
+            color: { value: ['#6366f1', '#8b5cf6', '#06b6d4'] },
+            shape: {
+              type: 'circle',
+            },
+            opacity: {
+              value: 0.45,
+              random: true,
+            },
+            size: {
+              value: 3,
+              random: true,
+            },
+            line_linked: {
+              enable: true,
+              distance: 150,
+              color: '#6366f1',
+              opacity: 0.35,
+              width: 1,
+            },
+            move: {
+              enable: true,
+              speed: 1.2,
+              direction: 'none',
+              random: false,
+              straight: false,
+              out_mode: 'out',
+              bounce: false,
+            },
+          },
+          interactivity: {
+            detect_on: 'window',
+            events: {
+              onhover: {
+                enable: true,
+                mode: 'grab',
+              },
+              onclick: {
+                enable: false,
+              },
+              resize: true,
+            },
+            modes: {
+              grab: {
+                distance: 180,
+                line_linked: { opacity: 0.5 },
+              },
+            },
+          },
+          retina_detect: true,
+        };
+
+        const destroyExistingInstance = () => {
+          if (!window.pJSDom?.length) return;
+          window.pJSDom = window.pJSDom.filter((instance) => {
+            if (instance?.pJS?.canvas?.el?.parentElement?.id !== PARTICLE_CONTAINER_ID) {
+              return true;
+            }
+            instance?.pJS?.fn?.vendors?.destroy?.();
+            return false;
+          });
+        };
+
+        const createParticles = () => {
+          const container = document.getElementById(PARTICLE_CONTAINER_ID);
+          if (!container || typeof window === 'undefined' || typeof window.particlesJS !== 'function') {
+            return;
+          }
+
+          destroyExistingInstance();
+          container.innerHTML = '<div class="absolute inset-0"></div>';
+          window.particlesJS(PARTICLE_CONTAINER_ID, particlesConfig);
+        };
+
+        const initParticles = () => {
+          if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            requestAnimationFrame(createParticles);
+          } else {
+            window.addEventListener('DOMContentLoaded', () => requestAnimationFrame(createParticles), { once: true });
+          }
+        };
+
+        document.addEventListener('astro:after-swap', initParticles);
+        document.addEventListener('astro:page-load', initParticles);
+      </script>
+    </Fragment>
   </Hero>
 
   <!-- About -->
@@ -71,7 +190,7 @@ const metadata = {
     image={{
       src: logo,
       alt: 'Phạm Thành Nam',
-      loading: 'eager',
+      loading: 'lazy',
     }}>
     <Fragment slot="content">
       <h2 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Về tôi</h2>
@@ -111,12 +230,13 @@ const metadata = {
     classes={{ container: 'max-w-3xl' }}
   />
 
-  <!-- Skills -->
+  <!-- Skills - Lazy loaded -->
   <Features3
     id="skills"
     title="Kỹ năng kỹ thuật"
     subtitle="Sự kết hợp giữa kỹ thuật, sáng tạo và kinh nghiệm DevOps."
     columns={3}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
       { title: 'Frontend', description: 'React, Next.js, Astro, TailwindCSS, Shadcn UI' },
       { title: 'Backend', description: 'Node.js (Express/Fastify), Go, PHP, Prisma ORM' },
@@ -153,6 +273,9 @@ const metadata = {
     image={{
       src: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=870&q=80',
       alt: 'Trình diễn dự án',
+      loading: 'lazy',
+      widths: [400, 768, 870],
+      sizes: '(max-width: 768px) 400px, 870px',
     }}
     callToAction={{
       text: 'Xem thêm trên GitHub',
@@ -161,10 +284,11 @@ const metadata = {
     }}
   />
 
-  <!-- Testimonials -->
+  <!-- Testimonials - Lazy loaded -->
   <Testimonials
     title="Cộng sự nhận xét"
     subtitle="Mọi người đánh giá cao sự rõ ràng, chính xác và tinh thần sáng tạo của tôi."
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     testimonials={[
       {
         testimonial:
@@ -205,10 +329,11 @@ const metadata = {
     ]}
   />
 
-  <!-- Call to Action -->
+  <!-- Call to Action - Lazy loaded -->
   <CallToAction
     title="Cùng xây điều tuyệt vời"
     subtitle="Sẵn sàng cho hợp tác, tư vấn và những thử nghiệm sáng tạo."
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     actions={[{ variant: 'primary', text: 'Xem GitHub', href: 'https://github.com/ptndz' }]}
   />
 

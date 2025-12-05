@@ -1,10 +1,10 @@
-import { SITE } from 'astrowind:config';
+import { SITE, STRUCTURED_DATA } from 'astrowind:config';
 
 import { getBlogPermalink, getCanonical, getPermalink } from './permalinks';
 
 import type { Post } from '~/types';
 
-const DEFAULT_LANGUAGE = 'vi';
+const DEFAULT_LANGUAGE = STRUCTURED_DATA.defaultLanguage || 'vi';
 
 const toAbsoluteUrl = (value: string | URL | undefined): string | undefined => {
   if (!value) {
@@ -23,22 +23,16 @@ const toAbsoluteUrl = (value: string | URL | undefined): string | undefined => {
 };
 
 export const PROFILE = {
-  name: 'Phạm Thành Nam',
-  jobTitle: 'Lập trình viên Fullstack & Maker',
-  description:
-    'Phát triển web fullstack, kiến trúc hệ thống và tạo ra những công cụ sáng tạo giúp ý tưởng trở thành sản phẩm.',
-  image: 'https://avatars.githubusercontent.com/u/57529765?v=4',
-  email: 'mailto:contact@bug.edu.vn',
+  name: STRUCTURED_DATA.profile?.name || 'Your Name',
+  jobTitle: STRUCTURED_DATA.profile?.jobTitle || 'Your Job Title',
+  description: STRUCTURED_DATA.profile?.description || 'Your description',
+  image: STRUCTURED_DATA.profile?.image || '',
+  email: STRUCTURED_DATA.profile?.email || 'mailto:contact@example.com',
   location: {
-    '@type': 'Country',
-    name: 'Vietnam',
+    '@type': STRUCTURED_DATA.profile?.location?.type || 'Country',
+    name: STRUCTURED_DATA.profile?.location?.name || 'Vietnam',
   },
-  sameAs: [
-    'https://github.com/ptndz',
-    'https://www.linkedin.com/in/ptn1411',
-    'https://t.me/Ptn1411',
-    'https://bug.edu.vn',
-  ],
+  sameAs: STRUCTURED_DATA.profile?.sameAs || [],
 } as const;
 
 export const buildPersonSchema = (url: string, overrides: Record<string, unknown> = {}) => {
@@ -95,37 +89,37 @@ export const buildProfessionalServiceSchema = ({
     inLanguage: DEFAULT_LANGUAGE,
 
     // ✅ Bổ sung thông tin liên hệ & thương hiệu
-    image: 'https://bug.edu.vn/cover.jpg',
-    logo: 'https://bug.edu.vn/logo.png',
-    telephone: '+84-346-038-772',
+    image: STRUCTURED_DATA.business?.image || 'https://bug.edu.vn/cover.jpg',
+    logo: STRUCTURED_DATA.business?.logo || 'https://bug.edu.vn/logo.png',
+    telephone: STRUCTURED_DATA.business?.telephone || '+84-346-038-772',
     email: PROFILE.email,
-    priceRange: '$$',
-    openingHours: 'Mo-Fr 09:00-18:00',
+    priceRange: STRUCTURED_DATA.business?.priceRange || '$$',
+    openingHours: STRUCTURED_DATA.business?.openingHours || 'Mo-Fr 09:00-18:00',
 
     // ✅ Địa chỉ chi tiết
     address: {
       '@type': 'PostalAddress',
-      streetAddress: 'Hà Nội, Việt Nam',
-      addressLocality: 'Hà Nội',
-      addressRegion: 'Hà Nội',
-      postalCode: '100000',
-      addressCountry: 'VN',
+      streetAddress: STRUCTURED_DATA.business?.address?.streetAddress || 'Hà Nội, Việt Nam',
+      addressLocality: STRUCTURED_DATA.business?.address?.addressLocality || 'Hà Nội',
+      addressRegion: STRUCTURED_DATA.business?.address?.addressRegion || 'Hà Nội',
+      postalCode: STRUCTURED_DATA.business?.address?.postalCode || '100000',
+      addressCountry: STRUCTURED_DATA.business?.address?.addressCountry || 'VN',
     },
 
     // ✅ Thêm ContactPoint cho hỗ trợ khách hàng
     contactPoint: {
       '@type': 'ContactPoint',
-      contactType: 'Customer Support',
-      telephone: '+84-345-038-772',
-      email: 'contact@bug.edu.vn',
-      availableLanguage: ['Vietnamese', 'English'],
+      contactType: STRUCTURED_DATA.business?.contactPoint?.contactType || 'Customer Support',
+      telephone: STRUCTURED_DATA.business?.contactPoint?.telephone || '+84-345-038-772',
+      email: STRUCTURED_DATA.business?.contactPoint?.email || 'contact@bug.edu.vn',
+      availableLanguage: STRUCTURED_DATA.business?.contactPoint?.availableLanguage || ['Vietnamese', 'English'],
     },
 
     // ✅ Thêm AggregateRating (tùy chọn, giúp SEO mạnh hơn)
     aggregateRating: {
       '@type': 'AggregateRating',
-      ratingValue: '5',
-      reviewCount: '26',
+      ratingValue: STRUCTURED_DATA.business?.aggregateRating?.ratingValue || '5',
+      reviewCount: STRUCTURED_DATA.business?.aggregateRating?.reviewCount || '26',
     },
   };
 

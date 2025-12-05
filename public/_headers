@@ -1,2 +1,60 @@
+# Cache static assets for 1 year (immutable files with hash in filename)
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Cache fonts for 1 year
+*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+*.woff
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache images for 1 year
+*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+
+*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+
+*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+*.ico
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache CSS and JS for 1 year
+*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache Pagefind search index for 1 day
+/pagefind/*
+  Cache-Control: public, max-age=86400
+
+# HTML pages - cache for 1 hour, revalidate
+/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# Root HTML - cache for 1 hour, revalidate
+/
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# RSS feed - cache for 1 hour
+/rss.xml
+  Cache-Control: public, max-age=3600
+
+# Sitemap - cache for 1 day
+/sitemap*.xml
+  Cache-Control: public, max-age=86400
+
+# robots.txt - cache for 1 day
+/robots.txt
+  Cache-Control: public, max-age=86400

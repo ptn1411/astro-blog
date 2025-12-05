@@ -1,10 +1,10 @@
 ---
-import type { Content as Props } from '~/types';
-import Headline from '~/components/ui/Headline.astro';
-import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import Image from '~/components/common/Image.astro';
 import Button from '~/components/ui/Button.astro';
+import Headline from '~/components/ui/Headline.astro';
 import ItemGrid from '~/components/ui/ItemGrid.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Content as Props } from '~/types';
 
 const {
   title = await Astro.slots.render('title'),
@@ -29,22 +29,21 @@ const {
   id={id}
   isDark={isDark}
   containerClass={`max-w-7xl mx-auto ${isAfterContent ? 'pt-0 md:pt-0 lg:pt-0' : ''} ${classes?.container ?? ''}`}
-  bg={bg}
->
+  bg={bg}>
   <Headline
     title={title}
     subtitle={subtitle}
     tagline={tagline}
     classes={{
       container: 'max-w-xl sm:mx-auto lg:max-w-2xl',
-      title: 'text-4xl md:text-5xl font-bold tracking-tighter mb-4 font-heading',
-      subtitle: 'max-w-3xl mx-auto sm:text-center text-xl text-muted dark:text-slate-400',
+      title: 'text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter mb-4 font-heading',
+      subtitle: 'max-w-3xl mx-auto sm:text-center text-lg sm:text-xl text-muted dark:text-slate-400',
     }}
   />
-  <div class="mx-auto max-w-7xl p-4 md:px-8">
-    <div class={`md:flex ${isReversed ? 'md:flex-row-reverse' : ''} md:gap-16`}>
+  <div class="mx-auto max-w-7xl p-3 sm:p-4 md:px-8">
+    <div class={`md:flex ${isReversed ? 'md:flex-row-reverse' : ''} gap-8 md:gap-16`}>
       <div class="md:basis-1/2 self-center">
-        {content && <div class="mb-12 text-lg dark:text-slate-400" set:html={content} />}
+        {content && <div class="mb-12 text-base sm:text-lg dark:text-slate-400" set:html={content} />}
 
         {
           callToAction && (
@@ -68,7 +67,7 @@ const {
           }}
         />
       </div>
-      <div aria-hidden="true" class="mt-10 md:mt-0 md:basis-1/2">
+      <div aria-hidden="true" class="mt-6 sm:mt-8 md:mt-0 md:basis-1/2">
         {
           image && (
             <div class="relative m-auto max-w-4xl">
@@ -79,8 +78,8 @@ const {
                   class="mx-auto w-full rounded-lg bg-gray-500 shadow-lg"
                   width={500}
                   height={500}
-                  widths={[400, 768]}
-                  sizes="(max-width: 768px) 100vw, 432px"
+                  widths={[320, 400, 768, 1024]}
+                  sizes="(max-width: 320px) 320px, (max-width: 768px) 400px, (max-width: 1024px) 768px, 1024px"
                   layout="responsive"
                   {...image}
                 />

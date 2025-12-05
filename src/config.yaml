@@ -70,3 +70,47 @@ analytics:
 
 ui:
   theme: 'system' # Values: "system" | "light" | "dark" | "light:only" | "dark:only"
+
+# Structured Data / Schema.org Configuration
+structuredData:
+  profile:
+    name: 'Phạm Thành Nam'
+    jobTitle: 'Lập trình viên Fullstack & Maker'
+    description: 'Phát triển web fullstack, kiến trúc hệ thống và tạo ra những công cụ sáng tạo giúp ý tưởng trở thành sản phẩm.'
+    image: 'https://avatars.githubusercontent.com/u/57529765?v=4'
+    email: 'mailto:contact@bug.edu.vn'
+    location:
+      type: 'Country'
+      name: 'Vietnam'
+    sameAs:
+      - 'https://github.com/ptndz'
+      - 'https://www.linkedin.com/in/ptn1411'
+      - 'https://t.me/Ptn1411'
+      - 'https://bug.edu.vn'
+
+  business:
+    image: 'https://bug.edu.vn/cover.jpg'
+    logo: 'https://bug.edu.vn/logo.png'
+    telephone: '+84-346-038-772'
+    priceRange: '$$'
+    openingHours: 'Mo-Fr 09:00-18:00'
+
+    address:
+      streetAddress: 'Hà Nội, Việt Nam'
+      addressLocality: 'Hà Nội'
+      addressRegion: 'Hà Nội'
+      postalCode: '100000'
+      addressCountry: 'VN'
+
+    contactPoint:
+      contactType: 'Customer Support'
+      telephone: '+84-345-038-772'
+      email: 'contact@bug.edu.vn'
+      availableLanguage:
+        - 'Vietnamese'
+
+    aggregateRating:
+      ratingValue: '5'
+      reviewCount: '26'
+
+  defaultLanguage: 'vi'

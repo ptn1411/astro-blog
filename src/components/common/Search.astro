@@ -1,10 +1,7 @@
 ---
 // Inspired by -> https://github.com/chrismwilliams/astro-theme-cactus/blob/main/src/components/Search.astro
 
-import '@pagefind/default-ui/css/ui.css';
-
 import SearchIcon from '~/components/icons/SearchIcon.astro';
-
 ---
 
 <site-search id="search" class="ms-auto">
@@ -16,7 +13,9 @@ import SearchIcon from '~/components/icons/SearchIcon.astro';
     aria-label="search"
     class="h-full max-h-full w-full max-w-full border border-zinc-400 bg-white dark:bg-[#0a0910ec] shadow backdrop:backdrop-blur sm:mx-auto sm:mb-auto sm:mt-16 sm:h-max sm:max-h-[calc(100%-8rem)] sm:min-h-[15rem] sm:w-5/6 sm:max-w-[48rem] sm:rounded-md opacity-0">
     <div class="dialog-frame flex flex-col gap-4 p-6 pt-12 sm:pt-6">
-      <button data-close-modal class="ms-auto cursor-pointer rounded-full bg-black text-white px-4 py-2 dark:bg-white dark:text-black">
+      <button
+        data-close-modal
+        class="ms-auto cursor-pointer rounded-full bg-black text-white px-4 py-2 dark:bg-white dark:text-black">
         Đóng ✕
       </button>
 
@@ -39,138 +38,62 @@ import SearchIcon from '~/components/icons/SearchIcon.astro';
 </site-search>
 
 <script>
-  import { animate } from 'motion';
+  let searchInitialized = false;
 
-  class SiteSearch extends HTMLElement {
-    constructor() {
-      super();
+  // Lazy load search logic when button is clicked
+  const loadSearchLogic = async () => {
+    if (searchInitialized) return Promise.resolve();
+    searchInitialized = true;
 
-      const openBtn = this.querySelector<HTMLButtonElement>('button[data-open-modal]');
-      const closeBtn = this.querySelector<HTMLButtonElement>('button[data-close-modal]');
-      const dialog = this.querySelector('dialog');
-      const dialogFrame = this.querySelector('.dialog-frame');
-
-      if (!openBtn || !closeBtn || !dialog || !dialogFrame) {
-        return;
-      }
-
-      const toggleRain = (visible: boolean) => {
-        const rain = document.getElementById('matrix-rain');
-        if (!rain) return;
-        const fromClass = visible ? 'hidden' : 'visible';
-        const toClass = visible ? 'visible' : 'hidden';
-        if (rain.classList.contains(fromClass)) {
-          rain.classList.replace(fromClass, toClass);
-        } else {
-          rain.classList.add(toClass);
-          rain.classList.remove(fromClass);
-        }
-      };
-
-      const closeModal = () => {
-        dialog.close();
-        dialog.classList.add('opacity-0');
-        document.body.classList.remove('overflow-hidden');
-        window.removeEventListener('click', onWindowClick);
-        window.removeEventListener('keydown', handleEscKey);
-        toggleRain(false);
-      };
-
-      const onWindowClick = (event: MouseEvent) => {
-        const target = event.target as Node | null;
-        if (target && !dialogFrame.contains(target) && dialog.open) {
-          closeModal();
-        }
-      };
-
-      const handleEscKey = (event: KeyboardEvent) => {
-        if (event.key === 'Escape' && dialog.open) {
-          closeModal();
-        }
-      };
-
-      const openModal = (event?: MouseEvent) => {
-        dialog.showModal();
-
-        toggleRain(true);
-
-        animate(
-          dialog,
-          {
-            clipPath: ['polygon(0 0, 100% 0, 100% -200%, -200% -200%)', 'polygon(0 0, 100% 0, 100% 100%, 0% 100%)'],
-            opacity: [0, 1],
-          },
-          { duration: 0.2 }
-        );
-
-        dialog.classList.remove('opacity-0');
-        document.body.classList.add('overflow-hidden');
-
-        this.querySelector('input')?.focus();
-        event?.stopPropagation();
-
-        window.addEventListener('click', onWindowClick);
-        window.addEventListener('keydown', handleEscKey);
-      };
-
-      openBtn.addEventListener('click', openModal);
-      openBtn.disabled = false;
-      closeBtn.addEventListener('click', closeModal);
-      document.addEventListener('astro:after-swap', closeModal);
-
-      window.addEventListener('keydown', (event: KeyboardEvent) => {
-        if (event.key === '/' && !dialog.open) {
-          const activeElement = document.activeElement;
-          const isTyping =
-            activeElement instanceof HTMLInputElement ||
-            activeElement instanceof HTMLTextAreaElement ||
-            (activeElement instanceof HTMLElement && activeElement.isContentEditable);
-
-          if (!isTyping) {
-            openModal();
-            event.preventDefault();
-          }
-        }
-      });
-
-      const loadPagefind = async () => {
-        if (import.meta.env.DEV) return;
-
-        type IdleScheduler = (callback: () => void) => void;
-        const requestIdle = (window as typeof window & {
-          requestIdleCallback?: (cb: IdleRequestCallback) => number;
-        }).requestIdleCallback;
-
-        const scheduleIdle: IdleScheduler = requestIdle
-          ? (callback) => requestIdle(() => callback())
-          : (callback) => setTimeout(callback, 1);
-
-        scheduleIdle(async () => {
-          const { PagefindUI } = await import('@pagefind/default-ui');
-          new PagefindUI({
-            element: '#pagefind__search',
-            baseUrl: import.meta.env.BASE_URL,
-            bundlePath: import.meta.env.BASE_URL.replace(/\/$/, '') + '/pagefind/',
-            showImages: true,
-            resetStyles: false,
-            // ép link về dạng không có / cuối:
-            processResult: (result) => {
-              result.url = result.url.replace(/\/$/, '');
-              return result;
-            },
-          });
-        });
-      };
-
-      if (document.readyState === 'loading') {
-        window.addEventListener('DOMContentLoaded', loadPagefind, { once: true });
-      } else {
-        loadPagefind();
-      }
+    try {
+      const { initializeSearch } = await import('./searchLogic');
+      initializeSearch();
+    } catch (error) {
+      console.error('Failed to load search logic:', error);
     }
+  };
+
+  // Setup click handler for search button
+  const searchElement = document.querySelector('site-search');
+  const openBtn = searchElement?.querySelector<HTMLButtonElement>('button[data-open-modal]');
+
+  if (openBtn) {
+    openBtn.disabled = false;
+
+    // Load script and trigger click after loaded
+    openBtn.addEventListener(
+      'click',
+      async (event) => {
+        event.preventDefault();
+        await loadSearchLogic();
+        // Trigger click again after script is loaded
+        if (searchInitialized) {
+          openBtn.click();
+        }
+      },
+      { once: true }
+    );
   }
 
-  customElements.define('site-search', SiteSearch);
+  // Setup keyboard shortcut
+  window.addEventListener('keydown', async (event: KeyboardEvent) => {
+    if (event.key === '/') {
+      const activeElement = document.activeElement;
+      const isTyping =
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+
+      if (!isTyping) {
+        event.preventDefault();
+        await loadSearchLogic();
+        // Trigger the button click to open modal
+        if (searchInitialized && openBtn) {
+          openBtn.click();
+        }
+      }
+    }
+  });
 </script>
 
 <style is:global>

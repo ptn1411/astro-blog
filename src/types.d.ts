@@ -106,6 +106,7 @@ export interface MetaDataTwitter {
 export interface Image {
   src: string;
   alt?: string;
+  loading?: 'eager' | 'lazy';
 }
 
 export interface Video {

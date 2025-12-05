@@ -11,6 +11,7 @@ export type Config = {
   };
   ui?: unknown;
   analytics?: unknown;
+  structuredData?: StructuredDataConfig;
 };
 
 export interface SiteConfig {
@@ -80,6 +81,46 @@ export interface AnalyticsConfig {
 
 export interface UIConfig {
   theme: string;
+}
+
+export interface StructuredDataConfig {
+  profile?: {
+    name?: string;
+    jobTitle?: string;
+    description?: string;
+    image?: string;
+    email?: string;
+    location?: {
+      type?: string;
+      name?: string;
+    };
+    sameAs?: string[];
+  };
+  business?: {
+    image?: string;
+    logo?: string;
+    telephone?: string;
+    priceRange?: string;
+    openingHours?: string;
+    address?: {
+      streetAddress?: string;
+      addressLocality?: string;
+      addressRegion?: string;
+      postalCode?: string;
+      addressCountry?: string;
+    };
+    contactPoint?: {
+      contactType?: string;
+      telephone?: string;
+      email?: string;
+      availableLanguage?: string[];
+    };
+    aggregateRating?: {
+      ratingValue?: string;
+      reviewCount?: string;
+    };
+  };
+  defaultLanguage?: string;
 }
 
 const DEFAULT_SITE_NAME = 'Website';
@@ -193,6 +234,50 @@ const getAnalytics = (config: Config) => {
   return merge({}, _default, config?.analytics ?? {}) as AnalyticsConfig;
 };
 
+const getStructuredData = (config: Config) => {
+  const _default = {
+    profile: {
+      name: 'Your Name',
+      jobTitle: 'Your Job Title',
+      description: 'Your description',
+      image: '',
+      email: 'mailto:contact@example.com',
+      location: {
+        type: 'Country',
+        name: 'Vietnam',
+      },
+      sameAs: [],
+    },
+    business: {
+      image: '',
+      logo: '',
+      telephone: '',
+      priceRange: '$$',
+      openingHours: 'Mo-Fr 09:00-18:00',
+      address: {
+        streetAddress: '',
+        addressLocality: '',
+        addressRegion: '',
+        postalCode: '',
+        addressCountry: 'VN',
+      },
+      contactPoint: {
+        contactType: 'Customer Support',
+        telephone: '',
+        email: '',
+        availableLanguage: ['Vietnamese', 'English'],
+      },
+      aggregateRating: {
+        ratingValue: '5',
+        reviewCount: '0',
+      },
+    },
+    defaultLanguage: 'vi',
+  };
+
+  return merge({}, _default, config?.structuredData ?? {}) as StructuredDataConfig;
+};
+
 export default (config: Config) => ({
   SITE: getSite(config),
   I18N: getI18N(config),
@@ -200,4 +285,5 @@ export default (config: Config) => ({
   APP_BLOG: getAppBlog(config),
   UI: getUI(config),
   ANALYTICS: getAnalytics(config),
+  STRUCTURED_DATA: getStructuredData(config),
 });

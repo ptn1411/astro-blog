@@ -76,19 +76,30 @@ const metadata = {
       Nhật ký Công nghệ
     </Headline>
 
-    <div class="mb-8" data-blog-filters>
+    <div class="mb-12 space-y-6" data-blog-filters>
       {
         allCategories.length > 0 && (
-          <div class="mb-6">
-            <p class="text-sm font-semibold uppercase tracking-wide text-muted mb-2">Chuyên mục</p>
-            <div class="flex flex-wrap gap-2" role="group" aria-label="Lọc theo chuyên mục">
+          <div class="filter-section">
+            <div class="flex items-center gap-2 mb-4">
+              <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                />
+              </svg>
+              <h3 class="text-lg font-bold text-default">Chuyên mục</h3>
+            </div>
+            <div class="flex flex-wrap gap-3" role="group" aria-label="Lọc theo chuyên mục">
               <button
                 type="button"
                 class="filter-chip is-active"
                 data-filter-type="category"
                 data-filter-value=""
                 aria-pressed="true">
-                Tất cả
+                <span class="chip-icon">✨</span>
+                <span>Tất cả</span>
               </button>
               {allCategories.map((category) => (
                 <button
@@ -97,7 +108,8 @@ const metadata = {
                   data-filter-type="category"
                   data-filter-value={category.slug}
                   aria-pressed="false">
-                  {category.title}
+                  <span class="chip-icon">📚</span>
+                  <span>{category.title}</span>
                 </button>
               ))}
             </div>
@@ -107,19 +119,54 @@ const metadata = {
 
       {
         allTags.length > 0 && (
-          <div>
-            <p class="text-sm font-semibold uppercase tracking-wide text-muted mb-2">Thẻ liên quan</p>
-            <div class="flex flex-wrap gap-2" role="group" aria-label="Lọc theo thẻ">
-              {allTags.map((tag) => (
-                <button
-                  type="button"
-                  class="filter-chip"
-                  data-filter-type="tag"
-                  data-filter-value={tag.slug}
-                  aria-pressed="false">
-                  {tag.title}
-                </button>
-              ))}
+          <div class="filter-section">
+            <div class="flex items-center gap-2 mb-4">
+              <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                />
+              </svg>
+              <h3 class="text-lg font-bold text-default">Thẻ liên quan</h3>
+            </div>
+            
+            <!-- Search input -->
+            <div class="mb-3">
+              <div class="relative">
+                <input
+                  type="text"
+                  id="tag-search"
+                  placeholder="Tìm kiếm thẻ..."
+                  class="w-full px-4 py-2.5 pl-10 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 text-default focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+                <svg class="absolute left-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Selected tags -->
+            <div id="selected-tags" class="mb-3 min-h-[2rem] flex flex-wrap gap-2 empty:hidden"></div>
+
+            <!-- Tags list -->
+            <div class="max-h-64 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800">
+              <div id="tags-list" class="divide-y divide-gray-100 dark:divide-gray-700">
+                {allTags.map((tag) => (
+                  <label class="tag-item flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors" data-tag-slug={tag.slug}>
+                    <input
+                      type="checkbox"
+                      class="tag-checkbox w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0"
+                      data-filter-type="tag"
+                      data-filter-value={tag.slug}
+                      aria-label={`Lọc theo ${tag.title}`}
+                    />
+                    <span class="tag-title flex-1 text-sm font-medium text-default">{tag.title}</span>
+                    <span class="tag-icon text-lg">#</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         )
@@ -134,56 +181,108 @@ const metadata = {
 </Layout>
 
 <style is:inline>
+  .filter-section {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    border-radius: 1rem;
+    border: 1px solid rgba(99, 102, 241, 0.1);
+  }
+
   .filter-chip {
     display: inline-flex;
     align-items: center;
-    padding: 0.375rem 0.75rem;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
     border-radius: 9999px;
-    border: 1px solid rgba(148, 163, 184, 1);
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #475569;
-    background-color: transparent;
+    border: 2px solid transparent;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #64748b;
+    background: white;
     cursor: pointer;
-    transition:
-      background-color 150ms ease,
-      color 150ms ease,
-      border-color 150ms ease,
-      box-shadow 150ms ease;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
-  .filter-chip:hover,
-  .filter-chip:focus-visible {
-    background-color: #f1f5f9;
-    color: #0f172a;
+  .filter-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #4f46e5;
   }
 
   .filter-chip.is-active {
-    background-color: #0f172a;
-    color: #ffffff;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
     border-color: transparent;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .filter-chip-tag {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+  }
+
+  .filter-chip-tag:hover {
+    border-color: rgba(236, 72, 153, 0.3);
+    color: #ec4899;
+  }
+
+  .filter-chip-tag.is-active {
+    background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(236, 72, 153, 0.4);
+  }
+
+  .chip-icon {
+    font-size: 1.125rem;
+    line-height: 1;
+  }
+
+  :global(.dark) .filter-section {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+    border-color: rgba(99, 102, 241, 0.2);
   }
 
   :global(.dark) .filter-chip {
-    border-color: rgba(71, 85, 105, 1);
-    color: #e2e8f0;
+    background: rgba(30, 41, 59, 0.8);
+    color: #cbd5e1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
-  :global(.dark) .filter-chip:hover,
-  :global(.dark) .filter-chip:focus-visible {
-    background-color: rgba(51, 65, 85, 1);
-    color: #ffffff;
+  :global(.dark) .filter-chip:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #a5b4fc;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
   }
 
   :global(.dark) .filter-chip.is-active {
-    background-color: #ffffff;
-    color: #0f172a;
-    border-color: transparent;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+  }
+
+  :global(.dark) .filter-chip-tag {
+    background: rgba(45, 30, 60, 0.8);
+  }
+
+  :global(.dark) .filter-chip-tag:hover {
+    border-color: rgba(236, 72, 153, 0.5);
+    color: #f9a8d4;
+  }
+
+  :global(.dark) .filter-chip-tag.is-active {
+    background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
   }
 
   [data-post].is-hidden {
     display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .filter-chip {
+      transition: none;
+      transform: none !important;
+    }
   }
 </style>
 
@@ -194,6 +293,9 @@ const metadata = {
 
     const posts = Array.from(document.querySelectorAll('[data-post]'));
     const emptyMsg = document.querySelector('[data-blog-empty]');
+    const tagSearch = document.getElementById('tag-search');
+    const tagsList = document.getElementById('tags-list');
+    const selectedTagsContainer = document.getElementById('selected-tags');
 
     const state = {
       category: '',
@@ -208,11 +310,39 @@ const metadata = {
         button.setAttribute('aria-pressed', String(isActive));
       });
 
-      filters.querySelectorAll('[data-filter-type="tag"]').forEach((button) => {
-        const value = button.dataset.filterValue ?? '';
-        const isActive = state.tags.has(value);
-        button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-pressed', String(isActive));
+      // Update checkboxes
+      filters.querySelectorAll('.tag-checkbox').forEach((checkbox) => {
+        const value = checkbox.dataset.filterValue ?? '';
+        checkbox.checked = state.tags.has(value);
+      });
+
+      // Update selected tags display
+      updateSelectedTags();
+    };
+
+    const updateSelectedTags = () => {
+      if (!selectedTagsContainer) return;
+      
+      selectedTagsContainer.innerHTML = '';
+      
+      state.tags.forEach((tagSlug) => {
+        const tagItem = document.querySelector(`[data-tag-slug="${tagSlug}"]`);
+        if (!tagItem) return;
+        
+        const tagTitle = tagItem.querySelector('.tag-title')?.textContent || tagSlug;
+        
+        const badge = document.createElement('span');
+        badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-sm';
+        badge.innerHTML = `
+          <span>#${tagTitle}</span>
+          <button type="button" class="hover:bg-white/20 rounded-full p-0.5 transition-colors" data-remove-tag="${tagSlug}" aria-label="Xóa ${tagTitle}">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        `;
+        
+        selectedTagsContainer.appendChild(badge);
       });
     };
 
@@ -240,29 +370,62 @@ const metadata = {
       }
     };
 
+    // Category filter
     filters.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-filter-type]');
+      const button = event.target.closest('[data-filter-type="category"]');
       if (!button) return;
 
-      const type = button.dataset.filterType;
       const value = button.dataset.filterValue ?? '';
+      state.category = state.category === value ? '' : value;
 
-      if (type === 'category') {
-        state.category = state.category === value ? '' : value;
-      }
+      updateButtons();
+      filterPosts();
+    });
 
-      if (type === 'tag') {
-        if (!value) return;
-        if (state.tags.has(value)) {
-          state.tags.delete(value);
-        } else {
-          state.tags.add(value);
-        }
+    // Tag checkboxes
+    filters.addEventListener('change', (event) => {
+      if (!event.target.classList.contains('tag-checkbox')) return;
+      
+      const value = event.target.dataset.filterValue ?? '';
+      if (!value) return;
+
+      if (event.target.checked) {
+        state.tags.add(value);
+      } else {
+        state.tags.delete(value);
       }
 
       updateButtons();
       filterPosts();
     });
+
+    // Remove tag badges
+    if (selectedTagsContainer) {
+      selectedTagsContainer.addEventListener('click', (event) => {
+        const removeBtn = event.target.closest('[data-remove-tag]');
+        if (!removeBtn) return;
+
+        const tagSlug = removeBtn.dataset.removeTag;
+        state.tags.delete(tagSlug);
+
+        updateButtons();
+        filterPosts();
+      });
+    }
+
+    // Tag search
+    if (tagSearch && tagsList) {
+      tagSearch.addEventListener('input', (event) => {
+        const searchTerm = event.target.value.toLowerCase().trim();
+        const tagItems = tagsList.querySelectorAll('.tag-item');
+
+        tagItems.forEach((item) => {
+          const title = item.querySelector('.tag-title')?.textContent?.toLowerCase() || '';
+          const matches = title.includes(searchTerm);
+          item.style.display = matches ? '' : 'none';
+        });
+      });
+    }
 
     updateButtons();
     filterPosts();

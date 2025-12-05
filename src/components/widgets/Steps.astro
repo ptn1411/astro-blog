@@ -1,8 +1,8 @@
 ---
-import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
-import Timeline from '~/components/ui/Timeline.astro';
-import Headline from '~/components/ui/Headline.astro';
 import Image from '~/components/common/Image.astro';
+import Headline from '~/components/ui/Headline.astro';
+import Timeline from '~/components/ui/Timeline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import type { Steps as Props } from '~/types';
 
 const {
@@ -21,7 +21,12 @@ const {
 ---
 
 <WidgetWrapper id={id} isDark={isDark} containerClass={`max-w-5xl ${classes?.container ?? ''}`} bg={bg}>
-  <div class:list={['flex flex-col gap-8 md:gap-12', { 'md:flex-row-reverse': isReversed }, { 'md:flex-row': image }]}>
+  <div
+    class:list={[
+      'flex flex-col gap-6 sm:gap-8 md:gap-12',
+      { 'md:flex-row-reverse': isReversed },
+      { 'md:flex-row': image },
+    ]}>
     <div class:list={['md:py-4 md:self-center', { 'md:basis-1/2': image }, { 'w-full': !image }]}>
       <Headline
         title={title}
@@ -29,7 +34,7 @@ const {
         tagline={tagline}
         classes={{
           container: 'text-left rtl:text-right',
-          title: 'text-3xl lg:text-4xl',
+          title: 'text-2xl sm:text-3xl lg:text-4xl',
           ...((classes?.headline as object) ?? {}),
         }}
       />
@@ -50,6 +55,7 @@ const {
               layout="cover"
               src={image?.src}
               alt={image?.alt || ''}
+              loading={image?.loading || 'lazy'}
             />
           )}
         </div>

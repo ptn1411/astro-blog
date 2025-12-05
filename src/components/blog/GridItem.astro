@@ -27,9 +27,9 @@ const link = APP_BLOG?.post?.isEnabled ? getPermalink(post.permalink, 'post') : 
             <Image
               src={image}
               class="w-full md:h-full rounded shadow-lg bg-gray-400 dark:bg-slate-700"
-              widths={[400, 900]}
+              widths={[320, 400, 768, 900]}
               width={400}
-              sizes="(max-width: 900px) 400px, 900px"
+              sizes="(max-width: 320px) 320px, (max-width: 768px) 400px, 900px"
               alt={post.title}
               aspectRatio="16:9"
               layout="cover"
@@ -41,9 +41,9 @@ const link = APP_BLOG?.post?.isEnabled ? getPermalink(post.permalink, 'post') : 
           <Image
             src={image}
             class="w-full md:h-full rounded shadow-lg bg-gray-400 dark:bg-slate-700"
-            widths={[400, 900]}
+            widths={[320, 400, 768, 900]}
             width={400}
-            sizes="(max-width: 900px) 400px, 900px"
+            sizes="(max-width: 320px) 320px, (max-width: 768px) 400px, 900px"
             alt={post.title}
             aspectRatio="16:9"
             layout="cover"

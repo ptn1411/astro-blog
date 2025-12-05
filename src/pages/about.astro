@@ -1,11 +1,11 @@
 ﻿---
-import Features2 from "~/components/widgets/Features2.astro";
-import Features3 from "~/components/widgets/Features3.astro";
-import Hero from "~/components/widgets/Hero.astro";
-import Steps2 from "~/components/widgets/Steps2.astro";
-import Layout from "~/layouts/PageLayout.astro";
-import { getCanonical } from "~/utils/permalinks";
-import { buildPersonSchema } from "~/utils/structured-data";
+import Features2 from '~/components/widgets/Features2.astro';
+import Features3 from '~/components/widgets/Features3.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Steps2 from '~/components/widgets/Steps2.astro';
+import Layout from '~/layouts/PageLayout.astro';
+import { getCanonical } from '~/utils/permalinks';
+import { buildPersonSchema } from '~/utils/structured-data';
 
 const canonical = String(getCanonical(Astro.url.pathname));
 
@@ -34,6 +34,9 @@ const metadata = {
     image={{
       src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80',
       alt: 'Góc làm việc của lập trình viên',
+      loading: 'eager',
+      widths: [400, 768, 1024, 2000],
+      sizes: '(max-width: 768px) 400px, (max-width: 1024px) 768px, 2000px',
     }}>
     <Fragment slot="title">
       <span class="text-accent dark:text-white">Phạm Thành Nam</span>
@@ -42,17 +45,21 @@ const metadata = {
     </Fragment>
 
     <Fragment slot="subtitle">
-      Tôi là một lập trình viên web và người xây dựng hệ thống, đam mê tạo ra những ứng dụng <b>hiện đại, mở rộng linh hoạt và đặt con người ở trung tâm</b>.
-      Công việc của tôi kết hợp sự chính xác của kỹ thuật với tinh thần sáng tạo - từ <b>backend Node.js</b>, <b>giao diện React</b> cho đến
+      Tôi là một lập trình viên web và người xây dựng hệ thống, đam mê tạo ra những ứng dụng <b
+        >hiện đại, mở rộng linh hoạt và đặt con người ở trung tâm</b
+      >. Công việc của tôi kết hợp sự chính xác của kỹ thuật với tinh thần sáng tạo - từ <b>backend Node.js</b>, <b
+        >giao diện React</b
+      > cho đến
       <b>các công cụ viết bằng Go</b> và hệ thống tự động hóa.
     </Fragment>
   </Hero>
 
-  <!-- Section: Overview -->
+  <!-- Section: Overview - Lazy loaded -->
   <Features3
     title="Tôi làm gì"
     subtitle="Tôi thiết kế, xây dựng và tối ưu những hệ thống số - hòa quyện công nghệ với sự sáng tạo để tạo ra giải pháp bền vững và đầy cảm hứng."
     columns={3}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
       {
         title: 'Phát triển web Fullstack',
@@ -98,11 +105,12 @@ const metadata = {
     ]}
   />
 
-  <!-- Section: Life -->
+  <!-- Section: Life - Lazy loaded -->
   <Features2
     title="Ngoài lập trình"
     tagline="Cà phê • Thiên nhiên • Sáng tạo"
     columns={2}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
       {
         title: 'Trồng cà phê',
@@ -119,11 +127,12 @@ const metadata = {
     ]}
   />
 
-  <!-- Mục: Liên hệ -->
+  <!-- Mục: Liên hệ - Lazy loaded -->
   <Features2
     title="Hãy kết nối"
     tagline="Tìm tôi trên mạng"
     columns={2}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
       {
         title: 'GitHub',
@@ -138,4 +147,3 @@ const metadata = {
     ]}
   />
 </Layout>
-
