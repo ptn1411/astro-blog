@@ -50,22 +50,7 @@ const metadata = {
       isSticky
       showToggleTheme
     />
-    <!-- Particles.js lazy loaded on interaction -->
-    <script is:inline>
-      // Lazy load particles.js only when needed
-      let particlesLoaded = false;
-      function loadParticles() {
-        if (particlesLoaded) return;
-        particlesLoaded = true;
-        const script = document.createElement('script');
-        script.src = '/particles.min.js';
-        script.async = true;
-        document.head.appendChild(script);
-      }
-      // Load on first scroll or after 3 seconds
-      window.addEventListener('scroll', loadParticles, { once: true, passive: true });
-      setTimeout(loadParticles, 3000);
-    </script>
+    <script is:inline src="/particles.min.js"></script>
   </Fragment>
 
   <!-- Hero -->
