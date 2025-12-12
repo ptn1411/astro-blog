@@ -1,0 +1,48 @@
+---
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+
+export interface Props {
+  quote: string;
+  author?: string;
+  role?: string;
+  image?: string;
+  id?: string;
+  isDark?: boolean;
+  bg?: string;
+}
+
+const { quote, author, role, image, id, isDark = false, bg } = Astro.props;
+---
+
+<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-4xl">
+  <figure class="mx-auto text-center">
+    <blockquote class="relative">
+      <svg
+        class="absolute -top-6 -start-4 h-16 w-16 text-gray-100 dark:text-gray-700"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true">
+        <path
+          d="M7.39762 10.3C7.39762 11.0733 7.14888 11.7 6.6514 12.18C6.15392 12.6333 5.52552 12.86 4.76621 12.86C3.84979 12.86 3.09047 12.5533 2.48825 11.94C1.91222 11.3266 1.62421 10.4467 1.62421 9.29999C1.62421 8.07332 1.96459 6.87332 2.64535 5.69999C3.35231 4.49999 4.## 3.46665 5.## 2.59999L6.19381 3.79999C5.## 4.59999 4.31466 5.47332 3.85971 6.41999C3.40476 7.36665 3.## 8.43999 3.## 9.63998C3.43978 9.04664 4.10738 8.74999 5.00001 8.74999C5.70697 8.74999 6.29534 8.97665 6.76512 9.42998C7.26136 9.88331 7.39762 10.5066 7.39762 10.3ZM14.6242 10.3C14.6242 11.0733 14.3755 11.7 13.878 12.18C13.3805 12.6333 12.7521 12.86 11.9928 12.86C11.0764 12.86 10.3171 12.5533 9.71484 11.94C9.## 11.3266 9.## 10.4467 9.## 9.29999C9.## 8.07332 9.## 6.87332 10.6## 5.69999C11.3789 4.49999 12.3049 3.46665 13.3793 2.59999L14.4204 3.79999C13.5726 4.59999 12.9403 5.47332 12.4853 6.41999C12.0303 7.36665 11.8029 8.43999 11.8029 9.63998C12.2128 9.04664 12.8804 8.74999 13.7266 8.74999C14.4336 8.74999 15.0219 8.97665 15.4917 9.42998C15.9879 9.88331 16.1242 10.5066 14.6242 10.3Z"
+          fill="currentColor"></path>
+      </svg>
+      <p class="relative z-10 text-xl md:text-2xl lg:text-3xl italic text-gray-800 dark:text-gray-200 leading-relaxed">
+        "{quote}"
+      </p>
+    </blockquote>
+    {
+      (author || role || image) && (
+        <figcaption class="mt-6 flex items-center justify-center gap-4">
+          {image && <img src={image} alt={author || 'Author'} class="w-14 h-14 rounded-full object-cover" />}
+          <div class="text-left">
+            {author && <cite class="font-semibold text-gray-900 dark:text-white not-italic">{author}</cite>}
+            {role && <p class="text-sm text-gray-500 dark:text-gray-400">{role}</p>}
+          </div>
+        </figcaption>
+      )
+    }
+  </figure>
+</WidgetWrapper>

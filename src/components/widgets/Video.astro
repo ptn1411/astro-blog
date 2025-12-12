@@ -1,0 +1,35 @@
+---
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  videoUrl: string;
+  aspectRatio?: '16:9' | '4:3' | '1:1';
+  id?: string;
+  isDark?: boolean;
+  bg?: string;
+}
+
+const { title, subtitle, videoUrl, aspectRatio = '16:9', id, isDark = false, bg } = Astro.props;
+
+const aspectMap = {
+  '16:9': 'aspect-video',
+  '4:3': 'aspect-[4/3]',
+  '1:1': 'aspect-square',
+};
+---
+
+<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-5xl">
+  {(title || subtitle) && <Headline title={title} subtitle={subtitle} classes={{ container: 'mb-8' }} />}
+  <div class={`relative w-full ${aspectMap[aspectRatio]} rounded-lg overflow-hidden shadow-lg`}>
+    <iframe
+      src={videoUrl}
+      title={title || 'Video'}
+      class="absolute inset-0 w-full h-full"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>
+  </div>
+</WidgetWrapper>

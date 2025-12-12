@@ -1,0 +1,50 @@
+---
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  members: {
+    name: string;
+    role: string;
+    image?: string;
+    bio?: string;
+    socials?: { icon: string; href: string }[];
+  }[];
+  id?: string;
+  isDark?: boolean;
+  bg?: string;
+}
+
+const { title, subtitle, members = [], id, isDark = false, bg } = Astro.props;
+---
+
+<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-6xl">
+  {(title || subtitle) && <Headline title={title} subtitle={subtitle} classes={{ container: 'mb-12' }} />}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    {
+      members.map((member) => (
+        <div class="text-center group">
+          <div class="relative mb-4 mx-auto w-40 h-40 rounded-full overflow-hidden ring-4 ring-gray-100 dark:ring-gray-700">
+            {member.image ? (
+              <img
+                src={member.image}
+                alt={member.name}
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                loading="lazy"
+              />
+            ) : (
+              <div class="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                <span class="text-4xl text-white font-bold">{member.name.charAt(0)}</span>
+              </div>
+            )}
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{member.name}</h3>
+          <p class="text-primary font-medium mb-2">{member.role}</p>
+          {member.bio && <p class="text-sm text-gray-600 dark:text-gray-400 max-w-xs mx-auto">{member.bio}</p>}
+        </div>
+      ))
+    }
+  </div>
+</WidgetWrapper>

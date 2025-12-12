@@ -1,0 +1,9 @@
+---
+export interface Props {
+  height?: string;
+}
+
+const { height = '4rem' } = Astro.props;
+---
+
+<div style={`height: ${height}`} aria-hidden="true"></div>

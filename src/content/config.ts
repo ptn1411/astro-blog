@@ -142,6 +142,19 @@ export async function resolveRelations() {
 }
 
 /**
+ * Collection: PAGE
+ */
+const pageCollection = defineCollection({
+  loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/content/page' }),
+  schema: ({ image }: SchemaContext) =>
+    z.object({
+      title: z.string().optional(),
+      metadata: metadataDefinition(),
+      image: image().optional(),
+    }),
+});
+
+/**
  * Xuất collections cho Astro
  */
 export const collections = {
@@ -149,4 +162,5 @@ export const collections = {
   author: authorCollection,
   category: categoryCollection,
   tag: tagCollection,
+  page: pageCollection,
 };

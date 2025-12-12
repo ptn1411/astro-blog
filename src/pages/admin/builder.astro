@@ -1,0 +1,14 @@
+---
+import BuilderApp from '~/components/admin/Builder';
+import Layout from '~/layouts/Layout.astro';
+
+const metadata = {
+  title: 'Content Builder',
+};
+---
+
+<Layout metadata={metadata}>
+  <div class="min-h-screen bg-gray-50 flex flex-col">
+    <BuilderApp client:only="react" />
+  </div>
+</Layout>

@@ -137,3 +137,23 @@ collections:
     fields:
       - { label: 'Name', name: 'name', widget: 'string' }
       - { label: 'Description', name: 'description', widget: 'text', required: false }
+
+  # ========== PAGE ==========
+  - name: 'page'
+    label: 'Page'
+    folder: 'src/content/page'
+    create: true
+    slug: '{{slug}}'
+    extension: 'mdx'
+    format: 'frontmatter'
+    fields:
+      - { label: 'Title', name: 'title', widget: 'string' }
+      - { label: 'Featured Image', name: 'image', widget: 'image', required: false }
+      - label: 'Metadata'
+        name: 'metadata'
+        widget: 'object'
+        collapsed: true
+        fields:
+          - { label: 'Title', name: 'title', widget: 'string', required: false }
+          - { label: 'Description', name: 'description', widget: 'text', required: false }
+      - { label: 'Content', name: 'body', minimal: false, widget: 'markdown' }

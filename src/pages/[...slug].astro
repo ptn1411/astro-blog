@@ -1,0 +1,94 @@
+---
+export const prerender = true;
+
+import { getCollection } from 'astro:content';
+import Layout from '~/layouts/PageLayout.astro';
+
+// Widget imports
+import { render } from 'astro:content';
+import Announcement from '~/components/widgets/Announcement.astro';
+import BlogHighlightedPosts from '~/components/widgets/BlogHighlightedPosts.astro';
+import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
+import Brands from '~/components/widgets/Brands.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Contact from '~/components/widgets/Contact.astro';
+import Content from '~/components/widgets/Content.astro';
+import Countdown from '~/components/widgets/Countdown.astro';
+import Divider from '~/components/widgets/Divider.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
+import Features from '~/components/widgets/Features.astro';
+import Features2 from '~/components/widgets/Features2.astro';
+import Features3 from '~/components/widgets/Features3.astro';
+import Gallery from '~/components/widgets/Gallery.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Hero2 from '~/components/widgets/Hero2.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import Newsletter from '~/components/widgets/Newsletter.astro';
+import Note from '~/components/widgets/Note.astro';
+import Pricing from '~/components/widgets/Pricing.astro';
+import Quote from '~/components/widgets/Quote.astro';
+import Spacer from '~/components/widgets/Spacer.astro';
+import Stats from '~/components/widgets/Stats.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import Steps2 from '~/components/widgets/Steps2.astro';
+import TableOfContents from '~/components/widgets/TableOfContents.astro';
+import Team from '~/components/widgets/Team.astro';
+import Testimonials from '~/components/widgets/Testimonials.astro';
+import Video from '~/components/widgets/Video.astro';
+
+// Helper to map widget names to components
+const COMPONENTS = {
+  Announcement,
+  BlogHighlightedPosts,
+  BlogLatestPosts,
+  Brands,
+  CallToAction,
+  Contact,
+  Content,
+  Countdown,
+  Divider,
+  FAQs,
+  Features,
+  Features2,
+  Features3,
+  Gallery,
+  Hero,
+  Hero2,
+  HeroText,
+  Newsletter,
+  Note,
+  Pricing,
+  Quote,
+  Spacer,
+  Stats,
+  Steps,
+  Steps2,
+  TableOfContents,
+  Team,
+  Testimonials,
+  Video,
+};
+
+export async function getStaticPaths() {
+  const pages = await getCollection('page');
+  return pages.map((page) => ({
+    params: { slug: page.id },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const { Content: PageContent } = await render(page);
+
+const metadata = {
+  title: page.data.title || page.data.metadata?.title,
+  description: page.data.metadata?.description,
+  openGraph: {
+    images: page.data.image ? [{ url: page.data.image.src }] : [],
+  },
+};
+---
+
+<Layout metadata={metadata}>
+  <PageContent components={COMPONENTS} />
+</Layout>

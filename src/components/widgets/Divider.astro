@@ -1,0 +1,23 @@
+---
+export interface Props {
+  style?: 'solid' | 'dashed' | 'dotted';
+  color?: string;
+  spacing?: 'sm' | 'md' | 'lg';
+}
+
+const { style = 'solid', color = 'gray', spacing = 'md' } = Astro.props;
+
+const spacingMap = {
+  sm: 'my-4',
+  md: 'my-8',
+  lg: 'my-16',
+};
+
+const styleMap = {
+  solid: 'border-solid',
+  dashed: 'border-dashed',
+  dotted: 'border-dotted',
+};
+---
+
+<hr class={`border-t ${styleMap[style]} ${spacingMap[spacing]} border-${color}-300 dark:border-${color}-700`} />

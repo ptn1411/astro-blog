@@ -1,0 +1,41 @@
+---
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  columns?: number;
+  images: { src: string; alt: string }[];
+  id?: string;
+  isDark?: boolean;
+  bg?: string;
+}
+
+const { title, subtitle, columns = 3, images = [], id, isDark = false, bg } = Astro.props;
+
+const gridCols = {
+  2: 'grid-cols-2',
+  3: 'grid-cols-2 md:grid-cols-3',
+  4: 'grid-cols-2 md:grid-cols-4',
+};
+---
+
+<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-6xl">
+  {(title || subtitle) && <Headline title={title} subtitle={subtitle} classes={{ container: 'mb-8' }} />}
+  <div class={`grid ${gridCols[columns] || gridCols[3]} gap-4`}>
+    {
+      images.map((image) => (
+        <div class="relative group overflow-hidden rounded-lg aspect-square">
+          <img
+            src={image.src}
+            alt={image.alt}
+            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            loading="lazy"
+          />
+          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+        </div>
+      ))
+    }
+  </div>
+</WidgetWrapper>

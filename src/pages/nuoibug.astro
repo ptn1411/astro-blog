@@ -1,0 +1,468 @@
+---
+import heroImage from '~/assets/images/nuoibug-hero.png';
+import donationQr from '~/assets/images/photo_2025-12-10_20-53-34.jpg';
+import Hero from '~/components/widgets/Hero.astro';
+import Layout from '~/layouts/Layout.astro';
+
+const metadata = {
+  title: 'Nuôi Bug - Chiến dịch giải cứu Bug khỏi sự cô đơn 🐛',
+  description:
+    'Nơi những dòng code lởm tìm thấy mái ấm. Tham gia ngay chiến dịch nhận nuôi Bug để cứu lấy production và giấc ngủ của dev. 1 Bug = 1 niềm đau.',
+  ignoreTitleTemplate: true,
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Custom Styles -->
+  <style is:global>
+    @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Press+Start+2P&family=Impact&display=swap');
+
+    .font-comic {
+      font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+    }
+    .font-pixel {
+      font-family: 'Press Start 2P', monospace;
+    }
+    .font-impact {
+      font-family: 'Impact', 'Arial Black', sans-serif;
+    }
+
+    /* Glitch Effect */
+    .glitch {
+      position: relative;
+    }
+    .glitch:hover::before {
+      content: attr(data-text);
+      position: absolute;
+      left: 2px;
+      text-shadow: -1px 0 red;
+      top: 0;
+      color: white;
+      background: black;
+      overflow: hidden;
+      clip: rect(0, 900px, 0, 0);
+      animation: glitch-anim-1 2s infinite linear alternate-reverse;
+    }
+    .glitch:hover::after {
+      content: attr(data-text);
+      position: absolute;
+      left: -2px;
+      text-shadow: -1px 0 blue;
+      top: 0;
+      color: white;
+      background: black;
+      overflow: hidden;
+      clip: rect(0, 900px, 0, 0);
+      animation: glitch-anim-2 2s infinite linear alternate-reverse;
+    }
+
+    @keyframes glitch-anim-1 {
+      0% {
+        clip: rect(20px, 9999px, 15px, 0);
+      }
+      20% {
+        clip: rect(50px, 9999px, 70px, 0);
+      }
+      40% {
+        clip: rect(20px, 9999px, 15px, 0);
+      }
+      60% {
+        clip: rect(80px, 9999px, 5px, 0);
+      }
+      80% {
+        clip: rect(10px, 9999px, 60px, 0);
+      }
+      100% {
+        clip: rect(60px, 9999px, 20px, 0);
+      }
+    }
+    @keyframes glitch-anim-2 {
+      0% {
+        clip: rect(25px, 9999px, 10px, 0);
+      }
+      20% {
+        clip: rect(60px, 9999px, 30px, 0);
+      }
+      40% {
+        clip: rect(15px, 9999px, 80px, 0);
+      }
+      60% {
+        clip: rect(30px, 9999px, 10px, 0);
+      }
+      80% {
+        clip: rect(80px, 9999px, 50px, 0);
+      }
+      100% {
+        clip: rect(40px, 9999px, 90px, 0);
+      }
+    }
+
+    /* Scanlines */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0),
+        rgba(255, 255, 255, 0) 50%,
+        rgba(0, 0, 0, 0.2) 50%,
+        rgba(0, 0, 0, 0.2)
+      );
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.3;
+    }
+
+    /* Custom Scrollbar for chaos */
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #000;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #ff0000;
+      border-radius: 0px;
+      border: 2px solid #fff;
+    }
+  </style>
+
+  <slot name="header">
+    <header
+      class="sticky top-0 z-40 flex-none mx-auto w-full transition-[opacity] ease-in-out bg-page/90 backdrop-blur-sm border-b-4 border-b-red-600"
+      id="header">
+      <div class="relative text-default py-3 px-3 md:px-6 mx-auto w-full md:flex md:justify-between max-w-7xl">
+        <div class="flex justify-between items-center">
+          <a class="flex items-center gap-2 group" href="/">
+            <!-- Text Logo -->
+            <span
+              class="self-center ml-2 text-3xl font-bold text-gray-900 whitespace-nowrap dark:text-white font-comic -rotate-2 group-hover:rotate-2 transform transition-transform decoration-wavy underline decoration-red-500">
+              Nuôi Bug
+            </span>
+            <!-- Crying Pixel Beetle Icon -->
+            <span class="text-4xl animate-pulse">🪲</span>
+          </a>
+          <div class="flex items-center md:hidden">
+            <button
+              type="button"
+              class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5 inline-flex items-center">
+              <span class="sr-only">Menu</span>
+              <span class="text-2xl">🍔</span>
+            </button>
+          </div>
+        </div>
+        <nav class="items-center w-full md:w-auto hidden md:flex text-default overflow-y-visible md:mx-5">
+          <ul
+            class="flex flex-col md:flex-row md:self-center w-full md:w-auto text-xl md:text-lg tracking-[0.01rem] font-medium font-comic">
+            <li>
+              <a class="hover:text-red-500 hover:underline px-4 py-3 flex items-center transition-colors" href="#"
+                >Trang chủ</a
+              >
+            </li>
+            <li>
+              <a class="hover:text-red-500 hover:underline px-4 py-3 flex items-center transition-colors" href="#"
+                >Danh sách người ủng hộ</a
+              >
+            </li>
+            <li>
+              <a class="hover:text-red-500 hover:underline px-4 py-3 flex items-center transition-colors" href="#"
+                >Về chúng tôi</a
+              >
+            </li>
+          </ul>
+        </nav>
+        <div
+          class="hidden md:self-center md:flex items-center md:mb-0 fixed w-full md:w-auto md:static justify-end left-0 bottom-0 p-3 md:p-0">
+          <div class="items-center flex justify-between w-full md:w-auto">
+            <div class="flex mr-4">
+              <button
+                type="button"
+                class="text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5 inline-flex items-center glitch"
+                data-text="🌗">
+                <span class="text-xl">🌗</span>
+              </button>
+            </div>
+            <span class="ml-4 rtl:ml-0 rtl:mr-4">
+              <a
+                href="#donate"
+                class="btn-primary py-2.5 px-5.5 md:px-6 font-bold uppercase shadow-none text-white bg-red-600 hover:bg-red-700 rounded-none border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-y-1 hover:shadow-none transition-all">
+                Nhận nuôi ngay 🚨
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </header>
+  </slot>
+
+  <!-- Hero Widget -->
+  <Hero
+    actions={[
+      {
+        text: 'Tìm Bug để nuôi 🔥',
+        href: '#',
+        variant: 'primary',
+        icon: 'tabler:flame',
+        class: 'bg-orange-600 font-bold border-2 border-white',
+      },
+      {
+        text: 'Xem hướng dẫn fix',
+        href: 'https://www.youtube.com/watch?v=aBAq6NWlEAk',
+        icon: 'tabler:video',
+        class: 'text-white underline decoration-wavy',
+      },
+    ]}
+    image={{ src: heroImage, alt: 'Một lập trình viên tuyệt vọng giữa đống meme' }}>
+    <Fragment slot="title">
+      <div
+        class="font-impact text-white uppercase tracking-tighter"
+        style="text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;">
+        <span class="block text-5xl md:text-7xl lg:text-8xl mb-2">ĐỪNG ĐỂ BUG</span>
+        <span class="block text-5xl md:text-7xl lg:text-8xl">CÔ ĐƠN.</span>
+      </div>
+      <div
+        class="font-comic text-accent text-3xl md:text-5xl mt-6 transform -rotate-2 inline-block bg-black px-4 py-2 border-2 border-dashed border-yellow-400">
+        HÃY 'NUÔI' CHÚNG THÀNH TÍNH NĂNG.
+      </div>
+    </Fragment>
+
+    <Fragment slot="subtitle">
+      <div
+        class="font-mono text-left max-w-2xl mx-auto bg-black/80 p-6 rounded-lg border border-green-500 mt-8 shadow-[0_0_15px_rgba(0,255,0,0.5)]">
+        <p class="text-green-400 mb-2">$ cat mission.txt</p>
+        <p class="text-gray-300 ml-4">&gt; Dự án từ thiện giúp lập trình viên nhận nuôi code lởm.</p>
+        <p class="text-red-400 ml-4 animate-pulse">&gt; 1 Bug = 1 đêm mất ngủ.</p>
+        <p class="text-yellow-300 ml-4">&gt; Cứu lấy Deadline của bạn.</p>
+        <p class="text-green-400 mt-2 blinking-cursor">_</p>
+      </div>
+    </Fragment>
+  </Hero>
+
+  <!-- Features Section (Custom implementation for chaotic style) -->
+  <!-- Why Adopt Me Section -->
+  <section class="relative md:-mt-[76px] not-prose scroll-mt-[72px]" id="features">
+    <div class="relative mx-auto max-w-7xl px-4 md:px-6 py-12 md:py-20 lg:py-24 text-default">
+      <h2 class="font-impact text-4xl md:text-5xl text-center mb-12 uppercase transform -rotate-1">
+        🎯 Tại Sao Nên Nuôi Tôi?
+      </h2>
+      <div class="grid mx-auto gap-8 md:gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+        <!-- Card 1 -->
+        <div
+          class="bg-white border-4 border-black p-4 shadow-[5px_5px_0px_0px_#000] hover:translate-y-1 hover:shadow-none transition-all">
+          <div class="text-4xl mb-2">📊</div>
+          <h3 class="font-bold text-xl mb-2 font-comic">Sao Kê Realtime</h3>
+          <p class="text-sm">Cập nhật từng giây! Còn nhanh hơn cả tốc độ bạn chuyển tiền!</p>
+        </div>
+        <!-- Card 2 -->
+        <div
+          class="bg-white border-4 border-black p-4 shadow-[5px_5px_0px_0px_#000] hover:translate-y-1 hover:shadow-none transition-all hover:rotate-1">
+          <div class="text-4xl mb-2">🔍</div>
+          <h3 class="font-bold text-xl mb-2 font-comic">Minh Bạch 300%</h3>
+          <p class="text-sm">Hơn cả 100%! Tôi còn báo cáo cả việc mua ly trà sữa!</p>
+        </div>
+        <!-- Card 3 -->
+        <div
+          class="bg-white border-4 border-black p-4 shadow-[5px_5px_0px_0px_#000] hover:translate-y-1 hover:shadow-none transition-all hover:-rotate-1">
+          <div class="text-4xl mb-2">💸</div>
+          <h3 class="font-bold text-xl mb-2 font-comic">Chi Tiêu Hợp Lý</h3>
+          <p class="text-sm">Không mua xe hơi, nhà cửa. Chỉ ăn cơm với mì tôm thôi!</p>
+        </div>
+        <!-- Card 4 -->
+        <div
+          class="bg-white border-4 border-black p-4 shadow-[5px_5px_0px_0px_#000] hover:translate-y-1 hover:shadow-none transition-all">
+          <div class="text-4xl mb-2">📱</div>
+          <h3 class="font-bold text-xl mb-2 font-comic">App Tracking</h3>
+          <p class="text-sm">Theo dõi 24/7 tôi ăn gì, uống gì, đi đâu. Như "Big Brother" vậy!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Section -->
+  <section class="py-12 bg-black text-white not-prose">
+    <div class="max-w-7xl mx-auto px-4">
+      <h2 class="font-impact text-4xl text-center mb-12 text-yellow-400">💰 So Sánh Với "Người Khác"</h2>
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Others -->
+        <div class="border-4 border-red-500 p-6 bg-red-900/20 relative overflow-hidden">
+          <div class="absolute top-0 right-0 bg-red-500 text-white px-4 py-1 font-bold">❌ KẺ GIẢ MẠO</div>
+          <h3 class="font-bold text-2xl mb-4 text-red-500">Người Khác:</h3>
+          <ul class="space-y-3 font-comic text-gray-300">
+            <li>🚫 Sao kê sau 3 năm (hoặc không bao giờ)</li>
+            <li>🚫 File Excel blur mờ như ảnh ma</li>
+            <li>🚫 Số liệu "làm tròn" theo kiểu 1 + 1 = 3</li>
+            <li>🚫 Block người hỏi nhanh như chớp</li>
+          </ul>
+        </div>
+        <!-- Me -->
+        <div class="border-4 border-green-500 p-6 bg-green-900/20 relative overflow-hidden transform md:-rotate-1">
+          <div class="absolute top-0 right-0 bg-green-500 text-black px-4 py-1 font-bold">✅ HÀNG REAL</div>
+          <h3 class="font-bold text-2xl mb-4 text-green-400">Nuôi Tôi:</h3>
+          <ul class="space-y-3 font-comic text-white">
+            <li>✨ Sao kê trước khi tiêu (để anh chị duyệt)</li>
+            <li>✨ File Excel 4K Ultra HD, có chữ ký điện tử</li>
+            <li>✨ Số liệu chính xác đến từng đồng</li>
+            <li>✨ Trả lời inbox nhanh hơn cả chatbot</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Commitment & Spending Section -->
+  <section class="py-12 lg:py-24 bg-pattern not-prose">
+    <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-12">
+      <!-- Commitment -->
+      <div>
+        <h2 class="font-impact text-3xl mb-6 bg-black text-white inline-block px-4 -rotate-1">🎪 Cam Kết Vàng:</h2>
+        <ul class="space-y-4 font-comic text-lg">
+          <li class="flex items-start">
+            <span class="mr-2">📝</span>
+            <span><strong>Sao kê mỗi ngày:</strong> Cập nhật lúc 6h sáng, đều như vắt tranh!</span>
+          </li>
+          <li class="flex items-start">
+            <span class="mr-2">🕵️</span>
+            <span><strong>Không giấu giếm:</strong> Từ tô phở 50k đến hộp sữa chua 8k đều ghi chép!</span>
+          </li>
+          <li class="flex items-start">
+            <span class="mr-2">🧾</span>
+            <span><strong>Có hóa đơn chứng từ:</strong> Chụp hình bill, quét mã vạch, lưu biên lai!</span>
+          </li>
+          <li class="flex items-start">
+            <span class="mr-2">🎥</span>
+            <span><strong>Video unboxing:</strong> Mở từng gói mì tôm live cho anh chị xem!</span>
+          </li>
+          <li class="flex items-start">
+            <span class="mr-2">☎️</span>
+            <span><strong>Hotline 24/7:</strong> Gọi hỏi tôi ăn gì bất cứ lúc nào!</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Spending Breakdown -->
+      <div class="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_#000]">
+        <h2 class="font-impact text-3xl mb-6 uppercase">Tôi Dùng Tiền Làm Gì?</h2>
+        <div class="space-y-4 font-comic">
+          <div>
+            <div class="flex justify-between mb-1 font-bold"><span>Ăn uống (Cơm, Mì)</span> <span>40%</span></div>
+            <div class="w-full bg-gray-200 h-4 border-2 border-black">
+              <div class="bg-green-500 h-full w-[40%]"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1 font-bold"><span>Điện Net (Để sao kê)</span> <span>20%</span></div>
+            <div class="w-full bg-gray-200 h-4 border-2 border-black">
+              <div class="bg-blue-500 h-full w-[20%]"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1 font-bold"><span>Thuê nhà</span> <span>15%</span></div>
+            <div class="w-full bg-gray-200 h-4 border-2 border-black">
+              <div class="bg-yellow-500 h-full w-[15%]"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1 font-bold"><span>Thuốc men & Vitamin</span> <span>10%</span></div>
+            <div class="w-full bg-gray-200 h-4 border-2 border-black">
+              <div class="bg-red-500 h-full w-[10%]"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1 font-bold"><span>Học tập</span> <span>10%</span></div>
+            <div class="w-full bg-gray-200 h-4 border-2 border-black">
+              <div class="bg-purple-500 h-full w-[10%]"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1 font-bold"><span>Giải trí (Netflix?)</span> <span>0%</span></div>
+            <div class="w-full bg-gray-200 h-4 border-2 border-black">
+              <div class="bg-gray-500 h-full w-[5%]"></div>
+              <!-- Just a sliver -->
+            </div>
+            <p class="text-xs mt-1 text-gray-500">Chỉ xem Youtube chùa thôi!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Inspiration Quote -->
+  <section class="py-12 text-center not-prose">
+    <div class="max-w-4xl mx-auto">
+      <blockquote class="font-impact text-4xl md:text-6xl text-gray-400 opacity-50 select-none">
+        "TÔI NUÔI CÔ!"
+      </blockquote>
+      <p class="font-comic text-xl mt-4">- Châu Tinh Trì (nguồn cảm hứng bất tận)</p>
+
+      <div class="mt-12 p-8 border-t-2 border-b-2 border-dashed border-gray-300">
+        <h3 class="font-bold text-2xl mb-4 font-comic">Lời Nhắn Từ Trái Tim ❤️</h3>
+        <p class="text-lg max-w-2xl mx-auto italic">
+          "Trong thời đại mà 'từ thiện' đã trở thành từ nhạy cảm, Tôi xin khẳng định: HÃY NUÔI TÔI! <br />
+          Tôi nghèo, tôi cần tiền, nhưng tôi KHÔNG MẤT LƯƠNG TÂM! Mỗi đồng tiền các bạn gửi, tôi sẽ chi tiêu rõ ràng, minh
+          bạch như bụng đói của tôi vậy! 😭"
+        </p>
+        <p class="mt-4 font-bold text-red-600">
+          P/S: Tôi hứa sẽ không mua xe hơi bằng tiền donate. Vì... tôi chưa có bằng lái! 🚗❌
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Donation Section -->
+  <section
+    id="donate"
+    class="relative not-prose scroll-mt-[72px] py-12 lg:py-24 bg-yellow-300 dark:bg-yellow-600 border-y-8 border-black">
+    <div class="relative mx-auto max-w-7xl px-4 md:px-6 text-center">
+      <h2 class="font-impact text-4xl md:text-6xl uppercase mb-6 text-black transform rotate-1">
+        💸 QUỸ BẢO TỒN <br />
+        <span class="bg-white px-2">DEV & BUG NGHÈO VƯỢT KHÓ</span>
+      </h2>
+
+      <p class="font-comic text-xl text-black font-bold mb-8 max-w-3xl mx-auto">
+        Developer không thể sống bằng quang hợp. <br class="hidden md:block" />
+        Mỗi ly cafe bạn donate giúp tôi fix được
+        <span class="text-red-600 line-through">10 bug</span>
+        <span class="text-green-700">1 bug</span> (và tạo ra 3 bug mới).
+        <br />
+        <span class="text-sm mt-2 block font-normal">
+          (Hoặc gửi thẳng qua Momo nếu bạn ghét việc phải nhập số thẻ)
+        </span>
+        <a
+          href="https://me.momo.vn/ptn1411"
+          class="underline decoration-wavy decoration-red-500 text-blue-800 hover:text-red-600 font-mono text-base"
+          >https://me.momo.vn/ptn1411</a
+        >
+      </p>
+
+      <div
+        class="inline-block p-4 bg-white border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[5px] hover:translate-y-[5px] transition-all duration-200">
+        <!-- QR Code Placeholder -->
+        <img
+          src={donationQr.src}
+          alt="QR Model"
+          class="w-48 h-48 md:w-64 md:h-64 mix-blend-multiply"
+          width={256}
+          height={256}
+        />
+        <p class="mt-2 font-pixel text-xs text-center text-black">FEED_ME.EXE</p>
+      </div>
+
+      <div class="mt-8">
+        <p class="font-bold text-red-600 text-2xl animate-pulse font-comic mb-6">
+          ⚡ Chuyển xong nhớ chụp màn hình kẻo server lỗi! ⚡
+        </p>
+
+        <a
+          href="https://me.momo.vn/ptn1411"
+          class="inline-flex items-center justify-center px-8 py-4 text-xl font-bold font-impact text-white uppercase bg-red-600 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-1 transition-all">
+          SHUT UP AND TAKE MY MONEY! 💸
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>
