@@ -1,7 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { defineConfig, sharpImageService } from 'astro/config';
+import { defineConfig } from 'astro/config';
 
 import mdx from '@astrojs/mdx';
 import partytown from '@astrojs/partytown';
@@ -82,7 +82,6 @@ export default defineConfig({
   ],
 
   image: {
-    service: sharpImageService(),
     domains: ['cdn.pixabay.com'],
   },
 
