@@ -317,7 +317,7 @@ export default function BuilderApp() {
         className={`px-4 py-3 flex items-center justify-between shadow-sm z-10 border-b ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
       >
         <h1 className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-          Astro Builder
+          Phạm Thành Nam - Astro Builder
         </h1>
         <div className="flex items-center gap-2">
           {/* Undo/Redo */}

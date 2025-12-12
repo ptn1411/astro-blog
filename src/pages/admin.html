@@ -15,6 +15,11 @@
 </head>
 
 <body>
+  <a href="/admin/builder"
+    style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-family: system-ui, sans-serif; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: transform 0.2s;"
+    onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    Open Page Builder
+  </a>
   <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
   <script>
     const importStatement = `import { YouTube, Tweet, Vimeo } from 'astro-embed';`;
