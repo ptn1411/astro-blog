@@ -21,7 +21,7 @@ interface PagesManagerProps {
 
 async function fetchPagesFromGitHub(token: string): Promise<PageInfo[]> {
   const pages: PageInfo[] = [];
-  const paths = [GITHUB_CONFIG.contentPaths.pages, GITHUB_CONFIG.contentPaths.stories];
+  const paths = [GITHUB_CONFIG.contentPaths.pages];
 
   for (const basePath of paths) {
     try {

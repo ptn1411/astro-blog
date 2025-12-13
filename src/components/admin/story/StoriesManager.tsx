@@ -100,7 +100,7 @@ export default function StoriesManager({ onCreateNew, onEdit }: StoriesManagerPr
               const files = await response.json();
 
               for (const file of files) {
-                if (file.name.endsWith('.json')) {
+                if (file.name.endsWith('.mdx') || file.name.endsWith('.md')) {
                   try {
                     const contentResponse = await fetch(file.download_url);
                     const story = (await contentResponse.json()) as Story;
