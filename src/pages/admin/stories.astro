@@ -1,0 +1,37 @@
+---
+import StoriesApp from '~/components/admin/story/StoriesApp';
+import Layout from '~/layouts/Layout.astro';
+const metadata = {
+  title: 'Story Builder - Quản lý Bản tin',
+  description: 'Tạo và quản lý bản tin với animations, transitions, và templates',
+};
+---
+
+<Layout metadata={metadata}>
+  <StoriesApp client:only="react" />
+</Layout>
+
+<style is:global>
+  /* Custom scrollbar for story builder */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgb(71 85 105);
+    border-radius: 3px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgb(100 116 139);
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>

@@ -5,6 +5,7 @@ import Layout from '~/layouts/PageLayout.astro';
 
 import type { ImageMetadata } from 'astro';
 import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+import type { CollectionEntry } from 'astro:content';
 import type { MetaData, Post } from '~/types';
 import { cleanSlug } from '~/utils/permalinks';
 
@@ -18,13 +19,15 @@ export interface Props {
     avatar?: ImageMetadata | string;
   };
   posts: Array<Post>;
+  stories?: Array<CollectionEntry<'stories'>>;
   Content?: AstroComponentFactory;
 }
 
-const { metadata, author, posts, Content } = Astro.props;
+const { metadata, author, posts, stories = [], Content } = Astro.props;
 
 const hasContent = typeof Content === 'function';
 const hasPosts = Array.isArray(posts) && posts.length > 0;
+const hasStories = Array.isArray(stories) && stories.length > 0;
 
 const avatar = author?.avatar;
 const avatarSrc = typeof avatar === 'object' && avatar ? (avatar as ImageMetadata).src : avatar;
@@ -77,6 +80,47 @@ const badgeLink = `/authors/badge/${cleanSlug(author?.username)}`;
     </div>
   </section>
 
+  {/* Stories Section */}
+  {
+    hasStories && (
+      <section class="px-4 sm:px-6 lg:px-8 mx-auto max-w-5xl pb-12">
+        <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+          <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Bản tin</h2>
+          <span class="text-sm text-slate-500 dark:text-slate-400">{stories.length} bản tin</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {stories.map((story) => {
+            const thumbnail = story.data.thumbnail;
+            const thumbnailSrc =
+              typeof thumbnail === 'object' && thumbnail ? (thumbnail as ImageMetadata).src : thumbnail;
+            return (
+              <a
+                href={`/stories/${story.data.id}`}
+                class="group relative aspect-[9/16] rounded-xl overflow-hidden bg-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                {thumbnailSrc ? (
+                  <img src={thumbnailSrc} alt={story.data.title} class="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div class="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-500" />
+                )}
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div class="absolute bottom-0 left-0 right-0 p-3">
+                  <h3 class="text-white font-medium text-sm line-clamp-2">{story.data.title}</h3>
+                  <p class="text-white/70 text-xs mt-1">{story.data.slides?.length || 0} slides</p>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+                  <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-6 h-6">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+    )
+  }
   {
     hasContent && (
       <section class="px-4 sm:px-6 lg:px-8 mx-auto max-w-4xl pb-12">

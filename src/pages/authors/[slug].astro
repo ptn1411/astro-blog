@@ -7,9 +7,9 @@ import { findPostsByAuthor } from '~/utils/blog';
 import { cleanSlug, getAuthorPermalink, getAuthorsPermalink, getCanonical } from '~/utils/permalinks';
 import { buildBreadcrumbList, ensureAbsolute } from '~/utils/structured-data';
 
-import type { MetaData } from '~/types';
-import type { CollectionEntry } from 'astro:content';
 import type { ImageMetadata } from 'astro';
+import type { CollectionEntry } from 'astro:content';
+import type { MetaData } from '~/types';
 
 export const prerender = true;
 
@@ -30,12 +30,16 @@ const { author } = Astro.props as Props;
 const { Content } = await render(author);
 
 const posts = await findPostsByAuthor(author.data.name);
+
+// Fetch stories - filter by author's selected story IDs
+const allStories = await getCollection('stories');
+const authorStoryIds = author.data.stories || [];
+const stories = authorStoryIds.length > 0 ? allStories.filter((s) => authorStoryIds.includes(s.data.id)) : [];
 const slug = cleanSlug(author.data.username ?? author.id);
 const canonical = String(getCanonical(getAuthorPermalink(slug)));
 const authorsListUrl = ensureAbsolute(getAuthorsPermalink());
 const avatar = author.data.avatar;
-const avatarSrc =
-  typeof avatar === 'object' && avatar ? (avatar as ImageMetadata).src : (avatar as string | undefined);
+const avatarSrc = typeof avatar === 'object' && avatar ? (avatar as ImageMetadata).src : (avatar as string | undefined);
 const structuredData = [
   {
     '@context': 'https://schema.org',
@@ -60,5 +64,4 @@ const metadata: MetaData = {
 };
 ---
 
-<AuthorLayout metadata={metadata} author={author.data} posts={posts} Content={Content} />
-
+<AuthorLayout metadata={metadata} author={author.data} posts={posts} stories={stories} Content={Content} />

@@ -1,4 +1,4 @@
-import type { WidgetType } from '../registry';
+import type { WidgetType } from './registry';
 
 // --- Builder Block Type ---
 export interface BuilderBlock {

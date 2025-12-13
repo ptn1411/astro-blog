@@ -1,0 +1,116 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import Layout from '~/layouts/PageLayout.astro';
+
+export const prerender = true;
+
+export const getStaticPaths = (async () => {
+  const stories = await getCollection('stories');
+  return stories.map((story) => ({
+    params: { id: story.id },
+    props: { story: story.data },
+  }));
+}) satisfies GetStaticPaths;
+
+const stories = await getCollection('stories');
+
+const metadata = {
+  title: 'Stories',
+  description: 'Khám phá các câu chuyện tương tác được tạo với Story Builder',
+  canonical: new URL(Astro.url.pathname, Astro.site).toString(),
+};
+---
+
+<Layout metadata={metadata}>
+  <section class="px-4 py-16 sm:px-6 mx-auto lg:px-8 lg:py-20 max-w-6xl">
+    <header class="mb-12 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold leading-tight tracking-tighter mb-4 font-heading">Stories</h1>
+      <p class="text-xl text-muted dark:text-slate-400">Khám phá các câu chuyện tương tác</p>
+    </header>
+
+    {
+      stories.length === 0 ? (
+        <div class="text-center py-12">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-slate-800 mb-4">
+            <svg class="w-8 h-8 text-muted dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+          <h3 class="text-lg font-medium mb-2">Chưa có story nào</h3>
+          <p class="text-muted dark:text-slate-400">Stories sẽ xuất hiện ở đây khi được tạo với Story Builder.</p>
+        </div>
+      ) : (
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8">
+          {stories.map((story) => {
+            const firstSlide = story.data.slides?.[0];
+            let thumbnailStyle = 'background: linear-gradient(135deg, #6366f1, #8b5cf6);';
+            const hasThumbnail = !!story.data.thumbnail;
+
+            if (!hasThumbnail) {
+              if (firstSlide?.background.type === 'color') {
+                thumbnailStyle = `background: ${firstSlide.background.value};`;
+              } else if (firstSlide?.background.type === 'gradient' && firstSlide.background.gradient) {
+                const colors = firstSlide.background.gradient.colors.map((c: { color: string }) => c.color).join(', ');
+                thumbnailStyle = `background: linear-gradient(135deg, ${colors});`;
+              }
+            }
+
+            return (
+              <a href={`/stories/${story.id}`} class="group flex flex-col items-center text-center">
+                {/* Story Ring */}
+                <div class="relative mb-3">
+                  {/* Gradient Ring */}
+                  <div class="absolute -inset-1 bg-gradient-to-tr from-primary-500 via-purple-500 to-pink-500 rounded-full opacity-75 group-hover:opacity-100 transition-opacity duration-300 blur-[2px]" />
+
+                  {/* Thumbnail Container */}
+                  <div
+                    class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-white dark:ring-slate-900"
+                    style={!hasThumbnail ? thumbnailStyle : undefined}>
+                    {hasThumbnail && story.data.thumbnail && (
+                      <Image
+                        src={story.data.thumbnail}
+                        alt={story.data.title || 'Story thumbnail'}
+                        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        width={128}
+                        height={128}
+                      />
+                    )}
+
+                    {/* Play overlay on hover */}
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors duration-300">
+                      <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform scale-75 group-hover:scale-100">
+                        <div class="p-2 bg-white/90 dark:bg-slate-800/90 rounded-full shadow-lg">
+                          <svg
+                            class="w-6 h-6 text-primary-600 dark:text-primary-400"
+                            fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h3 class="font-semibold text-sm md:text-base line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
+                  {story.data.title || 'Untitled Story'}
+                </h3>
+
+                {/* Slide count */}
+                <span class="text-xs text-muted dark:text-slate-500 mt-1">{story.data.slides?.length || 0} slides</span>
+              </a>
+            );
+          })}
+        </div>
+      )
+    }
+  </section>
+</Layout>

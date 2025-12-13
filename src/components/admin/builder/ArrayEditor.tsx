@@ -48,11 +48,38 @@ export function ArrayEditor({ value = [], onChange, isDarkMode, itemSchema = DEF
   const updateItem = (index: number, key: string, newVal: any) => {
     const newValue = value.map((item, i) => {
       if (i === index) {
+        // Support nested keys like "image.src"
+        if (key.includes('.')) {
+          const keys = key.split('.');
+          const newItem = { ...item };
+          let current: any = newItem;
+          for (let j = 0; j < keys.length - 1; j++) {
+            if (!current[keys[j]]) {
+              current[keys[j]] = {};
+            } else {
+              current[keys[j]] = { ...current[keys[j]] };
+            }
+            current = current[keys[j]];
+          }
+          current[keys[keys.length - 1]] = newVal;
+          return newItem;
+        }
         return { ...item, [key]: newVal };
       }
       return item;
     });
     onChange(newValue);
+  };
+
+  // Helper to get nested value
+  const getNestedValue = (item: any, key: string) => {
+    if (!key.includes('.')) return item[key];
+    const keys = key.split('.');
+    let current = item;
+    for (const k of keys) {
+      current = current?.[k];
+    }
+    return current;
   };
 
   const moveItem = (index: number, direction: 'up' | 'down') => {
@@ -78,11 +105,18 @@ export function ArrayEditor({ value = [], onChange, isDarkMode, itemSchema = DEF
   }`;
 
   const getItemPreview = (item: any) => {
-    return item?.title || item?.text || item?.name || item?.description?.slice(0, 30) || 'Untitled';
+    return (
+      item?.title ||
+      item?.text ||
+      item?.name ||
+      item?.description?.slice(0, 30) ||
+      item?.src?.split('/').pop() ||
+      'Untitled'
+    );
   };
 
   const renderField = (field: ArrayItemField, item: any, index: number) => {
-    const val = item[field.key];
+    const val = getNestedValue(item, field.key);
 
     switch (field.type) {
       case 'textarea':

@@ -1,0 +1,70 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '~/layouts/PageLayout.astro';
+import { getPermalink } from '~/utils/permalinks';
+
+const pages = await getCollection('page');
+
+// Sort by title
+const sortedPages = pages.sort((a, b) => {
+  const titleA = a.data.title || a.id;
+  const titleB = b.data.title || b.id;
+  return titleA.localeCompare(titleB);
+});
+
+const metadata = {
+  title: 'Tất cả Pages',
+  description: 'Danh sách tất cả các trang trên website',
+};
+---
+
+<Layout metadata={metadata}>
+  <section class="px-4 py-16 sm:px-6 mx-auto lg:px-8 lg:py-20 max-w-6xl">
+    <header class="mb-12 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold leading-tight tracking-tighter mb-4 font-heading">Tất cả Pages</h1>
+      <p class="text-xl text-muted dark:text-slate-400">Khám phá các trang nội dung trên website</p>
+    </header>
+
+    {
+      sortedPages.length > 0 ? (
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {sortedPages.map((page) => (
+            <a
+              href={getPermalink(`/${page.id}`)}
+              class="group block p-6 bg-white dark:bg-slate-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-slate-700 hover:border-primary-500 dark:hover:border-primary-500">
+              {page.data.image && (
+                <div class="mb-4 overflow-hidden rounded-lg aspect-video">
+                  <img
+                    src={typeof page.data.image === 'string' ? page.data.image : page.data.image.src}
+                    alt={page.data.title || page.id}
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              )}
+              <h2 class="text-xl font-bold mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                {page.data.title || page.id}
+              </h2>
+              {page.data.metadata?.description && (
+                <p class="text-muted dark:text-slate-400 text-sm line-clamp-2">{page.data.metadata.description}</p>
+              )}
+              <div class="mt-4 flex items-center text-primary-600 dark:text-primary-400 text-sm font-medium">
+                Xem trang
+                <svg
+                  class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-12">
+          <p class="text-muted dark:text-slate-400">Chưa có trang nào.</p>
+        </div>
+      )
+    }
+  </section>
+</Layout>

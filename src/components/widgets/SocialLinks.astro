@@ -1,0 +1,65 @@
+---
+import { Icon } from 'astro-icon/components';
+
+export interface Props {
+  title?: string;
+  links?: Array<{
+    href: string;
+    label: string;
+    icon?: string;
+  }>;
+  variant?: 'default' | 'rounded' | 'outline';
+  id?: string;
+  isDark?: boolean;
+  classes?: Record<string, string>;
+  bg?: string;
+}
+
+const { title = '', links = [], variant = 'default', id, isDark = false, classes = {}, bg = '' } = Astro.props;
+
+const iconMap: Record<string, string> = {
+  facebook: 'tabler:brand-facebook',
+  twitter: 'tabler:brand-twitter',
+  x: 'tabler:brand-x',
+  instagram: 'tabler:brand-instagram',
+  linkedin: 'tabler:brand-linkedin',
+  youtube: 'tabler:brand-youtube',
+  github: 'tabler:brand-github',
+  tiktok: 'tabler:brand-tiktok',
+  discord: 'tabler:brand-discord',
+};
+---
+
+<section class:list={['relative not-prose py-12', { dark: isDark }, classes?.container]} {...id ? { id } : {}}>
+  <Fragment set:html={bg} />
+
+  <div class="max-w-xl mx-auto text-center">
+    {title && <h3 class="text-xl font-bold mb-6 dark:text-white" set:html={title} />}
+
+    <div class="flex justify-center gap-4">
+      {
+        links.map((link) => {
+          const iconName = link.icon || iconMap[link.label?.toLowerCase()] || 'tabler:link';
+          return (
+            <a
+              href={link.href}
+              class:list={[
+                'w-12 h-12 flex items-center justify-center transition-colors',
+                variant === 'rounded' &&
+                  'bg-gray-100 dark:bg-slate-800 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900',
+                variant === 'outline' &&
+                  'border-2 border-gray-300 dark:border-slate-600 rounded-full hover:border-blue-500',
+                variant === 'default' &&
+                  'text-gray-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400',
+              ]}
+              title={link.label}
+              target="_blank"
+              rel="noopener noreferrer">
+              <Icon name={iconName} class="w-6 h-6" />
+            </a>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>

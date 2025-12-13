@@ -27,6 +27,10 @@ export const headerData = {
       href: getBlogPermalink(),
     },
     {
+      text: 'Stories',
+      href: getPermalink('/stories'),
+    },
+    {
       text: 'Liên hệ',
       href: getPermalink('/contact'),
     },
@@ -43,9 +47,16 @@ export const footerData = {
         { text: 'Giới thiệu', href: '/about' },
         { text: 'Dịch vụ', href: '/services' },
         { text: 'Dự án', href: '/personal#projects' },
-        { text: 'Blog', href: '/blog' },
-        { text: 'Tác giả', href: '/authors' },
         { text: 'Liên hệ', href: '/contact' },
+      ],
+    },
+    {
+      title: 'Nội dung',
+      links: [
+        { text: 'Blog', href: '/blog' },
+        { text: 'Stories', href: '/stories' },
+        { text: 'Tác giả', href: '/authors' },
+        { text: 'Pages', href: '/pages' },
       ],
     },
     {
@@ -61,9 +72,8 @@ export const footerData = {
     {
       title: 'Tài nguyên',
       links: [
-        { text: 'Blog', href: '/blog' },
         { text: 'Mã nguồn', href: 'https://github.com/ptndz' },
-        { text: 'Liên hệ', href: '/contact' },
+        { text: 'RSS Feed', href: '/rss.xml' },
       ],
     },
   ],

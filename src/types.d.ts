@@ -297,3 +297,23 @@ export interface Content extends Omit<Headline, 'classes'>, Widget {
 }
 
 export interface Contact extends Omit<Headline, 'classes'>, Form, Widget {}
+
+export type Banner = {
+  title?: string;
+  subtitle?: string;
+  image?: {
+    src: string;
+    alt: string;
+  };
+  actions?: Array<{
+    text: string;
+    href: string;
+    type?: 'primary' | 'secondary';
+  }>;
+  variant?: 'default' | 'gradient' | 'dark';
+  id?: string;
+  classes?: {
+    container?: string;
+  };
+  bg?: string;
+};

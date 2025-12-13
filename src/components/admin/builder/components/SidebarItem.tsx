@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import React from 'react';
-import { WIDGET_REGISTRY } from '../../registry';
+import { WIDGET_REGISTRY } from '../registry';
 
 interface SidebarItemProps {
   widget: (typeof WIDGET_REGISTRY)[0];

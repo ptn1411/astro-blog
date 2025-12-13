@@ -1,8 +1,8 @@
 import React from 'react';
-import { ArrayEditor } from '../../ArrayEditor';
-import { IconPicker } from '../../IconPicker';
-import { ImagePicker } from '../../ImagePicker';
-import type { WidgetSchema } from '../../registry';
+import { ArrayEditor } from '../ArrayEditor';
+import { IconPicker } from '../IconPicker';
+import { ImagePicker } from '../ImagePicker';
+import type { WidgetSchema } from '../registry';
 import type { BuilderBlock } from '../types';
 import { JsonEditor } from './JsonEditor';
 
@@ -89,10 +89,11 @@ export function PropsEditor({
             </label>
             {field.type === 'textarea' ? (
               <textarea
-                className={`w-full p-2 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'}`}
+                className={`w-full p-2 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder:text-gray-500' : 'bg-white border-gray-300 placeholder:text-gray-400'}`}
                 rows={4}
                 value={(currentValue as string) || ''}
                 onChange={(e) => handleUpdate(e.target.value)}
+                placeholder={field.placeholder}
               />
             ) : field.type === 'boolean' ? (
               <input
@@ -104,9 +105,10 @@ export function PropsEditor({
             ) : field.type === 'number' ? (
               <input
                 type="number"
-                className={`w-full p-2 border rounded text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'}`}
+                className={`w-full p-2 border rounded text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder:text-gray-500' : 'bg-white border-gray-300 placeholder:text-gray-400'}`}
                 value={(currentValue as number) || ''}
                 onChange={(e) => handleUpdate(parseInt(e.target.value) || 0)}
+                placeholder={field.placeholder}
               />
             ) : field.type === 'json' ? (
               <JsonEditor value={currentValue} onChange={handleUpdate} isDarkMode={isDarkMode} />
@@ -124,9 +126,10 @@ export function PropsEditor({
             ) : (
               <input
                 type="text"
-                className={`w-full p-2 border rounded text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'}`}
+                className={`w-full p-2 border rounded text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder:text-gray-500' : 'bg-white border-gray-300 placeholder:text-gray-400'}`}
                 value={(currentValue as string) || ''}
                 onChange={(e) => handleUpdate(e.target.value)}
+                placeholder={field.placeholder}
               />
             )}
           </div>

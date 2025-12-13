@@ -1,7 +1,6 @@
 import { Octokit } from '@octokit/rest';
 
-const REPO_OWNER = 'ptn1411';
-const REPO_NAME = 'astro-blog';
+import { REPO_NAME, REPO_OWNER } from '../../config';
 
 interface SaveToGitHubOptions {
   path: string;

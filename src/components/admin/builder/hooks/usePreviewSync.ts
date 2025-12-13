@@ -1,42 +1,123 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { BuilderBlock, PageMetadata } from '../types';
 
-const DEBOUNCE_MS = 500;
+const DEBOUNCE_MS = 300;
 
 export function usePreviewSync(
   blocks: BuilderBlock[],
   metadata: PageMetadata,
   iframeRef: React.RefObject<HTMLIFrameElement | null>
 ): void {
-  const isFirstRender = useRef(true);
+  const iframeLoaded = useRef(false);
+  const pendingUpdate = useRef<{ blocks: BuilderBlock[]; metadata: PageMetadata } | null>(null);
+  const currentIframe = useRef<HTMLIFrameElement | null>(null);
 
-  // Initial load
+  // Function to send update to iframe
+  const sendUpdate = useCallback(
+    (blocksToSend: BuilderBlock[], metadataToSend: PageMetadata) => {
+      const iframe = iframeRef.current;
+      if (!iframe || !iframe.contentWindow) return;
+
+      try {
+        // Also save to localStorage for persistence
+        localStorage.setItem(
+          'astro-builder-blocks',
+          JSON.stringify({ blocks: blocksToSend, metadata: metadataToSend })
+        );
+
+        iframe.contentWindow.postMessage(
+          {
+            type: 'PREVIEW_UPDATE',
+            payload: { blocks: blocksToSend, metadata: metadataToSend },
+          },
+          '*'
+        );
+      } catch (e) {
+        console.warn('Failed to send preview update:', e);
+      }
+    },
+    [iframeRef]
+  );
+
+  // Initialize iframe src and handle load events
   useEffect(() => {
-    if (iframeRef.current) {
-      iframeRef.current.src = '/admin/preview';
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    // Reset state if iframe element changed
+    if (currentIframe.current !== iframe) {
+      currentIframe.current = iframe;
+      iframeLoaded.current = false;
+      pendingUpdate.current = null;
     }
-  }, []);
 
-  useEffect(() => {
-    // Skip first render if needed, but for postMessage we might want to send initial state if iframe is ready.
-    // However, ClientPreview loads from localStorage on mount, so initial sync might be redundant if we save to LS.
+    // Set src if not already set or empty
+    if (!iframe.src || !iframe.src.includes('/admin/preview')) {
+      iframe.src = '/admin/preview';
+    }
 
-    // We'll update localStorage here too for persistence across reloads
-    localStorage.setItem('astro-builder-blocks', JSON.stringify({ blocks, metadata }));
+    const handleLoad = () => {
+      iframeLoaded.current = true;
 
-    const syncPreview = () => {
-      if (!iframeRef.current || !iframeRef.current.contentWindow) return;
-
-      iframeRef.current.contentWindow.postMessage(
-        {
-          type: 'PREVIEW_UPDATE',
-          payload: { blocks, metadata },
-        },
-        '*' // In production, restrictive origin is better, but for local dev '*' is fine
-      );
+      // Small delay to ensure iframe is fully ready
+      setTimeout(() => {
+        // Send pending update if exists
+        if (pendingUpdate.current) {
+          sendUpdate(pendingUpdate.current.blocks, pendingUpdate.current.metadata);
+          pendingUpdate.current = null;
+        } else {
+          // Send current state
+          sendUpdate(blocks, metadata);
+        }
+      }, 100);
     };
 
-    const timeout = setTimeout(syncPreview, DEBOUNCE_MS);
+    // Check if iframe is already loaded (for hot reload scenarios)
+    if (iframe.contentDocument?.readyState === 'complete' && iframe.src.includes('/admin/preview')) {
+      handleLoad();
+    }
+
+    iframe.addEventListener('load', handleLoad);
+
+    return () => {
+      iframe.removeEventListener('load', handleLoad);
+    };
+  }, [iframeRef.current, sendUpdate, blocks, metadata]);
+
+  // Sync blocks/metadata changes with debounce
+  useEffect(() => {
+    // Skip if no blocks (likely pages view)
+    if (blocks.length === 0) {
+      return;
+    }
+
+    // Save to localStorage immediately so iframe can load it
+    localStorage.setItem('astro-builder-blocks', JSON.stringify({ blocks, metadata }));
+
+    const timeout = setTimeout(() => {
+      if (iframeLoaded.current && iframeRef.current) {
+        sendUpdate(blocks, metadata);
+      } else {
+        // Store for later when iframe loads
+        pendingUpdate.current = { blocks, metadata };
+      }
+    }, DEBOUNCE_MS);
+
     return () => clearTimeout(timeout);
-  }, [blocks, metadata, iframeRef]);
+  }, [blocks, metadata, sendUpdate, iframeRef]);
+
+  // Force refresh if iframe seems stuck (no load after 3s)
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const checkTimeout = setTimeout(() => {
+      if (!iframeLoaded.current && iframe.src.includes('/admin/preview')) {
+        console.log('Preview iframe seems stuck, reloading...');
+        iframe.src = '/admin/preview?' + Date.now(); // Force reload with cache bust
+      }
+    }, 3000);
+
+    return () => clearTimeout(checkTimeout);
+  }, [iframeRef.current]);
 }

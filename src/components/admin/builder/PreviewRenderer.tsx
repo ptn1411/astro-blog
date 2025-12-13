@@ -72,6 +72,36 @@ export const PreviewRenderer: React.FC<PreviewRendererProps> = ({ type, props })
     case 'Steps':
     case 'Steps2':
       return <StepsRenderer {...props} def={widgetDef} />;
+    case 'Banner':
+      return <BannerRenderer {...props} />;
+    case 'Accordion':
+      return <AccordionRenderer {...props} />;
+    case 'Timeline':
+      return <TimelineRenderer {...props} />;
+    case 'Cards':
+      return <CardsRenderer {...props} />;
+    case 'LogoCloud':
+      return <LogoCloudRenderer {...props} />;
+    case 'Comparison':
+      return <ComparisonRenderer {...props} />;
+    case 'SocialLinks':
+      return <SocialLinksRenderer {...props} />;
+    case 'Map':
+      return <MapRenderer {...props} />;
+    case 'Alert':
+      return <AlertRenderer {...props} />;
+    case 'FeatureList':
+      return <FeatureListRenderer {...props} />;
+    case 'ProductShowcase':
+      return <ProductShowcaseRenderer {...props} />;
+    case 'Awards':
+      return <AwardsRenderer {...props} />;
+    case 'Partners':
+      return <PartnersRenderer {...props} />;
+    case 'Downloads':
+      return <DownloadsRenderer {...props} />;
+    case 'Events':
+      return <EventsRenderer {...props} />;
     default:
       return <GenericRenderer type={type} props={props} />;
   }
@@ -750,5 +780,432 @@ const TableOfContentsRenderer = (props: any) => {
           ))}
       </ul>
     </nav>
+  );
+};
+
+// --- New Widget Renderers ---
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BannerRenderer = (props: any) => {
+  const { title, subtitle, image, actions, variant = 'default' } = props;
+  const bgClass =
+    variant === 'gradient'
+      ? 'bg-gradient-to-r from-blue-600 to-purple-600'
+      : variant === 'dark'
+        ? 'bg-slate-900'
+        : 'bg-blue-600';
+  return (
+    <section className={cn('relative not-prose py-20 text-white', bgClass)}>
+      {image && (
+        <div className="absolute inset-0 z-0">
+          <img src={image.src} alt={image.alt} className="w-full h-full object-cover opacity-30" />
+        </div>
+      )}
+      <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+        <h2 className="text-4xl md:text-5xl font-bold mb-4">{title}</h2>
+        <p className="text-xl text-white/80 mb-8">{subtitle}</p>
+        {actions && (
+          <div className="flex flex-wrap gap-4 justify-center">
+            {actions.map((action: any, i: number) => (
+              <a
+                key={i}
+                href={action.href}
+                className="btn bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100"
+              >
+                {action.text}
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AccordionRenderer = (props: any) => {
+  const { title, subtitle, tagline, items } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-4xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className="space-y-4">
+        {items &&
+          items.map((item: any, i: number) => (
+            <div key={i} className="border border-gray-200 dark:border-slate-700 rounded-lg">
+              <button className="w-full px-6 py-4 text-left font-semibold flex justify-between items-center">
+                {item.title}
+                <span className="text-gray-400">+</span>
+              </button>
+              <div className="px-6 pb-4 text-gray-600 dark:text-slate-400">{item.description}</div>
+            </div>
+          ))}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const TimelineRenderer = (props: any) => {
+  const { title, subtitle, tagline, items } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-4xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className="relative">
+        <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-blue-200 dark:bg-slate-700"></div>
+        {items &&
+          items.map((item: any, i: number) => (
+            <div key={i} className={cn('relative flex items-start mb-8', i % 2 === 0 ? 'md:flex-row-reverse' : '')}>
+              <div className="absolute left-4 md:left-1/2 w-4 h-4 bg-blue-600 rounded-full transform -translate-x-1/2"></div>
+              <div
+                className={cn(
+                  'ml-12 md:ml-0 md:w-1/2 p-4 bg-white dark:bg-slate-900 rounded-lg shadow',
+                  i % 2 === 0 ? 'md:mr-8' : 'md:ml-8'
+                )}
+              >
+                <div className="text-sm text-blue-600 dark:text-blue-400 mb-1">{item.date}</div>
+                <h3 className="font-bold text-lg mb-2">{item.title}</h3>
+                <p className="text-gray-600 dark:text-slate-400">{item.description}</p>
+              </div>
+            </div>
+          ))}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CardsRenderer = (props: any) => {
+  const { title, subtitle, tagline, cards, columns = 3 } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-7xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className={cn('grid gap-6', `grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns}`)}>
+        {cards &&
+          cards.map((card: any, i: number) => (
+            <div
+              key={i}
+              className="bg-white dark:bg-slate-900 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+            >
+              {card.image && <img src={card.image.src} alt={card.image.alt} className="w-full h-48 object-cover" />}
+              <div className="p-6">
+                <h3 className="font-bold text-xl mb-2">{card.title}</h3>
+                <p className="text-gray-600 dark:text-slate-400 mb-4">{card.description}</p>
+                {card.link && (
+                  <a href={card.link.href} className="text-blue-600 hover:underline">
+                    {card.link.text} →
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const LogoCloudRenderer = (props: any) => {
+  const { title, subtitle, logos } = props;
+  return (
+    <section className="relative not-prose py-12 bg-gray-50 dark:bg-slate-800">
+      <div className="max-w-7xl mx-auto px-4">
+        {title && <h3 className="text-center text-lg text-gray-500 mb-8">{title}</h3>}
+        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
+          {logos &&
+            logos.map((logo: any, i: number) => (
+              <img
+                key={i}
+                src={logo.src}
+                alt={logo.alt}
+                className="h-8 md:h-10 w-auto grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition"
+              />
+            ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ComparisonRenderer = (props: any) => {
+  const { title, subtitle, tagline, plans } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-6xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-100 dark:bg-slate-800">
+              <th className="p-4 text-left">Feature</th>
+              {plans &&
+                plans.map((plan: any, i: number) => (
+                  <th key={i} className="p-4 text-center font-bold">
+                    {plan.name}
+                  </th>
+                ))}
+            </tr>
+          </thead>
+          <tbody>
+            {plans &&
+              plans[0]?.features?.map((feature: any, fi: number) => (
+                <tr key={fi} className="border-b dark:border-slate-700">
+                  <td className="p-4">{feature.name}</td>
+                  {plans.map((plan: any, pi: number) => (
+                    <td key={pi} className="p-4 text-center">
+                      {plan.features[fi]?.included ? '✓' : '−'}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SocialLinksRenderer = (props: any) => {
+  const { title, links, variant = 'default' } = props;
+  return (
+    <section className="relative not-prose py-12">
+      <div className="max-w-xl mx-auto text-center">
+        {title && <h3 className="text-xl font-bold mb-6">{title}</h3>}
+        <div className="flex justify-center gap-4">
+          {links &&
+            links.map((link: any, i: number) => (
+              <a
+                key={i}
+                href={link.href}
+                className="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-900 transition"
+                title={link.label}
+              >
+                <span className="text-lg">{link.icon || link.label?.charAt(0)}</span>
+              </a>
+            ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MapRenderer = (props: any) => {
+  const { title, address, embedUrl, height = '400px' } = props;
+  return (
+    <section className="relative not-prose">
+      <div className="max-w-7xl mx-auto">
+        {title && <h3 className="text-2xl font-bold text-center py-8">{title}</h3>}
+        {address && <p className="text-center text-gray-600 dark:text-slate-400 mb-4">{address}</p>}
+        <div className="bg-gray-200 dark:bg-slate-800 flex items-center justify-center" style={{ height }}>
+          {embedUrl ? (
+            <iframe src={embedUrl} className="w-full h-full border-0" allowFullScreen loading="lazy"></iframe>
+          ) : (
+            <span className="text-gray-500">Map Preview - Add embedUrl to display</span>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AlertRenderer = (props: any) => {
+  const { title, message, type = 'info', dismissible } = props;
+  const colors = {
+    info: 'bg-blue-50 border-blue-500 text-blue-700',
+    success: 'bg-green-50 border-green-500 text-green-700',
+    warning: 'bg-yellow-50 border-yellow-500 text-yellow-700',
+    error: 'bg-red-50 border-red-500 text-red-700',
+  };
+  return (
+    <div className={cn('border-l-4 p-4 my-4', colors[type as keyof typeof colors] || colors.info)}>
+      <div className="flex justify-between">
+        <div>
+          {title && <p className="font-bold mb-1">{title}</p>}
+          <p>{message}</p>
+        </div>
+        {dismissible && <button className="text-xl font-bold opacity-50 hover:opacity-100">×</button>}
+      </div>
+    </div>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const FeatureListRenderer = (props: any) => {
+  const { title, subtitle, tagline, features, columns = 2 } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-6xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className={cn('grid gap-6', `grid-cols-1 md:grid-cols-${columns}`)}>
+        {features &&
+          features.map((feature: any, i: number) => (
+            <div key={i} className="flex gap-4">
+              <div className="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center text-green-600">
+                ✓
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">{feature.title}</h4>
+                <p className="text-gray-600 dark:text-slate-400 text-sm">{feature.description}</p>
+              </div>
+            </div>
+          ))}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ProductShowcaseRenderer = (props: any) => {
+  const { title, subtitle, tagline, products } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-7xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {products &&
+          products.map((product: any, i: number) => (
+            <div
+              key={i}
+              className="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition"
+            >
+              {product.image && (
+                <img
+                  src={product.image.src}
+                  alt={product.image.alt}
+                  className="w-32 h-32 mx-auto mb-4 object-contain"
+                />
+              )}
+              <h3 className="font-bold text-lg mb-2">{product.name}</h3>
+              <p className="text-gray-600 dark:text-slate-400 text-sm mb-4">{product.description}</p>
+              {product.price && <p className="text-2xl font-bold text-blue-600">{product.price}</p>}
+              {product.callToAction && (
+                <a href={product.callToAction.href} className="mt-4 inline-block btn btn-primary px-6 py-2 rounded">
+                  {product.callToAction.text}
+                </a>
+              )}
+            </div>
+          ))}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AwardsRenderer = (props: any) => {
+  const { title, subtitle, tagline, awards } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-6xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {awards &&
+          awards.map((award: any, i: number) => (
+            <div
+              key={i}
+              className="text-center p-6 bg-gradient-to-b from-yellow-50 to-white dark:from-slate-800 dark:to-slate-900 rounded-xl"
+            >
+              <div className="w-16 h-16 mx-auto mb-4 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center text-3xl">
+                🏆
+              </div>
+              <h4 className="font-bold mb-1">{award.title}</h4>
+              <p className="text-sm text-gray-500">{award.organization}</p>
+              <p className="text-xs text-gray-400 mt-1">{award.year}</p>
+            </div>
+          ))}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const PartnersRenderer = (props: any) => {
+  const { title, subtitle, tagline, partners } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-7xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {partners &&
+          partners.map((partner: any, i: number) => (
+            <div key={i} className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-lg shadow">
+              {partner.logo && (
+                <img src={partner.logo.src} alt={partner.logo.alt} className="w-16 h-16 object-contain" />
+              )}
+              <div>
+                <h4 className="font-bold">{partner.name}</h4>
+                <p className="text-sm text-gray-500 dark:text-slate-400">{partner.description}</p>
+              </div>
+            </div>
+          ))}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DownloadsRenderer = (props: any) => {
+  const { title, subtitle, tagline, files } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-4xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className="space-y-4">
+        {files &&
+          files.map((file: any, i: number) => (
+            <div
+              key={i}
+              className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg shadow border dark:border-slate-700"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded flex items-center justify-center text-blue-600">
+                  📄
+                </div>
+                <div>
+                  <h4 className="font-semibold">{file.name}</h4>
+                  <p className="text-sm text-gray-500">
+                    {file.size} • {file.format}
+                  </p>
+                </div>
+              </div>
+              <a href={file.url} className="btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Download
+              </a>
+            </div>
+          ))}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const EventsRenderer = (props: any) => {
+  const { title, subtitle, tagline, events } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-6xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className="space-y-6">
+        {events &&
+          events.map((event: any, i: number) => (
+            <div key={i} className="flex gap-6 p-6 bg-white dark:bg-slate-900 rounded-xl shadow-lg">
+              <div className="flex-shrink-0 w-20 text-center">
+                <div className="text-3xl font-bold text-blue-600">{new Date(event.date).getDate()}</div>
+                <div className="text-sm text-gray-500 uppercase">
+                  {new Date(event.date).toLocaleString('default', { month: 'short' })}
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-xl mb-2">{event.title}</h3>
+                <p className="text-gray-600 dark:text-slate-400 mb-2">{event.description}</p>
+                <div className="flex gap-4 text-sm text-gray-500">
+                  {event.location && <span>📍 {event.location}</span>}
+                  {event.time && <span>🕐 {event.time}</span>}
+                </div>
+              </div>
+              {event.link && (
+                <a href={event.link.href} className="self-center btn bg-blue-600 text-white px-4 py-2 rounded">
+                  {event.link.text || 'Register'}
+                </a>
+              )}
+            </div>
+          ))}
+      </div>
+    </section>
   );
 };

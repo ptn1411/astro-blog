@@ -1,0 +1,48 @@
+---
+export interface Props {
+  title?: string;
+  address?: string;
+  embedUrl?: string;
+  height?: string;
+  id?: string;
+  isDark?: boolean;
+  classes?: Record<string, string>;
+  bg?: string;
+}
+
+const {
+  title = '',
+  address = '',
+  embedUrl = '',
+  height = '400px',
+  id,
+  isDark = false,
+  classes = {},
+  bg = '',
+} = Astro.props;
+---
+
+<section class:list={['relative not-prose', { dark: isDark }, classes?.container]} {...id ? { id } : {}}>
+  <Fragment set:html={bg} />
+
+  <div class="max-w-7xl mx-auto">
+    {title && <h3 class="text-2xl font-bold text-center py-8 dark:text-white" set:html={title} />}
+    {address && <p class="text-center text-gray-600 dark:text-slate-400 mb-4">{address}</p>}
+
+    <div class="bg-gray-200 dark:bg-slate-800 flex items-center justify-center" style={`height: ${height}`}>
+      {
+        embedUrl ? (
+          <iframe
+            src={embedUrl}
+            class="w-full h-full border-0"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          />
+        ) : (
+          <span class="text-gray-500 dark:text-slate-500">Map - Add embedUrl to display</span>
+        )
+      }
+    </div>
+  </div>
+</section>

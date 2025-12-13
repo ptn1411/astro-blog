@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PreviewRenderer } from './PreviewRenderer';
-import type { BuilderBlock } from './builder/types';
+import type { BuilderBlock } from './types';
 
 export default function ClientPreview() {
   const [blocks, setBlocks] = useState<BuilderBlock[]>([]);
@@ -30,6 +30,19 @@ export default function ClientPreview() {
     // Load initial blocks
     loadBlocks();
 
+    // Listen for postMessage from parent (Builder iframe)
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'PREVIEW_UPDATE') {
+        const { blocks: newBlocks, metadata } = event.data.payload || {};
+        if (Array.isArray(newBlocks)) {
+          setBlocks(newBlocks);
+          if (metadata?.title) {
+            document.title = metadata.title;
+          }
+        }
+      }
+    };
+
     // Listen for storage events (cross-tab sync)
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'astro-builder-blocks') {
@@ -37,14 +50,11 @@ export default function ClientPreview() {
       }
     };
 
+    window.addEventListener('message', handleMessage);
     window.addEventListener('storage', handleStorage);
 
-    // Listen for custom event (same tab sync)
-    // To support this, Builder.tsx might need to dispatch a custom event on localStorage update,
-    // or we can rely on polling/iframe reloads.
-    // Ideally, Builder should reload the iframe when saving to localStorage.
-
     return () => {
+      window.removeEventListener('message', handleMessage);
       window.removeEventListener('storage', handleStorage);
     };
   }, []);

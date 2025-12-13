@@ -58,6 +58,7 @@ const authorCollection = defineCollection({
       avatar: image().optional(),
       bio: z.string().optional(),
       website: z.string().optional(),
+      stories: z.array(z.string()).optional(), // Danh sách story IDs muốn hiển thị
     }),
 });
 
@@ -155,6 +156,36 @@ const pageCollection = defineCollection({
 });
 
 /**
+ * Collection: STORY
+ */
+const storyCollection = defineCollection({
+  loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/content/stories' }),
+  schema: ({ image }: SchemaContext) =>
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      description: z.string().optional(),
+      slides: z.array(z.any()), // Storing complex slide data
+      audio: z
+        .object({
+          src: z.string(),
+          volume: z.number(),
+        })
+        .optional(),
+      thumbnail: image().optional(), // Image field for cover/thumbnail,
+      settings: z
+        .object({
+          autoPlay: z.boolean().optional(),
+          loop: z.boolean().optional(),
+          progressBar: z.boolean().optional(),
+        })
+        .optional(),
+      createdAt: z.date().optional(),
+      updatedAt: z.date().optional(),
+    }),
+});
+
+/**
  * Xuất collections cho Astro
  */
 export const collections = {
@@ -163,4 +194,5 @@ export const collections = {
   category: categoryCollection,
   tag: tagCollection,
   page: pageCollection,
+  stories: storyCollection,
 };

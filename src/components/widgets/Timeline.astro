@@ -1,0 +1,47 @@
+---
+import Headline from '~/components/blog/Headline.astro';
+
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  tagline?: string;
+  items?: Array<{ title: string; description: string; date?: string }>;
+  id?: string;
+  isDark?: boolean;
+  classes?: Record<string, string>;
+  bg?: string;
+}
+
+const { title = '', subtitle = '', tagline = '', items = [], id, isDark = false, classes = {}, bg = '' } = Astro.props;
+---
+
+<section
+  class:list={['relative not-prose scroll-mt-[72px]', { dark: isDark }, classes?.container]}
+  {...id ? { id } : {}}>
+  <Fragment set:html={bg} />
+
+  <div class="relative px-4 py-16 md:py-20 lg:py-24 max-w-4xl mx-auto">
+    <Headline title={title} subtitle={subtitle} tagline={tagline} />
+
+    <div class="relative">
+      <div class="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-blue-200 dark:bg-slate-700"></div>
+
+      {
+        items.map((item, index) => (
+          <div class:list={['relative flex items-start mb-8', index % 2 === 0 ? 'md:flex-row-reverse' : '']}>
+            <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-blue-600 rounded-full transform -translate-x-1/2" />
+            <div
+              class:list={[
+                'ml-12 md:ml-0 md:w-1/2 p-4 bg-white dark:bg-slate-900 rounded-lg shadow',
+                index % 2 === 0 ? 'md:mr-8' : 'md:ml-8',
+              ]}>
+              {item.date && <div class="text-sm text-blue-600 dark:text-blue-400 mb-1">{item.date}</div>}
+              <h3 class="font-bold text-lg mb-2 dark:text-white">{item.title}</h3>
+              <p class="text-gray-600 dark:text-slate-400" set:html={item.description} />
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

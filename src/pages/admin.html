@@ -15,11 +15,28 @@
 </head>
 
 <body>
-  <a href="/admin/builder"
-    style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-family: system-ui, sans-serif; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: transform 0.2s;"
+  <a id="btn-builder" href="/admin/builder"
+    style="position: fixed; bottom: 80px; left: 20px; z-index: 9999; background: #2563eb; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-family: system-ui, sans-serif; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: transform 0.2s;"
     onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
     Open Page Builder
   </a>
+  <a id="btn-stories" href="/admin/stories"
+    style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; background: #ca1e57; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-family: system-ui, sans-serif; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: transform 0.2s;"
+    onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    Open Page Stories
+  </a>
+  <script>
+    // Hide buttons when viewing entries
+    function updateButtonVisibility() {
+      const hasEntries = window.location.hash.includes('entries');
+      const btnBuilder = document.getElementById('btn-builder');
+      const btnStories = document.getElementById('btn-stories');
+      if (btnBuilder) btnBuilder.style.display = hasEntries ? 'none' : 'block';
+      if (btnStories) btnStories.style.display = hasEntries ? 'none' : 'block';
+    }
+    updateButtonVisibility();
+    window.addEventListener('hashchange', updateButtonVisibility);
+  </script>
   <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
   <script>
     const importStatement = `import { YouTube, Tweet, Vimeo } from 'astro-embed';`;

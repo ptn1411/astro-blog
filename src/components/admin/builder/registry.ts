@@ -1,12 +1,15 @@
 import {
+  AlertTriangle,
   AlignCenter,
   BarChart,
   Bell,
   BookOpen,
+  Calendar,
   CheckSquare,
   Clock,
   Columns,
   DollarSign,
+  Download,
   FileText,
   GalleryHorizontal,
   Grid,
@@ -14,14 +17,22 @@ import {
   Image,
   Layers,
   Layout,
+  LayoutGrid,
   List,
+  ListOrdered,
   Mail,
+  MapPin,
   MessageSquare,
   MessageSquareQuote,
   Minus,
   MoveVertical,
+  PanelTop,
   Play,
   Quote,
+  Share2,
+  ShoppingBag,
+  Table,
+  Trophy,
   Users,
   UsersRound,
 } from 'lucide-react';
@@ -55,7 +66,22 @@ export type WidgetType =
   | 'Gallery'
   | 'Team'
   | 'Newsletter'
-  | 'Countdown';
+  | 'Countdown'
+  | 'Banner'
+  | 'Accordion'
+  | 'Timeline'
+  | 'Cards'
+  | 'LogoCloud'
+  | 'Comparison'
+  | 'SocialLinks'
+  | 'Map'
+  | 'Alert'
+  | 'FeatureList'
+  | 'ProductShowcase'
+  | 'Awards'
+  | 'Partners'
+  | 'Downloads'
+  | 'Events';
 
 export type WidgetCategory = 'hero' | 'features' | 'content' | 'social' | 'blog' | 'misc';
 
@@ -78,19 +104,32 @@ export interface WidgetSchema {
     name: string;
     label: string;
     type: 'text' | 'textarea' | 'number' | 'boolean' | 'json' | 'image' | 'icon' | 'array';
+    placeholder?: string;
     arraySchema?: {
       key: string;
       label: string;
       type: 'text' | 'textarea' | 'image' | 'icon' | 'boolean' | 'number';
+      placeholder?: string;
     }[];
   }[];
 }
 
 const COMMON_FIELDS = [
-  { name: 'id', label: 'ID (HTML)', type: 'text' as const },
+  { name: 'id', label: 'ID (HTML)', type: 'text' as const, placeholder: 'vd: features, pricing, contact...' },
   { name: 'isDark', label: 'Dark Mode', type: 'boolean' as const },
-  { name: 'bg', label: 'Background (HTML)', type: 'textarea' as const },
-  { name: 'classes', label: 'Custom Classes', type: 'text' as const },
+  {
+    name: 'bg',
+    label: 'Background (HTML)',
+    type: 'textarea' as const,
+    placeholder: 'vd: <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600"></div>',
+  },
+  { name: 'classes', label: 'Custom Classes', type: 'text' as const, placeholder: 'vd: py-16 bg-blue-50 rounded-xl' },
+  {
+    name: 'containerClass',
+    label: 'Container Classes',
+    type: 'text' as const,
+    placeholder: 'vd: max-w-5xl mx-auto px-4',
+  },
 ];
 
 export const WIDGET_REGISTRY: WidgetSchema[] = [
@@ -265,7 +304,7 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       { name: 'content', label: 'Content (HTML)', type: 'textarea' },
       { name: 'isReversed', label: 'Reverse Layout', type: 'boolean' },
       { name: 'isAfterContent', label: 'Structure after content', type: 'boolean' },
-      { name: 'image.src', label: 'Image URL', type: 'text' },
+      { name: 'image.src', label: 'Image', type: 'image' },
       { name: 'image.alt', label: 'Image Alt', type: 'text' },
       { name: 'callToAction.text', label: 'CTA Text', type: 'text' },
       { name: 'callToAction.href', label: 'CTA Link', type: 'text' },
@@ -294,7 +333,7 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
       { name: 'items', label: 'Items (JSON)', type: 'json' },
       { name: 'isReversed', label: 'Reverse Layout', type: 'boolean' },
-      { name: 'image.src', label: 'Image URL', type: 'text' },
+      { name: 'image.src', label: 'Image', type: 'image' },
       { name: 'image.alt', label: 'Image Alt', type: 'text' },
       ...COMMON_FIELDS,
     ],
@@ -424,7 +463,18 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
-      { name: 'testimonials', label: 'Testimonials (JSON)', type: 'json' },
+      {
+        name: 'testimonials',
+        label: 'Testimonials',
+        type: 'array',
+        arraySchema: [
+          { key: 'name', label: 'Name', type: 'text' },
+          { key: 'job', label: 'Job Title', type: 'text' },
+          { key: 'testimonial', label: 'Testimonial', type: 'textarea' },
+          { key: 'image.src', label: 'Photo', type: 'image' },
+          { key: 'image.alt', label: 'Photo Alt', type: 'text' },
+        ],
+      },
       { name: 'callToAction.text', label: 'CTA Text', type: 'text' },
       { name: 'callToAction.href', label: 'CTA Link', type: 'text' },
       ...COMMON_FIELDS,
@@ -447,7 +497,15 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
       { name: 'icons', label: 'Icons (JSON)', type: 'json' },
-      { name: 'images', label: 'Images (JSON)', type: 'json' },
+      {
+        name: 'images',
+        label: 'Brand Images',
+        type: 'array',
+        arraySchema: [
+          { key: 'src', label: 'Image', type: 'image' },
+          { key: 'alt', label: 'Alt Text', type: 'text' },
+        ],
+      },
       ...COMMON_FIELDS,
     ],
   },
@@ -643,7 +701,15 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
       { name: 'columns', label: 'Columns', type: 'number' },
-      { name: 'images', label: 'Images (JSON)', type: 'json' },
+      {
+        name: 'images',
+        label: 'Images',
+        type: 'array',
+        arraySchema: [
+          { key: 'src', label: 'Image', type: 'image' },
+          { key: 'alt', label: 'Alt Text', type: 'text' },
+        ],
+      },
       ...COMMON_FIELDS,
     ],
   },
@@ -673,7 +739,17 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
-      { name: 'members', label: 'Team Members (JSON)', type: 'json' },
+      {
+        name: 'members',
+        label: 'Team Members',
+        type: 'array',
+        arraySchema: [
+          { key: 'name', label: 'Name', type: 'text' },
+          { key: 'role', label: 'Role', type: 'text' },
+          { key: 'image', label: 'Photo', type: 'image' },
+          { key: 'bio', label: 'Bio', type: 'textarea' },
+        ],
+      },
       ...COMMON_FIELDS,
     ],
   },
@@ -720,6 +796,515 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       { name: 'showHours', label: 'Show Hours', type: 'boolean' },
       { name: 'showMinutes', label: 'Show Minutes', type: 'boolean' },
       { name: 'showSeconds', label: 'Show Seconds', type: 'boolean' },
+      ...COMMON_FIELDS,
+    ],
+  },
+  // --- More Widgets ---
+  {
+    type: 'Banner',
+    category: 'hero',
+    icon: PanelTop,
+    label: 'Banner',
+    defaultProps: {
+      title: 'Special Offer!',
+      subtitle: 'Get 50% off on all products',
+      image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200',
+      callToAction: { text: 'Shop Now', href: '#' },
+      variant: 'gradient',
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text', placeholder: 'vd: Special Offer!' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      { name: 'image', label: 'Background Image', type: 'image' },
+      { name: 'callToAction.text', label: 'CTA Text', type: 'text' },
+      { name: 'callToAction.href', label: 'CTA Link', type: 'text' },
+      { name: 'variant', label: 'Variant (gradient/solid/image)', type: 'text', placeholder: 'gradient, solid, image' },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'Accordion',
+    category: 'content',
+    icon: ListOrdered,
+    label: 'Accordion',
+    defaultProps: {
+      title: 'More Information',
+      items: [
+        { title: 'Section 1', content: 'Content for section 1' },
+        { title: 'Section 2', content: 'Content for section 2' },
+        { title: 'Section 3', content: 'Content for section 3' },
+      ],
+      allowMultiple: false,
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      {
+        name: 'items',
+        label: 'Accordion Items',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Section Title', type: 'text' },
+          { key: 'content', label: 'Content (HTML)', type: 'textarea' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ],
+      },
+      { name: 'allowMultiple', label: 'Allow Multiple Open', type: 'boolean' },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'Timeline',
+    category: 'content',
+    icon: Clock,
+    label: 'Timeline',
+    defaultProps: {
+      title: 'Our Journey',
+      subtitle: 'Key milestones in our history',
+      items: [
+        { year: '2020', title: 'Founded', description: 'Company was established', icon: 'tabler:rocket' },
+        { year: '2021', title: 'First Product', description: 'Launched our first product', icon: 'tabler:package' },
+        { year: '2022', title: 'Growth', description: 'Reached 10,000 customers', icon: 'tabler:trending-up' },
+        { year: '2023', title: 'Expansion', description: 'Expanded to 10 countries', icon: 'tabler:world' },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      {
+        name: 'items',
+        label: 'Timeline Items',
+        type: 'array',
+        arraySchema: [
+          { key: 'year', label: 'Year/Date', type: 'text' },
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'Cards',
+    category: 'content',
+    icon: LayoutGrid,
+    label: 'Cards Grid',
+    defaultProps: {
+      title: 'Our Services',
+      subtitle: 'What we offer',
+      columns: 3,
+      cards: [
+        {
+          title: 'Web Development',
+          description: 'Build modern, responsive websites',
+          image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400',
+          link: '#',
+        },
+        {
+          title: 'Mobile Apps',
+          description: 'Native and cross-platform mobile applications',
+          image: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400',
+          link: '#',
+        },
+        {
+          title: 'UI/UX Design',
+          description: 'Beautiful and intuitive user interfaces',
+          image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400',
+          link: '#',
+        },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      { name: 'columns', label: 'Columns', type: 'number', placeholder: '2, 3, or 4' },
+      {
+        name: 'cards',
+        label: 'Cards',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'image', label: 'Image', type: 'image' },
+          { key: 'link', label: 'Link URL', type: 'text' },
+          { key: 'icon', label: 'Icon (optional)', type: 'icon' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'LogoCloud',
+    category: 'social',
+    icon: Grid,
+    label: 'Logo Cloud',
+    defaultProps: {
+      title: 'Trusted by Industry Leaders',
+      subtitle: 'Join thousands of satisfied customers',
+      columns: 6,
+      grayscale: true,
+      logos: [
+        { src: 'https://cdn.pixabay.com/photo/2015/05/26/09/37/paypal-784404_1280.png', alt: 'PayPal', link: '#' },
+        { src: 'https://cdn.pixabay.com/photo/2021/12/06/13/48/visa-6850402_1280.png', alt: 'Visa', link: '#' },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      { name: 'columns', label: 'Columns', type: 'number' },
+      { name: 'grayscale', label: 'Grayscale Logos', type: 'boolean' },
+      {
+        name: 'logos',
+        label: 'Logos',
+        type: 'array',
+        arraySchema: [
+          { key: 'src', label: 'Logo Image', type: 'image' },
+          { key: 'alt', label: 'Company Name', type: 'text' },
+          { key: 'link', label: 'Website URL', type: 'text' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'Comparison',
+    category: 'misc',
+    icon: Table,
+    label: 'Feature Comparison',
+    defaultProps: {
+      title: 'Compare Plans',
+      subtitle: 'Find the right plan for you',
+      features: ['Feature 1', 'Feature 2', 'Feature 3', 'Feature 4'],
+      plans: [
+        { name: 'Basic', price: '$9/mo', values: [true, true, false, false] },
+        { name: 'Pro', price: '$29/mo', values: [true, true, true, false], highlighted: true },
+        { name: 'Enterprise', price: '$99/mo', values: [true, true, true, true] },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      { name: 'features', label: 'Features (JSON array)', type: 'json' },
+      { name: 'plans', label: 'Plans (JSON)', type: 'json' },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'SocialLinks',
+    category: 'social',
+    icon: Share2,
+    label: 'Social Links',
+    defaultProps: {
+      title: 'Follow Us',
+      subtitle: 'Stay connected on social media',
+      style: 'icons',
+      links: [
+        { platform: 'facebook', url: 'https://facebook.com', icon: 'tabler:brand-facebook' },
+        { platform: 'twitter', url: 'https://twitter.com', icon: 'tabler:brand-twitter' },
+        { platform: 'instagram', url: 'https://instagram.com', icon: 'tabler:brand-instagram' },
+        { platform: 'linkedin', url: 'https://linkedin.com', icon: 'tabler:brand-linkedin' },
+        { platform: 'youtube', url: 'https://youtube.com', icon: 'tabler:brand-youtube' },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      { name: 'style', label: 'Style (icons/buttons/cards)', type: 'text', placeholder: 'icons, buttons, cards' },
+      {
+        name: 'links',
+        label: 'Social Links',
+        type: 'array',
+        arraySchema: [
+          { key: 'platform', label: 'Platform Name', type: 'text' },
+          { key: 'url', label: 'URL', type: 'text' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'Map',
+    category: 'misc',
+    icon: MapPin,
+    label: 'Map Embed',
+    defaultProps: {
+      title: 'Find Us',
+      subtitle: 'Visit our office',
+      embedUrl:
+        'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.5177580567645!2d106.69916937583897!3d10.771594459266964!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f4b3330bcc7%3A0x4db964d76bf6e18e!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBLaG9hIGjhu41jIFThu7Egbmhpw6puIFRQLkhDTQ!5e0!3m2!1svi!2s!4v1702450000000!5m2!1svi!2s',
+      height: '400px',
+      address: '123 Main Street, City, Country',
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      {
+        name: 'embedUrl',
+        label: 'Google Maps Embed URL',
+        type: 'textarea',
+        placeholder: 'Paste Google Maps embed URL here',
+      },
+      { name: 'height', label: 'Height', type: 'text', placeholder: 'vd: 400px, 50vh' },
+      { name: 'address', label: 'Address Text', type: 'text' },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'Alert',
+    category: 'misc',
+    icon: AlertTriangle,
+    label: 'Alert Box',
+    defaultProps: {
+      type: 'info',
+      title: 'Important Notice',
+      message: 'This is an important message for all visitors.',
+      icon: 'tabler:info-circle',
+      dismissible: true,
+    },
+    fields: [
+      {
+        name: 'type',
+        label: 'Type (info/success/warning/error)',
+        type: 'text',
+        placeholder: 'info, success, warning, error',
+      },
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'message', label: 'Message', type: 'textarea' },
+      { name: 'icon', label: 'Icon', type: 'icon' },
+      { name: 'dismissible', label: 'Dismissible', type: 'boolean' },
+      { name: 'link.text', label: 'Link Text', type: 'text' },
+      { name: 'link.href', label: 'Link URL', type: 'text' },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'FeatureList',
+    category: 'features',
+    icon: List,
+    label: 'Feature List',
+    defaultProps: {
+      title: 'Why Choose Us',
+      subtitle: 'Here are the reasons',
+      items: [
+        { title: 'Fast Performance', description: 'Lightning fast load times', icon: 'tabler:bolt' },
+        { title: 'Secure', description: 'Enterprise-grade security', icon: 'tabler:shield-check' },
+        { title: '24/7 Support', description: 'Round the clock assistance', icon: 'tabler:headset' },
+        { title: 'Easy to Use', description: 'Intuitive user interface', icon: 'tabler:click' },
+      ],
+      layout: 'list',
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      {
+        name: 'items',
+        label: 'Features',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ],
+      },
+      { name: 'layout', label: 'Layout (list/inline)', type: 'text', placeholder: 'list, inline' },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'ProductShowcase',
+    category: 'content',
+    icon: ShoppingBag,
+    label: 'Product Showcase',
+    defaultProps: {
+      title: 'Featured Products',
+      subtitle: 'Check out our best sellers',
+      products: [
+        {
+          name: 'Product 1',
+          description: 'Amazing product description',
+          price: '$99',
+          image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+          link: '#',
+          badge: 'New',
+        },
+        {
+          name: 'Product 2',
+          description: 'Another great product',
+          price: '$149',
+          originalPrice: '$199',
+          image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400',
+          link: '#',
+          badge: 'Sale',
+        },
+      ],
+      columns: 4,
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      { name: 'columns', label: 'Columns', type: 'number' },
+      {
+        name: 'products',
+        label: 'Products',
+        type: 'array',
+        arraySchema: [
+          { key: 'name', label: 'Product Name', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'price', label: 'Price', type: 'text' },
+          { key: 'originalPrice', label: 'Original Price', type: 'text' },
+          { key: 'image', label: 'Image', type: 'image' },
+          { key: 'link', label: 'Link', type: 'text' },
+          { key: 'badge', label: 'Badge (New/Sale)', type: 'text' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'Awards',
+    category: 'social',
+    icon: Trophy,
+    label: 'Awards & Recognition',
+    defaultProps: {
+      title: 'Awards & Recognition',
+      subtitle: 'Our achievements over the years',
+      awards: [
+        { title: 'Best Startup 2023', organization: 'Tech Awards', year: '2023', icon: 'tabler:trophy' },
+        { title: 'Innovation Award', organization: 'Industry Leaders', year: '2022', icon: 'tabler:bulb' },
+        { title: 'Customer Choice', organization: 'User Reviews', year: '2023', icon: 'tabler:heart' },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      {
+        name: 'awards',
+        label: 'Awards',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Award Title', type: 'text' },
+          { key: 'organization', label: 'Organization', type: 'text' },
+          { key: 'year', label: 'Year', type: 'text' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+          { key: 'image', label: 'Badge Image', type: 'image' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'Partners',
+    category: 'social',
+    icon: Users,
+    label: 'Partners',
+    defaultProps: {
+      title: 'Our Partners',
+      subtitle: 'Working together for success',
+      partners: [
+        {
+          name: 'Partner Company',
+          logo: 'https://cdn.pixabay.com/photo/2015/05/26/09/37/paypal-784404_1280.png',
+          description: 'Strategic technology partner',
+          link: '#',
+        },
+      ],
+      layout: 'grid',
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      { name: 'layout', label: 'Layout (grid/carousel)', type: 'text', placeholder: 'grid, carousel' },
+      {
+        name: 'partners',
+        label: 'Partners',
+        type: 'array',
+        arraySchema: [
+          { key: 'name', label: 'Partner Name', type: 'text' },
+          { key: 'logo', label: 'Logo', type: 'image' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'link', label: 'Website', type: 'text' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'Downloads',
+    category: 'misc',
+    icon: Download,
+    label: 'Downloads',
+    defaultProps: {
+      title: 'Resources & Downloads',
+      subtitle: 'Get our materials',
+      files: [
+        { name: 'Product Brochure', description: 'PDF, 2.5 MB', url: '#', icon: 'tabler:file-pdf' },
+        { name: 'Press Kit', description: 'ZIP, 15 MB', url: '#', icon: 'tabler:file-zip' },
+        { name: 'Brand Guidelines', description: 'PDF, 5 MB', url: '#', icon: 'tabler:palette' },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      {
+        name: 'files',
+        label: 'Files',
+        type: 'array',
+        arraySchema: [
+          { key: 'name', label: 'File Name', type: 'text' },
+          { key: 'description', label: 'Description/Size', type: 'text' },
+          { key: 'url', label: 'Download URL', type: 'text' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'Events',
+    category: 'content',
+    icon: Calendar,
+    label: 'Events',
+    defaultProps: {
+      title: 'Upcoming Events',
+      subtitle: 'Join us at these events',
+      events: [
+        {
+          title: 'Tech Conference 2024',
+          date: '2024-03-15',
+          time: '09:00 AM',
+          location: 'San Francisco, CA',
+          description: 'Annual technology conference',
+          link: '#',
+        },
+        {
+          title: 'Product Launch Webinar',
+          date: '2024-02-20',
+          time: '02:00 PM',
+          location: 'Online',
+          description: 'Introducing our latest product',
+          link: '#',
+        },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      {
+        name: 'events',
+        label: 'Events',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Event Title', type: 'text' },
+          { key: 'date', label: 'Date', type: 'text', placeholder: '2024-03-15' },
+          { key: 'time', label: 'Time', type: 'text', placeholder: '09:00 AM' },
+          { key: 'location', label: 'Location', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'link', label: 'Register Link', type: 'text' },
+          { key: 'image', label: 'Event Image', type: 'image' },
+        ],
+      },
       ...COMMON_FIELDS,
     ],
   },

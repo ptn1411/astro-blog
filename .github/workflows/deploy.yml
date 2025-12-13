@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "src/content/post/**"
+      - "src/content/page/**"
 
 jobs:
   build:
@@ -15,7 +16,8 @@ jobs:
         if: success()
         run: |
           DEPLOY_URL="https://bug.edu.vn"
-          MESSAGE=$(printf "✅ Build và Deploy Thành Công!\n\n🌐 <a href=\"%s\">Xem website</a>\n🕓 <i>%s</i>" "$DEPLOY_URL")
+          AUTHOR_NAME=$(git log -1 --pretty=format:'%an')
+          MESSAGE=$(printf "✅ Build và Deploy Thành Công!\n\n🌐 <a href=\"%s\">Xem website</a>\n🕓 <i>%s</i>" "$DEPLOY_URL"\n "$AUTHOR_NAME")
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \

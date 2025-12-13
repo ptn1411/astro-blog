@@ -2,7 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Copy, GripVertical, Trash2 } from 'lucide-react';
 import React from 'react';
-import { WIDGET_REGISTRY } from '../../registry';
+import { WIDGET_REGISTRY } from '../registry';
 import type { BuilderBlock } from '../types';
 
 interface CanvasItemProps {

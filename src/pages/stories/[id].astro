@@ -1,0 +1,52 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import Layout from '~/layouts/Layout.astro';
+
+import ClientPreviewStories from '~/components/admin/story/ClientPreviewStories';
+import type { Story } from '~/components/admin/story/types';
+
+// Pre-render all story pages
+export const prerender = true;
+
+export const getStaticPaths = (async () => {
+  const stories = await getCollection('stories');
+
+  return stories.map((story) => ({
+    params: { id: story.id },
+    props: { story: story.data },
+  }));
+}) satisfies GetStaticPaths;
+
+type Props = {
+  story: Story;
+};
+
+const { story } = Astro.props as Props;
+
+if (!story) {
+  return Astro.redirect('/stories');
+}
+
+const metadata = {
+  title: story.title || `Story: ${story.id}`,
+  description:
+    story.description ||
+    'View an interactive story created with Story Builder. Featuring animations, transitions, and engaging visual effects.',
+  canonical: new URL(Astro.url.pathname, Astro.site).toString(),
+};
+---
+
+<Layout metadata={metadata}>
+  <div class="min-h-screen bg-black w-full">
+    <ClientPreviewStories story={story} client:only="react" />
+  </div>
+
+  <style>
+    :global(body) {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+</Layout>

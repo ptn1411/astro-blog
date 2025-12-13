@@ -6,16 +6,25 @@ import Layout from '~/layouts/PageLayout.astro';
 
 // Widget imports
 import { render } from 'astro:content';
+import Accordion from '~/components/widgets/Accordion.astro';
+import Alert from '~/components/widgets/Alert.astro';
 import Announcement from '~/components/widgets/Announcement.astro';
+import Awards from '~/components/widgets/Awards.astro';
+import Banner from '~/components/widgets/Banner.astro';
 import BlogHighlightedPosts from '~/components/widgets/BlogHighlightedPosts.astro';
 import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
 import Brands from '~/components/widgets/Brands.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
+import Cards from '~/components/widgets/Cards.astro';
+import Comparison from '~/components/widgets/Comparison.astro';
 import Contact from '~/components/widgets/Contact.astro';
 import Content from '~/components/widgets/Content.astro';
 import Countdown from '~/components/widgets/Countdown.astro';
 import Divider from '~/components/widgets/Divider.astro';
+import Downloads from '~/components/widgets/Downloads.astro';
+import Events from '~/components/widgets/Events.astro';
 import FAQs from '~/components/widgets/FAQs.astro';
+import FeatureList from '~/components/widgets/FeatureList.astro';
 import Features from '~/components/widgets/Features.astro';
 import Features2 from '~/components/widgets/Features2.astro';
 import Features3 from '~/components/widgets/Features3.astro';
@@ -23,10 +32,15 @@ import Gallery from '~/components/widgets/Gallery.astro';
 import Hero from '~/components/widgets/Hero.astro';
 import Hero2 from '~/components/widgets/Hero2.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
+import LogoCloud from '~/components/widgets/LogoCloud.astro';
+import Map from '~/components/widgets/Map.astro';
 import Newsletter from '~/components/widgets/Newsletter.astro';
 import Note from '~/components/widgets/Note.astro';
+import Partners from '~/components/widgets/Partners.astro';
 import Pricing from '~/components/widgets/Pricing.astro';
+import ProductShowcase from '~/components/widgets/ProductShowcase.astro';
 import Quote from '~/components/widgets/Quote.astro';
+import SocialLinks from '~/components/widgets/SocialLinks.astro';
 import Spacer from '~/components/widgets/Spacer.astro';
 import Stats from '~/components/widgets/Stats.astro';
 import Steps from '~/components/widgets/Steps.astro';
@@ -34,20 +48,30 @@ import Steps2 from '~/components/widgets/Steps2.astro';
 import TableOfContents from '~/components/widgets/TableOfContents.astro';
 import Team from '~/components/widgets/Team.astro';
 import Testimonials from '~/components/widgets/Testimonials.astro';
+import Timeline from '~/components/widgets/Timeline.astro';
 import Video from '~/components/widgets/Video.astro';
 
 // Helper to map widget names to components
 const COMPONENTS = {
+  Accordion,
+  Alert,
   Announcement,
+  Awards,
+  Banner,
   BlogHighlightedPosts,
   BlogLatestPosts,
   Brands,
   CallToAction,
+  Cards,
+  Comparison,
   Contact,
   Content,
   Countdown,
   Divider,
+  Downloads,
+  Events,
   FAQs,
+  FeatureList,
   Features,
   Features2,
   Features3,
@@ -55,10 +79,15 @@ const COMPONENTS = {
   Hero,
   Hero2,
   HeroText,
+  LogoCloud,
+  Map,
   Newsletter,
   Note,
+  Partners,
   Pricing,
+  ProductShowcase,
   Quote,
+  SocialLinks,
   Spacer,
   Stats,
   Steps,
@@ -66,6 +95,7 @@ const COMPONENTS = {
   TableOfContents,
   Team,
   Testimonials,
+  Timeline,
   Video,
 };
 

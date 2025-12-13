@@ -1,4 +1,4 @@
-import type { WidgetType } from '../registry';
+import type { WidgetType } from './registry';
 import type { PageTemplate } from './types';
 
 // Template block factory - creates block config without ID (ID generated on apply)

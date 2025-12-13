@@ -1,0 +1,62 @@
+---
+import { Icon } from 'astro-icon/components';
+import Headline from '~/components/blog/Headline.astro';
+
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  tagline?: string;
+  features?: Array<{
+    title: string;
+    description?: string;
+    icon?: string;
+  }>;
+  columns?: number;
+  id?: string;
+  isDark?: boolean;
+  classes?: Record<string, string>;
+  bg?: string;
+}
+
+const {
+  title = '',
+  subtitle = '',
+  tagline = '',
+  features = [],
+  columns = 2,
+  id,
+  isDark = false,
+  classes = {},
+  bg = '',
+} = Astro.props;
+
+const colsClass = columns === 1 ? 'md:grid-cols-1' : `md:grid-cols-${columns}`;
+---
+
+<section
+  class:list={['relative not-prose scroll-mt-[72px]', { dark: isDark }, classes?.container]}
+  {...id ? { id } : {}}>
+  <Fragment set:html={bg} />
+
+  <div class="relative px-4 py-16 md:py-20 lg:py-24 max-w-6xl mx-auto">
+    <Headline title={title} subtitle={subtitle} tagline={tagline} />
+
+    <div class:list={['grid gap-6 grid-cols-1', colsClass]}>
+      {
+        features.map((feature) => (
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center text-green-600 dark:text-green-400">
+              {feature.icon ? <Icon name={feature.icon} class="w-5 h-5" /> : <span>✓</span>}
+            </div>
+            <div>
+              <h4 class="font-semibold mb-1 dark:text-white">{feature.title}</h4>
+              {feature.description && (
+                <p class="text-gray-600 dark:text-slate-400 text-sm" set:html={feature.description} />
+              )}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
