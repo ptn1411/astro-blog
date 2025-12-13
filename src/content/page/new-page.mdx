@@ -1,15 +1,15 @@
 ---
-title: 'Untitled Page'
-
+title: xin chao
+metadata:
+  title: xin chao
+  description: ni hao
 ---
-
-import Hero2 from '~/components/widgets/Hero2.astro';
-import Gallery from '~/components/widgets/Gallery.astro';
-import Testimonials from '~/components/widgets/Testimonials.astro';
+import Hero2 from '\~/components/widgets/Hero2.astro';
+import Gallery from '\~/components/widgets/Gallery.astro';
+import Testimonials from '\~/components/widgets/Testimonials.astro';
 
 <Hero2 title="Our Work" subtitle="Showcasing our best projects" tagline="Portfolio" />
 
 <Gallery title="Featured Projects" subtitle="A selection of our recent work" columns={3} images={[{"src":"https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600","alt":"Project 1"},{"src":"https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=600","alt":"Project 2"},{"src":"https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600","alt":"Project 3"}]} />
 
 <Testimonials title="Client Feedback" testimonials={[{"name":"Happy Client","job":"CEO","testimonial":"Outstanding work and great communication!"}]} />
-
