@@ -1,6 +1,6 @@
 import { Copy, Edit, Eye, FileText, Loader2, MoreVertical, Play, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { GITHUB_CONFIG, getGitHubApiUrl } from '../config';
+import { GITHUB_BRANCH, GITHUB_CONFIG, getGitHubApiUrl, getGitHubContentUrl } from '../config';
 import type { Story } from './types';
 
 // Helper functions
@@ -244,12 +244,58 @@ export default function StoriesManager({ onCreateNew, onEdit }: StoriesManagerPr
     }
     return '#1e293b';
   };
+  async function deleteStorieFromGitHub(path: string, sha: string, token: string): Promise<boolean> {
+    try {
+      const response = await fetch(getGitHubContentUrl(path), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: `Delete page: ${path}`,
+          sha,
+          branch: GITHUB_BRANCH,
+        }),
+      });
 
-  const handleDelete = (storyId: string) => {
+      return response.ok;
+    } catch (error) {
+      console.error('Failed to delete page:', error);
+      return false;
+    }
+  }
+  const handleDelete = async (story: StoredStory) => {
     if (confirm('Bạn có chắc muốn xóa bản tin này?')) {
-      localStorage.removeItem(storyId);
-      loadStories();
-      setShowMenu(null);
+      try {
+        localStorage.removeItem(story.id);
+        console.log(stories);
+
+        if (isLocalEnvironment() && story.source === 'file' && story.path) {
+          const response = await fetch(`/admin/pages?path=${encodeURIComponent(story.path)}`, {
+            method: 'DELETE',
+          });
+
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.error || 'Failed to delete locally');
+          }
+        } else {
+          const token = getGitHubToken();
+          if (token && story.source === 'github' && story.path && story.sha) {
+            const success = await deleteStorieFromGitHub(story.path, story.sha, token);
+            if (!success) {
+              throw new Error('Failed to delete from GitHub');
+            }
+          }
+        }
+        loadStories();
+        setShowMenu(null);
+      } catch (error) {
+        console.error('Failed to delete story:', error);
+        alert('Xóa bản tin thất bại. Vui lòng thử lại.');
+      }
     }
   };
 
@@ -491,7 +537,7 @@ export default function StoriesManager({ onCreateNew, onEdit }: StoriesManagerPr
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(story.id);
+                            handleDelete(story);
                           }}
                           className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-red-500/20 text-red-400 transition-colors text-left"
                         >

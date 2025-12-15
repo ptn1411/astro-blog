@@ -1,0 +1,123 @@
+---
+title: 'xin chào'
+metadata:
+  description: 'xin chào'
+---
+
+import Hero2 from '~/components/widgets/Hero2.astro';
+import Features3 from '~/components/widgets/Features3.astro';
+import Pricing from '~/components/widgets/Pricing.astro';
+import Testimonials from '~/components/widgets/Testimonials.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
+
+<Hero2 title="The Ultimate Solution" subtitle="Everything you need in one powerful package" tagline="Product" actions={[{"variant":"primary","text":"Get Started","href":"#pricing"}]} />
+
+<Features3 title="Powerful Features" columns={2} items={[{"title":"Fast Performance","description":"Lightning-quick load times"},{"title":"Easy to Use","description":"Intuitive interface for everyone"},{"title":"Secure","description":"Enterprise-grade security"},{"title":"Scalable","description":"Grows with your business"}]} />
+
+<Pricing title="Simple Pricing" prices={[{"title":"Starter","price":9,"period":"/month","items":[{"description":"5 Projects"}]},{"title":"Pro","price":29,"period":"/month","hasRibbon":true,"items":[{"description":"Unlimited Projects"}]}]} />
+
+<Testimonials title="Loved by Thousands" testimonials={[]} />
+
+<FAQs title="Questions?" items={[]} />
+
+
+{/* BUILDER_DATA_START
+{
+  "version": "1.0",
+  "blocks": [
+    {
+      "id": "uaozgdxgc",
+      "type": "Hero2",
+      "props": {
+        "title": "The Ultimate Solution",
+        "subtitle": "Everything you need in one powerful package",
+        "tagline": "Product",
+        "actions": [
+          {
+            "variant": "primary",
+            "text": "Get Started",
+            "href": "#pricing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tf00ypxp4",
+      "type": "Features3",
+      "props": {
+        "title": "Powerful Features",
+        "columns": 2,
+        "items": [
+          {
+            "title": "Fast Performance",
+            "description": "Lightning-quick load times"
+          },
+          {
+            "title": "Easy to Use",
+            "description": "Intuitive interface for everyone"
+          },
+          {
+            "title": "Secure",
+            "description": "Enterprise-grade security"
+          },
+          {
+            "title": "Scalable",
+            "description": "Grows with your business"
+          }
+        ]
+      }
+    },
+    {
+      "id": "1k2z6rr43",
+      "type": "Pricing",
+      "props": {
+        "title": "Simple Pricing",
+        "prices": [
+          {
+            "title": "Starter",
+            "price": 9,
+            "period": "/month",
+            "items": [
+              {
+                "description": "5 Projects"
+              }
+            ]
+          },
+          {
+            "title": "Pro",
+            "price": 29,
+            "period": "/month",
+            "hasRibbon": true,
+            "items": [
+              {
+                "description": "Unlimited Projects"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "xkpffwkuv",
+      "type": "Testimonials",
+      "props": {
+        "title": "Loved by Thousands",
+        "testimonials": []
+      }
+    },
+    {
+      "id": "kz8gfpsw4",
+      "type": "FAQs",
+      "props": {
+        "title": "Questions?",
+        "items": []
+      }
+    }
+  ],
+  "metadata": {
+    "title": "xin chào",
+    "description": "xin chào"
+  },
+  "savedAt": "2025-12-15T13:25:27.625Z"
+}
+BUILDER_DATA_END */}
