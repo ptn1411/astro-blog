@@ -1,16 +1,19 @@
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { GITHUB_CONFIG } from '../../config';
 
 interface SaveModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (path: string, message: string) => void;
   isSaving: boolean;
+  editingPath: string | null;
+  mode: 'create' | 'edit';
 }
 
-const BASE_PATH = 'src/content/page/';
+const BASE_PATH = GITHUB_CONFIG.contentPaths.pages + '/';
 
-export function SaveModal({ isOpen, onClose, onSave, isSaving }: SaveModalProps) {
+export function SaveModal({ isOpen, onClose, onSave, isSaving, editingPath, mode }: SaveModalProps) {
   const isLocal =
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -19,6 +22,20 @@ export function SaveModal({ isOpen, onClose, onSave, isSaving }: SaveModalProps)
   const [fileName, setFileName] = useState('new-page.mdx');
   const [fullPath, setFullPath] = useState('src/content/page/new-page.mdx');
   const [message, setMessage] = useState('Create new page from builder');
+
+  useEffect(() => {
+    if (mode === 'edit' && editingPath) {
+      setFileName(editingPath.replace(BASE_PATH, ''));
+      setFullPath(editingPath);
+      setMessage('Update page from builder');
+    }
+
+    if (mode === 'create') {
+      setFileName('new-page.mdx');
+      setFullPath(`${BASE_PATH}new-page.mdx`);
+      setMessage('Create new page from builder');
+    }
+  }, [mode, editingPath]);
 
   if (!isOpen) return null;
 
@@ -39,7 +56,15 @@ export function SaveModal({ isOpen, onClose, onSave, isSaving }: SaveModalProps)
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold">{isLocal ? 'Save Locally' : 'Save to GitHub'}</h3>
+          <h3 className="text-lg font-bold">
+            {mode === 'edit'
+              ? isLocal
+                ? 'Save Changes'
+                : 'Commit Changes'
+              : isLocal
+                ? 'Create New Page'
+                : 'Create Page on GitHub'}
+          </h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <X size={20} />
           </button>
@@ -111,7 +136,15 @@ export function SaveModal({ isOpen, onClose, onSave, isSaving }: SaveModalProps)
               className="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded flex items-center gap-2"
               disabled={isSaving}
             >
-              {isSaving ? 'Saving...' : isLocal ? 'Save File' : 'Commit to GitHub'}
+              {isSaving
+                ? 'Saving...'
+                : mode === 'edit'
+                  ? isLocal
+                    ? 'Save Changes'
+                    : 'Commit Update'
+                  : isLocal
+                    ? 'Create File'
+                    : 'Commit New Page'}
             </button>
           </div>
         </div>

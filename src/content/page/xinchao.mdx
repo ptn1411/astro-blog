@@ -1,24 +1,27 @@
 ---
-title: 'xin chào'
+title: 'Giới thiệu bản thân - Phạm Thành Nam'
 metadata:
-  description: 'xin chào'
+  description: 'Trang giới thiệu bản thân của Phạm Thành Nam, Web Developer & Fullstack Engineer.'
 ---
 
-import Hero2 from '~/components/widgets/Hero2.astro';
-import Features3 from '~/components/widgets/Features3.astro';
-import Pricing from '~/components/widgets/Pricing.astro';
-import Testimonials from '~/components/widgets/Testimonials.astro';
-import FAQs from '~/components/widgets/FAQs.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Features from '~/components/widgets/Features.astro';
+import Content from '~/components/widgets/Content.astro';
+import Timeline from '~/components/widgets/Timeline.astro';
+import SocialLinks from '~/components/widgets/SocialLinks.astro';
+import Contact from '~/components/widgets/Contact.astro';
 
-<Hero2 title="The Ultimate Solution" subtitle="Everything you need in one powerful package" tagline="Product" actions={[{"variant":"primary","text":"Get Started","href":"#pricing"}]} />
+<Hero title="Xin chào, tôi là <b>Phạm Thành Nam</b>" subtitle="Web Developer • Fullstack Engineer" tagline="About Me" content="<p>Tôi là một lập trình viên web với kinh nghiệm xây dựng các ứng dụng hiện đại, hiệu năng cao và dễ mở rộng. Tôi đam mê công nghệ, bảo mật và tối ưu hệ thống.</p>" image={{"src":"https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=800","alt":"Profile Image"}} actions={[{"variant":"primary","text":"Liên hệ với tôi","href":"#contact"},{"variant":"secondary","text":"Xem kỹ năng","href":"#skills"}]} />
 
-<Features3 title="Powerful Features" columns={2} items={[{"title":"Fast Performance","description":"Lightning-quick load times"},{"title":"Easy to Use","description":"Intuitive interface for everyone"},{"title":"Secure","description":"Enterprise-grade security"},{"title":"Scalable","description":"Grows with your business"}]} />
+<Features title="Kỹ năng chính" subtitle="Những công nghệ và thế mạnh của tôi" items={[{"title":"Frontend Development","description":"Astro, React, TypeScript, TailwindCSS","icon":"tabler:layout-dashboard"},{"title":"Backend Development","description":"Node.js, PHP, Golang, REST API","icon":"tabler:server"},{"title":"Database & System","description":"MySQL, Redis, tối ưu hiệu năng & bảo mật","icon":"tabler:database"},{"title":"Security & Architecture","description":"Token, E2E Encryption, Reverse Proxy","icon":"tabler:shield-lock"}]} columns={2} id="skills" />
 
-<Pricing title="Simple Pricing" prices={[{"title":"Starter","price":9,"period":"/month","items":[{"description":"5 Projects"}]},{"title":"Pro","price":29,"period":"/month","hasRibbon":true,"items":[{"description":"Unlimited Projects"}]}]} />
+<Content title="Về tôi" subtitle="Hành trình và định hướng" content="<p>Tôi bắt đầu với lập trình web từ sớm và không ngừng học hỏi để xây dựng các sản phẩm có giá trị thực tế. Tôi thích làm việc với kiến trúc hệ thống, tối ưu hiệu năng và giải quyết các bài toán phức tạp.</p><p>Mục tiêu của tôi là tạo ra các sản phẩm ổn định, bảo mật và dễ mở rộng cho người dùng.</p>" image={{"src":"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800","alt":"Working Desk"}} />
 
-<Testimonials title="Loved by Thousands" testimonials={[]} />
+<Timeline title="Hành trình phát triển" subtitle="Các cột mốc đáng nhớ" items={[{"year":"2021","title":"Bắt đầu Web Development","description":"Làm quen và xây dựng các website đầu tiên","icon":"tabler:rocket"},{"year":"2023","title":"Fullstack Projects","description":"Phát triển hệ thống backend, API và ứng dụng thực tế","icon":"tabler:code"},{"year":"2024","title":"Tối ưu & Bảo mật","description":"Nghiên cứu mã hóa, reverse proxy và hệ thống phân tán","icon":"tabler:shield-check"}]} />
 
-<FAQs title="Questions?" items={[]} />
+<SocialLinks title="Kết nối với tôi" subtitle="Theo dõi và liên hệ qua mạng xã hội" style="icons" links={[{"platform":"github","url":"https://github.com","icon":"tabler:brand-github"},{"platform":"facebook","url":"https://facebook.com","icon":"tabler:brand-facebook"},{"platform":"linkedin","url":"https://linkedin.com","icon":"tabler:brand-linkedin"},{"platform":"","url":"#","icon":"tabler:check"}]} />
+
+<Contact title="Liên hệ" subtitle="Gửi tin nhắn cho tôi" inputs={[{"type":"text","name":"name","label":"Họ và tên"},{"type":"email","name":"email","label":"Email"}]} textarea={{"label":"Nội dung tin nhắn"}} button="Gửi liên hệ" />
 
 
 {/* BUILDER_DATA_START
@@ -26,98 +29,164 @@ import FAQs from '~/components/widgets/FAQs.astro';
   "version": "1.0",
   "blocks": [
     {
-      "id": "uaozgdxgc",
-      "type": "Hero2",
+      "id": "hero-intro",
+      "type": "Hero",
       "props": {
-        "title": "The Ultimate Solution",
-        "subtitle": "Everything you need in one powerful package",
-        "tagline": "Product",
+        "title": "Xin chào, tôi là <b>Phạm Thành Nam</b>",
+        "subtitle": "Web Developer • Fullstack Engineer",
+        "tagline": "About Me",
+        "content": "<p>Tôi là một lập trình viên web với kinh nghiệm xây dựng các ứng dụng hiện đại, hiệu năng cao và dễ mở rộng. Tôi đam mê công nghệ, bảo mật và tối ưu hệ thống.</p>",
+        "image": {
+          "src": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=800",
+          "alt": "Profile Image"
+        },
         "actions": [
           {
             "variant": "primary",
-            "text": "Get Started",
-            "href": "#pricing"
+            "text": "Liên hệ với tôi",
+            "href": "#contact"
+          },
+          {
+            "variant": "secondary",
+            "text": "Xem kỹ năng",
+            "href": "#skills"
           }
         ]
       }
     },
     {
-      "id": "tf00ypxp4",
-      "type": "Features3",
+      "id": "features-skills",
+      "type": "Features",
       "props": {
-        "title": "Powerful Features",
-        "columns": 2,
+        "title": "Kỹ năng chính",
+        "subtitle": "Những công nghệ và thế mạnh của tôi",
         "items": [
           {
-            "title": "Fast Performance",
-            "description": "Lightning-quick load times"
+            "title": "Frontend Development",
+            "description": "Astro, React, TypeScript, TailwindCSS",
+            "icon": "tabler:layout-dashboard"
           },
           {
-            "title": "Easy to Use",
-            "description": "Intuitive interface for everyone"
+            "title": "Backend Development",
+            "description": "Node.js, PHP, Golang, REST API",
+            "icon": "tabler:server"
           },
           {
-            "title": "Secure",
-            "description": "Enterprise-grade security"
+            "title": "Database & System",
+            "description": "MySQL, Redis, tối ưu hiệu năng & bảo mật",
+            "icon": "tabler:database"
           },
           {
-            "title": "Scalable",
-            "description": "Grows with your business"
+            "title": "Security & Architecture",
+            "description": "Token, E2E Encryption, Reverse Proxy",
+            "icon": "tabler:shield-lock"
+          }
+        ],
+        "columns": 2,
+        "id": "skills"
+      }
+    },
+    {
+      "id": "content-about",
+      "type": "Content",
+      "props": {
+        "title": "Về tôi",
+        "subtitle": "Hành trình và định hướng",
+        "content": "<p>Tôi bắt đầu với lập trình web từ sớm và không ngừng học hỏi để xây dựng các sản phẩm có giá trị thực tế. Tôi thích làm việc với kiến trúc hệ thống, tối ưu hiệu năng và giải quyết các bài toán phức tạp.</p><p>Mục tiêu của tôi là tạo ra các sản phẩm ổn định, bảo mật và dễ mở rộng cho người dùng.</p>",
+        "image": {
+          "src": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800",
+          "alt": "Working Desk"
+        }
+      }
+    },
+    {
+      "id": "timeline-career",
+      "type": "Timeline",
+      "props": {
+        "title": "Hành trình phát triển",
+        "subtitle": "Các cột mốc đáng nhớ",
+        "items": [
+          {
+            "year": "2021",
+            "title": "Bắt đầu Web Development",
+            "description": "Làm quen và xây dựng các website đầu tiên",
+            "icon": "tabler:rocket"
+          },
+          {
+            "year": "2023",
+            "title": "Fullstack Projects",
+            "description": "Phát triển hệ thống backend, API và ứng dụng thực tế",
+            "icon": "tabler:code"
+          },
+          {
+            "year": "2024",
+            "title": "Tối ưu & Bảo mật",
+            "description": "Nghiên cứu mã hóa, reverse proxy và hệ thống phân tán",
+            "icon": "tabler:shield-check"
           }
         ]
       }
     },
     {
-      "id": "1k2z6rr43",
-      "type": "Pricing",
+      "id": "social-links",
+      "type": "SocialLinks",
       "props": {
-        "title": "Simple Pricing",
-        "prices": [
+        "title": "Kết nối với tôi",
+        "subtitle": "Theo dõi và liên hệ qua mạng xã hội",
+        "style": "icons",
+        "links": [
           {
-            "title": "Starter",
-            "price": 9,
-            "period": "/month",
-            "items": [
-              {
-                "description": "5 Projects"
-              }
-            ]
+            "platform": "github",
+            "url": "https://github.com",
+            "icon": "tabler:brand-github"
           },
           {
-            "title": "Pro",
-            "price": 29,
-            "period": "/month",
-            "hasRibbon": true,
-            "items": [
-              {
-                "description": "Unlimited Projects"
-              }
-            ]
+            "platform": "facebook",
+            "url": "https://facebook.com",
+            "icon": "tabler:brand-facebook"
+          },
+          {
+            "platform": "linkedin",
+            "url": "https://linkedin.com",
+            "icon": "tabler:brand-linkedin"
+          },
+          {
+            "platform": "",
+            "url": "#",
+            "icon": "tabler:check"
           }
         ]
       }
     },
     {
-      "id": "xkpffwkuv",
-      "type": "Testimonials",
+      "id": "contact",
+      "type": "Contact",
       "props": {
-        "title": "Loved by Thousands",
-        "testimonials": []
-      }
-    },
-    {
-      "id": "kz8gfpsw4",
-      "type": "FAQs",
-      "props": {
-        "title": "Questions?",
-        "items": []
+        "title": "Liên hệ",
+        "subtitle": "Gửi tin nhắn cho tôi",
+        "inputs": [
+          {
+            "type": "text",
+            "name": "name",
+            "label": "Họ và tên"
+          },
+          {
+            "type": "email",
+            "name": "email",
+            "label": "Email"
+          }
+        ],
+        "textarea": {
+          "label": "Nội dung tin nhắn"
+        },
+        "button": "Gửi liên hệ"
       }
     }
   ],
   "metadata": {
-    "title": "xin chào",
-    "description": "xin chào"
+    "title": "Giới thiệu bản thân - Phạm Thành Nam",
+    "description": "Trang giới thiệu bản thân của Phạm Thành Nam, Web Developer & Fullstack Engineer."
   },
-  "savedAt": "2025-12-15T13:25:27.625Z"
+  "savedAt": "2025-12-15T14:01:18.814Z"
 }
 BUILDER_DATA_END */}

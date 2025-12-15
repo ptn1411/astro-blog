@@ -1,6 +1,15 @@
+import * as TablerIcons from '@tabler/icons-react';
 import React from 'react';
 import { WIDGET_REGISTRY, type WidgetType } from './registry';
-
+function tablerNameToComponent(name: string) {
+  return (
+    'Icon' +
+    name
+      .split('-')
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+      .join('')
+  );
+}
 interface PreviewRendererProps {
   type: WidgetType;
   props: Record<string, unknown>;
@@ -966,23 +975,40 @@ const ComparisonRenderer = (props: any) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SocialLinksRenderer = (props: any) => {
-  const { title, links, variant = 'default' } = props;
+  const { title, links } = props;
+
   return (
     <section className="relative not-prose py-12">
       <div className="max-w-xl mx-auto text-center">
         {title && <h3 className="text-xl font-bold mb-6">{title}</h3>}
+
         <div className="flex justify-center gap-4">
-          {links &&
-            links.map((link: any, i: number) => (
+          {links?.map((link: any, i: number) => {
+            let IconComponent: any | null = null;
+
+            if (typeof link.icon === 'string' && link.icon.startsWith('tabler:')) {
+              const iconName = link.icon.replace('tabler:', '');
+              const componentName = tablerNameToComponent(iconName);
+              IconComponent = (TablerIcons as unknown as any)[componentName] || null;
+            }
+
+            return (
               <a
                 key={i}
                 href={link.href}
-                className="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-blue-100 dark:hover:bg-blue-900 transition"
                 title={link.label}
+                className="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-full
+                           flex items-center justify-center
+                           hover:bg-blue-100 dark:hover:bg-blue-900 transition"
               >
-                <span className="text-lg">{link.icon || link.label?.charAt(0)}</span>
+                {IconComponent ? (
+                  <IconComponent size={20} stroke={1.8} />
+                ) : (
+                  <span className="text-lg">{link.label?.charAt(0)}</span>
+                )}
               </a>
-            ))}
+            );
+          })}
         </div>
       </div>
     </section>

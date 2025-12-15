@@ -69,13 +69,13 @@ import {
   type BuilderBlock,
   type PageMetadata,
 } from './index';
-
+ export type BuilderMode = 'create' | 'edit';
 // --- Main Builder Component ---
 export default function BuilderApp() {
   // --- View Mode State ---
   const [currentView, setCurrentView] = useState<'pages' | 'builder'>('pages');
   const [editingPath, setEditingPath] = useState<string | null>(null);
-
+  const [builderMode, setBuilderMode] = useState<BuilderMode>('create');
   // --- Core State ---
   const [blocks, setBlocks] = useState<BuilderBlock[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -89,7 +89,7 @@ export default function BuilderApp() {
   const [pasteJsonText, setPasteJsonText] = useState('');
   const [isAIPromptModalOpen, setIsAIPromptModalOpen] = useState(false);
   const [websiteDescription, setWebsiteDescription] = useState('');
-
+ 
   // Refs
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -140,6 +140,7 @@ export default function BuilderApp() {
     setEditingPath(pageData.path);
     setCurrentView('builder');
     setSelectedId(null);
+    setBuilderMode('edit');
   };
 
   // --- Create new page ---
@@ -148,6 +149,8 @@ export default function BuilderApp() {
     setMetadata({ title: 'Untitled Page', description: '' });
     setEditingPath(null);
     setCurrentView('builder');
+    setSelectedId(null);
+    setBuilderMode('create');
     clearStorage();
   };
 
@@ -571,10 +574,12 @@ Hãy tạo JSON hoàn chỉnh cho trang web theo mô tả trên.`;
     >
       {/* Modals */}
       <SaveModal
+        editingPath={editingPath}
         isOpen={isSaveModalOpen}
         onClose={() => setIsSaveModalOpen(false)}
         onSave={handleSave}
         isSaving={isSaving}
+        mode={builderMode}
       />
       <TemplateModal
         isOpen={isTemplateModalOpen}

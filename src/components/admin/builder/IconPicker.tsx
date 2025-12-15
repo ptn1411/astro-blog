@@ -1,3 +1,4 @@
+import * as TablerIcons from '@tabler/icons-react';
 import { ChevronDown, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -125,6 +126,17 @@ export function IconPicker({ value, onChange, isDarkMode }: IconPickerProps) {
   // Extract icon name from value (e.g., "tabler:check" -> "check")
   const currentIcon = value?.startsWith('tabler:') ? value.replace('tabler:', '') : value || '';
 
+  function tablerNameToComponent(name: string) {
+    const pascal = name
+      .split('-')
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+      .join('');
+
+    return `Icon${pascal}`;
+  }
+
+  const IconComponent = currentIcon ? (TablerIcons as any)[tablerNameToComponent(currentIcon)] : null;
+
   const filteredIcons = useMemo(() => {
     if (!search) return TABLER_ICONS;
     return TABLER_ICONS.filter((icon) => icon.toLowerCase().includes(search.toLowerCase()));
@@ -157,10 +169,18 @@ export function IconPicker({ value, onChange, isDarkMode }: IconPickerProps) {
         <span className="flex items-center gap-2">
           {currentIcon ? (
             <>
-              <span
-                className={`text-xs px-1.5 py-0.5 rounded ${isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}
-              >
-                tabler:{currentIcon}
+              <span className="flex items-center gap-2">
+                {IconComponent && (
+                  <IconComponent size={16} stroke={1.8} className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} />
+                )}
+
+                <span
+                  className={`text-xs px-1.5 py-0.5 rounded ${
+                    isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'
+                  }`}
+                >
+                  tabler:{currentIcon}
+                </span>
               </span>
             </>
           ) : (
@@ -204,25 +224,22 @@ export function IconPicker({ value, onChange, isDarkMode }: IconPickerProps) {
             <div className="p-2 max-h-56 overflow-y-auto">
               {filteredIcons.length > 0 ? (
                 <div className="grid grid-cols-6 gap-1">
-                  {filteredIcons.map((icon) => (
-                    <button
-                      key={icon}
-                      type="button"
-                      onClick={() => handleSelect(icon)}
-                      title={icon}
-                      className={`p-2 rounded text-xs text-center transition-colors truncate ${
-                        currentIcon === icon
-                          ? isDarkMode
-                            ? 'bg-blue-500/30 text-blue-400'
-                            : 'bg-blue-100 text-blue-700'
-                          : isDarkMode
-                            ? 'hover:bg-gray-700 text-gray-300'
-                            : 'hover:bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      {icon}
-                    </button>
-                  ))}
+                  {filteredIcons.map((icon) => {
+                    const Icon = (TablerIcons as any)[tablerNameToComponent(icon)];
+
+                    return (
+                      <button
+                        key={icon}
+                        type="button"
+                        onClick={() => handleSelect(icon)}
+                        title={icon}
+                        className="p-2 rounded flex flex-col items-center gap-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        {Icon && <Icon size={18} />}
+                        <span className="text-[10px] truncate">{icon}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className={`text-center py-4 text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
