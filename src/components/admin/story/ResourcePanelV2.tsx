@@ -1,25 +1,43 @@
 import {
   ArrowRight,
+  AtSign,
+  BarChart3,
+  CheckCircle2,
   Circle,
+  Cloud,
+  Code2,
   Diamond,
+  Divide,
+  Hash,
   Heart,
   Hexagon,
   Image as ImageIcon,
   LayoutTemplate,
+  Link2,
+  List,
   Loader2,
+  MapPin,
   MessageCircle,
   Minus,
+  Moon,
   MousePointerClick,
   Music,
   Octagon,
   Pentagon,
+  Play,
   Plus,
+  QrCode,
+  Quote,
   Search,
+  SlidersHorizontal,
   Square,
   Star,
   Sticker,
+  Sun,
+  Timer,
   Triangle,
   Type,
+  User,
   Video,
   Wand2,
   Zap,
@@ -34,7 +52,7 @@ interface ResourcePanelProps {
   onApplyTemplate?: (template: StoryTemplate) => void;
 }
 
-type TabType = 'elements' | 'shapes' | 'stickers' | 'gifs' | 'templates' | 'audio';
+type TabType = 'elements' | 'shapes' | 'stickers' | 'gifs' | 'templates' | 'audio' | 'interactive' | 'social';
 
 // Shape definitions
 const SHAPES: { type: ShapeType; icon: React.ReactNode; label: string }[] = [
@@ -64,6 +82,19 @@ const SHAPES: { type: ShapeType; icon: React.ReactNode; label: string }[] = [
   { type: 'trapezoid', icon: <span className="text-lg">⏢</span>, label: 'Trapezoid' },
   { type: 'explosion', icon: <span className="text-lg">💥</span>, label: 'Burst' },
   { type: 'wave', icon: <span className="text-lg">〰</span>, label: 'Wave' },
+  // New shapes
+  { type: 'squircle', icon: <span className="text-lg">⬜</span>, label: 'Squircle' },
+  { type: 'pill', icon: <span className="text-lg">💊</span>, label: 'Pill' },
+  { type: 'ring', icon: <span className="text-lg">◯</span>, label: 'Ring' },
+  { type: 'blob', icon: <span className="text-lg">🫧</span>, label: 'Blob' },
+  { type: 'cloud', icon: <Cloud size={24} />, label: 'Cloud' },
+  { type: 'lightning', icon: <Zap size={24} />, label: 'Lightning' },
+  { type: 'moon', icon: <Moon size={24} />, label: 'Moon' },
+  { type: 'sun', icon: <Sun size={24} />, label: 'Sun' },
+  { type: 'check', icon: <span className="text-lg">✓</span>, label: 'Check' },
+  { type: 'x-mark', icon: <span className="text-lg">✕</span>, label: 'X Mark' },
+  { type: 'bracket', icon: <span className="text-lg">[</span>, label: 'Bracket' },
+  { type: 'cursor', icon: <span className="text-lg">▶</span>, label: 'Cursor' },
 ];
 
 // Built-in stickers (emoji-based for demo)
@@ -100,6 +131,61 @@ const STICKERS = [
   '🍦',
   '🥤',
   '🧁',
+  // New stickers
+  '🎬',
+  '📱',
+  '💻',
+  '🎮',
+  '🎸',
+  '🎤',
+  '📷',
+  '🖼️',
+  '🎁',
+  '💎',
+  '👑',
+  '🦋',
+  '🌈',
+  '☀️',
+  '🌙',
+  '⚡',
+  '💫',
+  '🔔',
+  '❗',
+  '❓',
+  '✅',
+  '❌',
+  '➡️',
+  '⬅️',
+  '⬆️',
+  '⬇️',
+  '🔗',
+  '📍',
+  '🏠',
+  '💼',
+  '📚',
+  '✏️',
+  '🎓',
+  '💰',
+];
+
+// More decorative stickers
+const DECORATIVE_STICKERS = [
+  { emoji: '✦', label: 'Sparkle' },
+  { emoji: '◆', label: 'Diamond' },
+  { emoji: '●', label: 'Circle' },
+  { emoji: '■', label: 'Square' },
+  { emoji: '▲', label: 'Triangle' },
+  { emoji: '★', label: 'Star' },
+  { emoji: '♥', label: 'Heart' },
+  { emoji: '♦', label: 'Diamond 2' },
+  { emoji: '♠', label: 'Spade' },
+  { emoji: '♣', label: 'Club' },
+  { emoji: '→', label: 'Arrow Right' },
+  { emoji: '←', label: 'Arrow Left' },
+  { emoji: '↑', label: 'Arrow Up' },
+  { emoji: '↓', label: 'Arrow Down' },
+  { emoji: '•', label: 'Bullet' },
+  { emoji: '○', label: 'Ring' },
 ];
 
 // Demo templates
@@ -1274,6 +1360,8 @@ export const ResourcePanelV2: React.FC<ResourcePanelProps> = ({ onAddElement, on
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     { id: 'elements', label: 'Elements', icon: <Type size={16} /> },
     { id: 'shapes', label: 'Shapes', icon: <Square size={16} /> },
+    { id: 'interactive', label: 'Interactive', icon: <SlidersHorizontal size={16} /> },
+    { id: 'social', label: 'Social', icon: <AtSign size={16} /> },
     { id: 'stickers', label: 'Stickers', icon: <Sticker size={16} /> },
     { id: 'gifs', label: 'GIFs', icon: <Wand2 size={16} /> },
     { id: 'templates', label: 'Templates', icon: <LayoutTemplate size={16} /> },
@@ -1385,6 +1473,101 @@ export const ResourcePanelV2: React.FC<ResourcePanelProps> = ({ onAddElement, on
                   <MousePointerClick size={24} className="mb-2 text-purple-400" />
                   <span className="text-xs font-medium text-slate-200">Button</span>
                 </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('divider', '', {
+                      divider: { style: 'solid', thickness: 2 },
+                      style: {
+                        width: 280,
+                        height: 4,
+                        backgroundColor: '#ffffff',
+                        opacity: 0.3,
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <Divide size={24} className="mb-2 text-slate-400" />
+                  <span className="text-xs font-medium text-slate-200">Divider</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('quote', '"Your quote here"', {
+                      quote: { author: 'Author Name', style: 'decorative' },
+                      style: {
+                        width: 280,
+                        height: 150,
+                        color: '#ffffff',
+                        fontSize: 20,
+                        fontStyle: 'italic',
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <Quote size={24} className="mb-2 text-amber-400" />
+                  <span className="text-xs font-medium text-slate-200">Quote</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('list', '', {
+                      list: { items: ['Item 1', 'Item 2', 'Item 3'], type: 'bullet' },
+                      style: {
+                        width: 250,
+                        height: 120,
+                        color: '#ffffff',
+                        fontSize: 16,
+                        textAlign: 'left',
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <List size={24} className="mb-2 text-cyan-400" />
+                  <span className="text-xs font-medium text-slate-200">List</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('avatar', '', {
+                      avatar: { name: 'User Name', subtitle: '@username', size: 'lg', shape: 'circle' },
+                      style: {
+                        width: 200,
+                        height: 80,
+                        backgroundColor: '#3b82f6',
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <User size={24} className="mb-2 text-indigo-400" />
+                  <span className="text-xs font-medium text-slate-200">Avatar</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('codeblock', 'const hello = "world";', {
+                      codeblock: { language: 'javascript', theme: 'dark', showLineNumbers: true },
+                      style: {
+                        width: 280,
+                        height: 100,
+                        backgroundColor: '#1e1e1e',
+                        color: '#d4d4d4',
+                        fontSize: 14,
+                        fontFamily: 'monospace',
+                        borderRadius: 8,
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <Code2 size={24} className="mb-2 text-emerald-400" />
+                  <span className="text-xs font-medium text-slate-200">Code</span>
+                </button>
               </div>
             </div>
 
@@ -1422,6 +1605,109 @@ export const ResourcePanelV2: React.FC<ResourcePanelProps> = ({ onAddElement, on
                 >
                   Body Text
                 </button>
+                <button
+                  onClick={() =>
+                    onAddElement('text', 'Caption text', {
+                      style: { fontSize: 12, fontWeight: 'normal', opacity: 0.7 },
+                    })
+                  }
+                  className="w-full text-left px-3 py-2.5 bg-slate-700/30 hover:bg-slate-700/50 rounded-lg transition-colors text-white text-xs opacity-70"
+                >
+                  Caption
+                </button>
+                <button
+                  onClick={() =>
+                    onAddElement('text', 'LABEL', {
+                      style: { fontSize: 11, fontWeight: 'bold', letterSpacing: 2 },
+                    })
+                  }
+                  className="w-full text-left px-3 py-2.5 bg-slate-700/30 hover:bg-slate-700/50 rounded-lg transition-colors text-white text-[11px] tracking-widest font-bold"
+                >
+                  LABEL
+                </button>
+              </div>
+            </div>
+
+            {/* Callouts & Badges */}
+            <div>
+              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Callouts & Badges</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() =>
+                    onAddElement('text', '🔥 HOT', {
+                      style: {
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        backgroundColor: '#ef4444',
+                        color: '#ffffff',
+                        width: 80,
+                        height: 32,
+                        borderRadius: 16,
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="flex items-center justify-center p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors text-red-400 text-sm font-bold"
+                >
+                  🔥 HOT
+                </button>
+                <button
+                  onClick={() =>
+                    onAddElement('text', '✨ NEW', {
+                      style: {
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        backgroundColor: '#8b5cf6',
+                        color: '#ffffff',
+                        width: 80,
+                        height: 32,
+                        borderRadius: 16,
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="flex items-center justify-center p-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg transition-colors text-purple-400 text-sm font-bold"
+                >
+                  ✨ NEW
+                </button>
+                <button
+                  onClick={() =>
+                    onAddElement('text', '💰 SALE', {
+                      style: {
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        backgroundColor: '#10b981',
+                        color: '#ffffff',
+                        width: 80,
+                        height: 32,
+                        borderRadius: 16,
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="flex items-center justify-center p-2 bg-emerald-500/20 hover:bg-emerald-500/30 rounded-lg transition-colors text-emerald-400 text-sm font-bold"
+                >
+                  💰 SALE
+                </button>
+                <button
+                  onClick={() =>
+                    onAddElement('text', '⭐ TOP', {
+                      style: {
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        backgroundColor: '#f59e0b',
+                        color: '#ffffff',
+                        width: 80,
+                        height: 32,
+                        borderRadius: 16,
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="flex items-center justify-center p-2 bg-amber-500/20 hover:bg-amber-500/30 rounded-lg transition-colors text-amber-400 text-sm font-bold"
+                >
+                  ⭐ TOP
+                </button>
               </div>
             </div>
           </div>
@@ -1452,6 +1738,349 @@ export const ResourcePanelV2: React.FC<ResourcePanelProps> = ({ onAddElement, on
           </div>
         )}
 
+        {/* Interactive Tab */}
+        {activeTab === 'interactive' && (
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                Interactive Elements
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() =>
+                    onAddElement('progress', '', {
+                      progress: { value: 75, max: 100, label: 'Progress', showPercent: true, variant: 'bar' },
+                      style: {
+                        width: 250,
+                        height: 40,
+                        backgroundColor: '#1e293b',
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <BarChart3 size={24} className="mb-2 text-cyan-400" />
+                  <span className="text-xs font-medium text-slate-200">Progress</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('rating', '', {
+                      rating: { value: 4, max: 5, icon: 'star', showValue: true },
+                      style: {
+                        width: 180,
+                        height: 40,
+                        fontSize: 24,
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <Star size={24} className="mb-2 text-yellow-400" />
+                  <span className="text-xs font-medium text-slate-200">Rating</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('timer', '', {
+                      timer: { duration: 60, autoStart: false, showLabels: true, format: 'ms' },
+                      style: {
+                        width: 200,
+                        height: 80,
+                        fontSize: 36,
+                        fontWeight: 'bold',
+                        color: '#ffffff',
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <Timer size={24} className="mb-2 text-rose-400" />
+                  <span className="text-xs font-medium text-slate-200">Timer</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('countdown', '', {
+                      countdown: {
+                        targetDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                        label: 'Ends in',
+                      },
+                      style: {
+                        width: 280,
+                        height: 100,
+                        fontSize: 28,
+                        fontWeight: 'bold',
+                        color: '#ffffff',
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <Timer size={24} className="mb-2 text-orange-400" />
+                  <span className="text-xs font-medium text-slate-200">Countdown</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('slider', '', {
+                      slider: {
+                        images: [
+                          { src: '', caption: 'Slide 1' },
+                          { src: '', caption: 'Slide 2' },
+                        ],
+                        currentIndex: 0,
+                      },
+                      style: {
+                        width: 280,
+                        height: 300,
+                        borderRadius: 12,
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <Play size={24} className="mb-2 text-violet-400" />
+                  <span className="text-xs font-medium text-slate-200">Slider</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('poll', '', {
+                      poll: { question: 'Your question?', options: ['Option A', 'Option B'] },
+                      style: {
+                        width: 280,
+                        height: 150,
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                        borderRadius: 12,
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <CheckCircle2 size={24} className="mb-2 text-green-400" />
+                  <span className="text-xs font-medium text-slate-200">Poll</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Media & Embed</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() =>
+                    onAddElement('embed', '', {
+                      embed: { type: 'youtube', url: '' },
+                      style: {
+                        width: 280,
+                        height: 160,
+                        borderRadius: 12,
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <Play size={24} className="mb-2 text-red-400" />
+                  <span className="text-xs font-medium text-slate-200">YouTube</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('qrcode', '', {
+                      qrcode: { data: 'https://example.com', size: 150, color: '#000000', bgColor: '#ffffff' },
+                      style: {
+                        width: 150,
+                        height: 150,
+                        backgroundColor: '#ffffff',
+                        borderRadius: 8,
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <QrCode size={24} className="mb-2 text-slate-400" />
+                  <span className="text-xs font-medium text-slate-200">QR Code</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Social Tab */}
+        {activeTab === 'social' && (
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Social Elements</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() =>
+                    onAddElement('mention', '@username', {
+                      mention: { username: 'username', platform: 'instagram', verified: false },
+                      style: {
+                        width: 150,
+                        height: 36,
+                        color: '#3b82f6',
+                        fontSize: 16,
+                        fontWeight: 'medium',
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <AtSign size={24} className="mb-2 text-blue-400" />
+                  <span className="text-xs font-medium text-slate-200">Mention</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('hashtag', '#hashtag', {
+                      hashtag: { tags: ['trending', 'viral'], clickable: true },
+                      style: {
+                        width: 200,
+                        height: 36,
+                        color: '#3b82f6',
+                        fontSize: 16,
+                        fontWeight: 'medium',
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <Hash size={24} className="mb-2 text-purple-400" />
+                  <span className="text-xs font-medium text-slate-200">Hashtag</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('location', '📍 Location', {
+                      location: { name: 'Location Name', address: 'Address' },
+                      style: {
+                        width: 200,
+                        height: 50,
+                        color: '#ffffff',
+                        fontSize: 14,
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <MapPin size={24} className="mb-2 text-rose-400" />
+                  <span className="text-xs font-medium text-slate-200">Location</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    onAddElement('link', '🔗 Link', {
+                      link: { url: '#', label: 'Link' },
+                      style: {
+                        width: 150,
+                        height: 40,
+                        color: '#3b82f6',
+                        fontSize: 14,
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500"
+                >
+                  <Link2 size={24} className="mb-2 text-cyan-400" />
+                  <span className="text-xs font-medium text-slate-200">Link</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">CTA Buttons</h4>
+              <div className="space-y-2">
+                <button
+                  onClick={() =>
+                    onAddElement('button', 'Follow Me', {
+                      button: { href: '#', target: '_blank', variant: 'primary' },
+                      style: {
+                        width: 200,
+                        height: 44,
+                        backgroundColor: '#E1306C',
+                        color: '#ffffff',
+                        fontSize: 14,
+                        fontWeight: 'semibold',
+                        borderRadius: 22,
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="w-full flex items-center gap-3 px-3 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 rounded-lg transition-colors text-white text-sm font-medium"
+                >
+                  <span>📸</span> Follow on Instagram
+                </button>
+                <button
+                  onClick={() =>
+                    onAddElement('button', 'Subscribe', {
+                      button: { href: '#', target: '_blank', variant: 'primary' },
+                      style: {
+                        width: 200,
+                        height: 44,
+                        backgroundColor: '#FF0000',
+                        color: '#ffffff',
+                        fontSize: 14,
+                        fontWeight: 'semibold',
+                        borderRadius: 22,
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="w-full flex items-center gap-3 px-3 py-2.5 bg-red-600 hover:bg-red-500 rounded-lg transition-colors text-white text-sm font-medium"
+                >
+                  <span>▶️</span> Subscribe on YouTube
+                </button>
+                <button
+                  onClick={() =>
+                    onAddElement('button', 'Shop Now →', {
+                      button: { href: '#', target: '_blank', variant: 'primary' },
+                      style: {
+                        width: 200,
+                        height: 44,
+                        backgroundColor: '#10b981',
+                        color: '#ffffff',
+                        fontSize: 14,
+                        fontWeight: 'semibold',
+                        borderRadius: 8,
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="w-full flex items-center gap-3 px-3 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors text-white text-sm font-medium"
+                >
+                  <span>🛒</span> Shop Now
+                </button>
+                <button
+                  onClick={() =>
+                    onAddElement('button', 'Swipe Up ↑', {
+                      button: { href: '#', target: '_blank', variant: 'primary' },
+                      style: {
+                        width: 200,
+                        height: 44,
+                        backgroundColor: 'transparent',
+                        color: '#ffffff',
+                        fontSize: 14,
+                        fontWeight: 'semibold',
+                        borderRadius: 22,
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        textAlign: 'center',
+                      },
+                    })
+                  }
+                  className="w-full flex items-center gap-3 px-3 py-2.5 border-2 border-slate-500 hover:border-white rounded-lg transition-colors text-white text-sm font-medium"
+                >
+                  <span>👆</span> Swipe Up
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Stickers Tab */}
         {activeTab === 'stickers' && (
           <div>
@@ -1468,6 +2097,24 @@ export const ResourcePanelV2: React.FC<ResourcePanelProps> = ({ onAddElement, on
                   className="flex items-center justify-center p-3 bg-slate-700/30 hover:bg-slate-700 rounded-lg transition-colors text-3xl hover:scale-110"
                 >
                   {sticker}
+                </button>
+              ))}
+            </div>
+
+            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4">Decorative</h4>
+            <div className="grid grid-cols-4 gap-2">
+              {DECORATIVE_STICKERS.map((sticker, idx) => (
+                <button
+                  key={idx}
+                  onClick={() =>
+                    onAddElement('text', sticker.emoji, {
+                      style: { fontSize: 36, width: 50, height: 50 },
+                    })
+                  }
+                  className="flex flex-col items-center justify-center p-2 bg-slate-700/30 hover:bg-slate-700 rounded-lg transition-colors hover:scale-110"
+                  title={sticker.label}
+                >
+                  <span className="text-2xl text-white">{sticker.emoji}</span>
                 </button>
               ))}
             </div>

@@ -11,8 +11,19 @@ import {
   Sparkles,
   Trash2,
   Unlock,
+  Wand2,
+  Zap,
 } from 'lucide-react';
 import React, { useState } from 'react';
+import { ANIME_EASINGS, GSAP_ANIMATION_NAMES, GSAP_EASINGS, LOOP_ANIMATION_NAMES } from './animations';
+import {
+  ALL_ANIMATION_TEMPLATES,
+  ANIME_TEMPLATES,
+  GSAP_TEMPLATES,
+  LOOP_TEMPLATES,
+  type AnimationTemplate,
+} from './animationTemplates';
+import { StoryImagePicker, StoryVideoPicker } from './StoryMediaPicker';
 import {
   ANIMATION_PRESETS,
   COLOR_PRESETS,
@@ -21,6 +32,7 @@ import {
   type AnimationType,
   type ElementStyle,
   type FontWeight,
+  type ShapeType,
   type StoryElement,
   type StorySlide,
   type TextAlign,
@@ -35,6 +47,7 @@ interface PropertiesPanelProps {
   onDeleteElement?: () => void;
   onDuplicateElement?: () => void;
   onToggleLock?: () => void;
+  onPreviewAnimation?: () => void;
 }
 
 // Collapsible Section Component
@@ -161,6 +174,7 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
   onDeleteElement,
   onDuplicateElement,
   onToggleLock,
+  onPreviewAnimation,
 }) => {
   const [activeTab, setActiveTab] = useState<'style' | 'animation'>('style');
 
@@ -208,8 +222,8 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
 
         <Section title="Background">
           <Field label="Type">
-            <div className="flex gap-2">
-              {(['color', 'image', 'gradient'] as const).map((type) => (
+            <div className="flex gap-1">
+              {(['color', 'image', 'video', 'gradient'] as const).map((type) => (
                 <button
                   key={type}
                   onClick={() => onUpdateSlide({ background: { ...slide.background, type } })}
@@ -264,6 +278,125 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
                   />
                 ))}
               </div>
+            </div>
+          )}
+
+          {slide.background.type === 'image' && (
+            <div className="space-y-3">
+              <Field label="Chọn hình">
+                <StoryImagePicker
+                  value={slide.background.value || ''}
+                  onChange={(v) => onUpdateSlide({ background: { ...slide.background, value: v } })}
+                  label="Hình nền Slide"
+                />
+              </Field>
+              {slide.background.value && (
+                <>
+                  <Field label="Size">
+                    <Select
+                      value={slide.background.size || 'cover'}
+                      onChange={(v) => onUpdateSlide({ background: { ...slide.background, size: v } })}
+                      options={[
+                        { label: 'Cover', value: 'cover' },
+                        { label: 'Contain', value: 'contain' },
+                        { label: 'Auto', value: 'auto' },
+                        { label: '100%', value: '100% 100%' },
+                      ]}
+                    />
+                  </Field>
+                  <Field label="Position">
+                    <Select
+                      value={slide.background.position || 'center'}
+                      onChange={(v) => onUpdateSlide({ background: { ...slide.background, position: v } })}
+                      options={[
+                        { label: 'Center', value: 'center' },
+                        { label: 'Top', value: 'top' },
+                        { label: 'Bottom', value: 'bottom' },
+                        { label: 'Left', value: 'left' },
+                        { label: 'Right', value: 'right' },
+                        { label: 'Top Left', value: 'top left' },
+                        { label: 'Top Right', value: 'top right' },
+                        { label: 'Bottom Left', value: 'bottom left' },
+                        { label: 'Bottom Right', value: 'bottom right' },
+                      ]}
+                    />
+                  </Field>
+                  <Field label="Overlay">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!!slide.background.overlay}
+                        onChange={(e) =>
+                          onUpdateSlide({
+                            background: {
+                              ...slide.background,
+                              overlay: e.target.checked ? 'rgba(0,0,0,0.5)' : undefined,
+                            },
+                          })
+                        }
+                        className="w-4 h-4 rounded bg-slate-700 border-slate-600"
+                      />
+                      {slide.background.overlay && (
+                        <input
+                          type="text"
+                          value={slide.background.overlay}
+                          onChange={(e) =>
+                            onUpdateSlide({
+                              background: { ...slide.background, overlay: e.target.value },
+                            })
+                          }
+                          placeholder="rgba(0,0,0,0.5)"
+                          className="flex-1 px-2 py-1 text-sm bg-slate-700 border border-slate-600 rounded text-white"
+                        />
+                      )}
+                    </div>
+                  </Field>
+                </>
+              )}
+            </div>
+          )}
+
+          {slide.background.type === 'video' && (
+            <div className="space-y-3">
+              <Field label="Chọn video">
+                <StoryVideoPicker
+                  value={slide.background.value || ''}
+                  onChange={(v) => onUpdateSlide({ background: { ...slide.background, value: v } })}
+                  label="Video nền Slide"
+                />
+              </Field>
+              {slide.background.value && (
+                <Field label="Overlay">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={!!slide.background.overlay}
+                      onChange={(e) =>
+                        onUpdateSlide({
+                          background: {
+                            ...slide.background,
+                            overlay: e.target.checked ? 'rgba(0,0,0,0.5)' : undefined,
+                          },
+                        })
+                      }
+                      className="w-4 h-4 rounded bg-slate-700 border-slate-600"
+                    />
+                    {slide.background.overlay && (
+                      <input
+                        type="text"
+                        value={slide.background.overlay}
+                        onChange={(e) =>
+                          onUpdateSlide({
+                            background: { ...slide.background, overlay: e.target.value },
+                          })
+                        }
+                        placeholder="rgba(0,0,0,0.5)"
+                        className="flex-1 px-2 py-1 text-sm bg-slate-700 border border-slate-600 rounded text-white"
+                      />
+                    )}
+                  </div>
+                </Field>
+              )}
             </div>
           )}
         </Section>
@@ -551,6 +684,788 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
               </Section>
             )}
 
+            {/* Quote-specific properties */}
+            {element.type === 'quote' && (
+              <Section title="Quote" defaultOpen>
+                <Field label="Quote Text">
+                  <textarea
+                    value={element.content}
+                    onChange={(e) => onUpdateElement({ content: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
+                    rows={3}
+                    placeholder="Your quote here..."
+                  />
+                </Field>
+                <Field label="Author">
+                  <input
+                    type="text"
+                    value={element.quote?.author || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        quote: { ...element.quote, author: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="Author name"
+                  />
+                </Field>
+                <Field label="Font Size">
+                  <NumberSlider
+                    value={element.style.fontSize || 20}
+                    onChange={(v) => onUpdateElement({ fontSize: v })}
+                    min={12}
+                    max={48}
+                    unit="px"
+                  />
+                </Field>
+                <Field label="Color">
+                  <ColorPicker
+                    value={element.style.color || '#ffffff'}
+                    onChange={(v) => onUpdateElement({ color: v })}
+                    presets={COLOR_PRESETS.text}
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* List-specific properties */}
+            {element.type === 'list' && (
+              <Section title="List" defaultOpen>
+                <Field label="List Type">
+                  <div className="flex gap-2">
+                    {(['bullet', 'numbered', 'checklist'] as const).map((type) => (
+                      <button
+                        key={type}
+                        onClick={() =>
+                          onUpdateElement({
+                            list: { ...element.list!, type },
+                          })
+                        }
+                        className={`flex-1 py-2 text-xs rounded transition-colors capitalize ${
+                          element.list?.type === type
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Items (one per line)">
+                  <textarea
+                    value={element.list?.items?.join('\n') || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        list: { ...element.list!, items: e.target.value.split('\n').filter(Boolean) },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
+                    rows={4}
+                    placeholder="Item 1&#10;Item 2&#10;Item 3"
+                  />
+                </Field>
+                <Field label="Font Size">
+                  <NumberSlider
+                    value={element.style.fontSize || 16}
+                    onChange={(v) => onUpdateElement({ fontSize: v })}
+                    min={10}
+                    max={32}
+                    unit="px"
+                  />
+                </Field>
+                <Field label="Color">
+                  <ColorPicker
+                    value={element.style.color || '#ffffff'}
+                    onChange={(v) => onUpdateElement({ color: v })}
+                    presets={COLOR_PRESETS.text}
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* Rating-specific properties */}
+            {element.type === 'rating' && (
+              <Section title="Rating" defaultOpen>
+                <Field label="Value">
+                  <NumberSlider
+                    value={element.rating?.value || 0}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        rating: { ...element.rating!, value: v },
+                      })
+                    }
+                    min={0}
+                    max={element.rating?.max || 5}
+                    step={1}
+                  />
+                </Field>
+                <Field label="Max Value">
+                  <NumberSlider
+                    value={element.rating?.max || 5}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        rating: { ...element.rating!, max: v },
+                      })
+                    }
+                    min={3}
+                    max={10}
+                    step={1}
+                  />
+                </Field>
+                <Field label="Icon">
+                  <div className="flex gap-2">
+                    {(['star', 'heart', 'circle'] as const).map((icon) => (
+                      <button
+                        key={icon}
+                        onClick={() =>
+                          onUpdateElement({
+                            rating: { ...element.rating!, icon },
+                          })
+                        }
+                        className={`flex-1 py-2 text-xl rounded transition-colors ${
+                          element.rating?.icon === icon ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'
+                        }`}
+                      >
+                        {icon === 'star' ? '⭐' : icon === 'heart' ? '❤️' : '●'}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Show Value">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={element.rating?.showValue ?? true}
+                      onChange={(e) =>
+                        onUpdateElement({
+                          rating: { ...element.rating!, showValue: e.target.checked },
+                        })
+                      }
+                      className="w-4 h-4 accent-blue-500"
+                    />
+                    <span className="text-sm text-slate-300">Display rating number</span>
+                  </label>
+                </Field>
+              </Section>
+            )}
+
+            {/* Progress-specific properties */}
+            {element.type === 'progress' && (
+              <Section title="Progress" defaultOpen>
+                <Field label="Value">
+                  <NumberSlider
+                    value={element.progress?.value || 0}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        progress: { ...element.progress!, value: v },
+                      })
+                    }
+                    min={0}
+                    max={element.progress?.max || 100}
+                    step={1}
+                  />
+                </Field>
+                <Field label="Label">
+                  <input
+                    type="text"
+                    value={element.progress?.label || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        progress: { ...element.progress!, label: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="Progress label"
+                  />
+                </Field>
+                <Field label="Variant">
+                  <div className="flex gap-2">
+                    {(['bar', 'circle'] as const).map((variant) => (
+                      <button
+                        key={variant}
+                        onClick={() =>
+                          onUpdateElement({
+                            progress: { ...element.progress!, variant },
+                          })
+                        }
+                        className={`flex-1 py-2 text-xs rounded transition-colors capitalize ${
+                          element.progress?.variant === variant
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {variant}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Show Percentage">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={element.progress?.showPercent ?? true}
+                      onChange={(e) =>
+                        onUpdateElement({
+                          progress: { ...element.progress!, showPercent: e.target.checked },
+                        })
+                      }
+                      className="w-4 h-4 accent-blue-500"
+                    />
+                    <span className="text-sm text-slate-300">Display percentage</span>
+                  </label>
+                </Field>
+              </Section>
+            )}
+
+            {/* Avatar-specific properties */}
+            {element.type === 'avatar' && (
+              <Section title="Avatar" defaultOpen>
+                <Field label="Image URL">
+                  <input
+                    type="text"
+                    value={element.content || ''}
+                    onChange={(e) => onUpdateElement({ content: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="Image URL (optional)"
+                  />
+                </Field>
+                <Field label="Name">
+                  <input
+                    type="text"
+                    value={element.avatar?.name || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        avatar: { ...element.avatar, name: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="User Name"
+                  />
+                </Field>
+                <Field label="Subtitle">
+                  <input
+                    type="text"
+                    value={element.avatar?.subtitle || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        avatar: { ...element.avatar, subtitle: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="@username"
+                  />
+                </Field>
+                <Field label="Size">
+                  <div className="flex gap-2">
+                    {(['sm', 'md', 'lg', 'xl'] as const).map((size) => (
+                      <button
+                        key={size}
+                        onClick={() =>
+                          onUpdateElement({
+                            avatar: { ...element.avatar, size },
+                          })
+                        }
+                        className={`flex-1 py-2 text-xs rounded transition-colors uppercase ${
+                          element.avatar?.size === size
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Shape">
+                  <div className="flex gap-2">
+                    {(['circle', 'square', 'rounded'] as const).map((shape) => (
+                      <button
+                        key={shape}
+                        onClick={() =>
+                          onUpdateElement({
+                            avatar: { ...element.avatar, shape },
+                          })
+                        }
+                        className={`flex-1 py-2 text-xs rounded transition-colors capitalize ${
+                          element.avatar?.shape === shape
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {shape}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Background Color">
+                  <ColorPicker
+                    value={element.style.backgroundColor || '#3b82f6'}
+                    onChange={(v) => onUpdateElement({ backgroundColor: v })}
+                    presets={COLOR_PRESETS.backgrounds}
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* Timer-specific properties */}
+            {element.type === 'timer' && (
+              <Section title="Timer" defaultOpen>
+                <Field label="Duration (seconds)">
+                  <NumberSlider
+                    value={element.timer?.duration || 60}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        timer: { ...element.timer!, duration: v },
+                      })
+                    }
+                    min={1}
+                    max={600}
+                    step={1}
+                    unit="s"
+                  />
+                </Field>
+                <Field label="Show Labels">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={element.timer?.showLabels ?? true}
+                      onChange={(e) =>
+                        onUpdateElement({
+                          timer: { ...element.timer!, showLabels: e.target.checked },
+                        })
+                      }
+                      className="w-4 h-4 accent-blue-500"
+                    />
+                    <span className="text-sm text-slate-300">Display min/sec labels</span>
+                  </label>
+                </Field>
+                <Field label="Font Size">
+                  <NumberSlider
+                    value={element.style.fontSize || 36}
+                    onChange={(v) => onUpdateElement({ fontSize: v })}
+                    min={16}
+                    max={72}
+                    unit="px"
+                  />
+                </Field>
+                <Field label="Color">
+                  <ColorPicker
+                    value={element.style.color || '#ffffff'}
+                    onChange={(v) => onUpdateElement({ color: v })}
+                    presets={COLOR_PRESETS.text}
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* Countdown-specific properties */}
+            {element.type === 'countdown' && (
+              <Section title="Countdown" defaultOpen>
+                <Field label="Target Date">
+                  <input
+                    type="datetime-local"
+                    value={element.countdown?.targetDate?.slice(0, 16) || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        countdown: { ...element.countdown!, targetDate: new Date(e.target.value).toISOString() },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                  />
+                </Field>
+                <Field label="Label">
+                  <input
+                    type="text"
+                    value={element.countdown?.label || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        countdown: { ...element.countdown!, label: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="Ends in"
+                  />
+                </Field>
+                <Field label="Font Size">
+                  <NumberSlider
+                    value={element.style.fontSize || 28}
+                    onChange={(v) => onUpdateElement({ fontSize: v })}
+                    min={14}
+                    max={48}
+                    unit="px"
+                  />
+                </Field>
+                <Field label="Color">
+                  <ColorPicker
+                    value={element.style.color || '#ffffff'}
+                    onChange={(v) => onUpdateElement({ color: v })}
+                    presets={COLOR_PRESETS.text}
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* Location-specific properties */}
+            {element.type === 'location' && (
+              <Section title="Location" defaultOpen>
+                <Field label="Location Name">
+                  <input
+                    type="text"
+                    value={element.location?.name || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        location: { ...element.location, name: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="Location Name"
+                  />
+                </Field>
+                <Field label="Address">
+                  <input
+                    type="text"
+                    value={element.location?.address || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        location: { ...element.location!, address: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="Address (optional)"
+                  />
+                </Field>
+                <Field label="Color">
+                  <ColorPicker
+                    value={element.style.color || '#ffffff'}
+                    onChange={(v) => onUpdateElement({ color: v })}
+                    presets={COLOR_PRESETS.text}
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* Mention-specific properties */}
+            {element.type === 'mention' && (
+              <Section title="Mention" defaultOpen>
+                <Field label="Username">
+                  <input
+                    type="text"
+                    value={element.mention?.username || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        mention: { ...element.mention, username: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="username"
+                  />
+                </Field>
+                <Field label="Platform">
+                  <div className="flex gap-2">
+                    {(['instagram', 'twitter', 'tiktok'] as const).map((platform) => (
+                      <button
+                        key={platform}
+                        onClick={() =>
+                          onUpdateElement({
+                            mention: { ...element.mention!, platform },
+                          })
+                        }
+                        className={`flex-1 py-2 text-xs rounded transition-colors capitalize ${
+                          element.mention?.platform === platform
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {platform}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Verified Badge">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={element.mention?.verified ?? false}
+                      onChange={(e) =>
+                        onUpdateElement({
+                          mention: { ...element.mention!, verified: e.target.checked },
+                        })
+                      }
+                      className="w-4 h-4 accent-blue-500"
+                    />
+                    <span className="text-sm text-slate-300">Show verified badge</span>
+                  </label>
+                </Field>
+                <Field label="Color">
+                  <ColorPicker
+                    value={element.style.color || '#3b82f6'}
+                    onChange={(v) => onUpdateElement({ color: v })}
+                    presets={COLOR_PRESETS.backgrounds}
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* Hashtag-specific properties */}
+            {element.type === 'hashtag' && (
+              <Section title="Hashtags" defaultOpen>
+                <Field label="Tags (one per line)">
+                  <textarea
+                    value={element.hashtag?.tags?.join('\n') || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        hashtag: {
+                          ...element.hashtag!,
+                          tags: e.target.value
+                            .split('\n')
+                            .filter(Boolean)
+                            .map((t) => t.replace('#', '')),
+                        },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
+                    rows={3}
+                    placeholder="trending&#10;viral&#10;fyp"
+                  />
+                </Field>
+                <Field label="Color">
+                  <ColorPicker
+                    value={element.style.color || '#3b82f6'}
+                    onChange={(v) => onUpdateElement({ color: v })}
+                    presets={COLOR_PRESETS.backgrounds}
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* Codeblock-specific properties */}
+            {element.type === 'codeblock' && (
+              <Section title="Code" defaultOpen>
+                <Field label="Code">
+                  <textarea
+                    value={element.content}
+                    onChange={(e) => onUpdateElement({ content: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 resize-none font-mono"
+                    rows={5}
+                    placeholder="const hello = 'world';"
+                  />
+                </Field>
+                <Field label="Language">
+                  <Select
+                    value={element.codeblock?.language || 'javascript'}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        codeblock: { ...element.codeblock!, language: v },
+                      })
+                    }
+                    options={[
+                      { label: 'JavaScript', value: 'javascript' },
+                      { label: 'TypeScript', value: 'typescript' },
+                      { label: 'Python', value: 'python' },
+                      { label: 'HTML', value: 'html' },
+                      { label: 'CSS', value: 'css' },
+                      { label: 'JSON', value: 'json' },
+                    ]}
+                  />
+                </Field>
+                <Field label="Theme">
+                  <div className="flex gap-2">
+                    {(['dark', 'light'] as const).map((theme) => (
+                      <button
+                        key={theme}
+                        onClick={() =>
+                          onUpdateElement({
+                            codeblock: { ...element.codeblock!, theme },
+                          })
+                        }
+                        className={`flex-1 py-2 text-xs rounded transition-colors capitalize ${
+                          element.codeblock?.theme === theme
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {theme}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+              </Section>
+            )}
+
+            {/* QR Code-specific properties */}
+            {element.type === 'qrcode' && (
+              <Section title="QR Code" defaultOpen>
+                <Field label="Data / URL">
+                  <input
+                    type="text"
+                    value={element.qrcode?.data || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        qrcode: { ...element.qrcode!, data: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="https://example.com"
+                  />
+                </Field>
+                <Field label="Size">
+                  <NumberSlider
+                    value={element.qrcode?.size || 150}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        qrcode: { ...element.qrcode!, size: v },
+                      })
+                    }
+                    min={50}
+                    max={300}
+                    unit="px"
+                  />
+                </Field>
+                <Field label="Color">
+                  <ColorPicker
+                    value={element.qrcode?.color || '#000000'}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        qrcode: { ...element.qrcode!, color: v },
+                      })
+                    }
+                    presets={['#000000', '#1f2937', '#374151', '#4b5563', '#6b7280', '#9ca3af']}
+                  />
+                </Field>
+                <Field label="Background">
+                  <ColorPicker
+                    value={element.qrcode?.bgColor || '#ffffff'}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        qrcode: { ...element.qrcode!, bgColor: v },
+                      })
+                    }
+                    presets={COLOR_PRESETS.text}
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* Embed-specific properties */}
+            {element.type === 'embed' && (
+              <Section title="Embed" defaultOpen>
+                <Field label="Platform">
+                  <Select
+                    value={element.embed?.type || 'youtube'}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        embed: {
+                          ...element.embed!,
+                          type: v as 'youtube' | 'spotify' | 'twitter' | 'instagram' | 'tiktok' | 'custom',
+                        },
+                      })
+                    }
+                    options={[
+                      { label: 'YouTube', value: 'youtube' },
+                      { label: 'Spotify', value: 'spotify' },
+                      { label: 'Twitter', value: 'twitter' },
+                      { label: 'Instagram', value: 'instagram' },
+                      { label: 'TikTok', value: 'tiktok' },
+                      { label: 'Custom', value: 'custom' },
+                    ]}
+                  />
+                </Field>
+                <Field label="URL">
+                  <input
+                    type="url"
+                    value={element.embed?.url || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        embed: { ...element.embed!, url: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="Paste embed URL..."
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* Poll-specific properties */}
+            {element.type === 'poll' && (
+              <Section title="Poll" defaultOpen>
+                <Field label="Question">
+                  <input
+                    type="text"
+                    value={element.poll?.question || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        poll: { ...element.poll!, question: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="Your question?"
+                  />
+                </Field>
+                <Field label="Options (one per line)">
+                  <textarea
+                    value={element.poll?.options?.join('\n') || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        poll: { ...element.poll!, options: e.target.value.split('\n').filter(Boolean) },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
+                    rows={4}
+                    placeholder="Option A&#10;Option B&#10;Option C"
+                  />
+                </Field>
+              </Section>
+            )}
+
+            {/* Divider-specific properties */}
+            {element.type === 'divider' && (
+              <Section title="Divider" defaultOpen>
+                <Field label="Style">
+                  <div className="flex gap-2">
+                    {(['solid', 'dashed', 'dotted', 'gradient'] as const).map((style) => (
+                      <button
+                        key={style}
+                        onClick={() =>
+                          onUpdateElement({
+                            divider: { ...element.divider!, style },
+                          })
+                        }
+                        className={`flex-1 py-2 text-xs rounded transition-colors capitalize ${
+                          element.divider?.style === style
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {style}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Thickness">
+                  <NumberSlider
+                    value={element.divider?.thickness || 2}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        divider: { ...element.divider!, thickness: v },
+                      })
+                    }
+                    min={1}
+                    max={10}
+                    unit="px"
+                  />
+                </Field>
+                <Field label="Color">
+                  <ColorPicker
+                    value={element.style.backgroundColor || '#ffffff'}
+                    onChange={(v) => onUpdateElement({ backgroundColor: v })}
+                    presets={COLOR_PRESETS.text}
+                  />
+                </Field>
+              </Section>
+            )}
+
             {/* Transform properties */}
             <Section title="Transform" icon={<RotateCcw size={14} />}>
               <div className="grid grid-cols-2 gap-2">
@@ -617,6 +1532,46 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
                   max={100}
                 />
               </Field>
+              {/* Shape Type Selector */}
+              {element.type === 'shape' && (
+                <Field label="Shape Type">
+                  <Select
+                    value={element.shapeType || 'rectangle'}
+                    onChange={(v) => onUpdateElement({ shapeType: v as ShapeType })}
+                    options={[
+                      { label: 'Rectangle', value: 'rectangle' },
+                      { label: 'Circle', value: 'circle' },
+                      { label: 'Triangle', value: 'triangle' },
+                      { label: 'Star', value: 'star' },
+                      { label: 'Heart', value: 'heart' },
+                      { label: 'Hexagon', value: 'hexagon' },
+                      { label: 'Pentagon', value: 'pentagon' },
+                      { label: 'Diamond', value: 'diamond' },
+                      { label: 'Arrow', value: 'arrow' },
+                      { label: 'Line', value: 'line' },
+                      { label: 'Cross', value: 'cross' },
+                      { label: 'Octagon', value: 'octagon' },
+                      { label: 'Squircle', value: 'squircle' },
+                      { label: 'Pill', value: 'pill' },
+                      { label: 'Ring', value: 'ring' },
+                      { label: 'Donut', value: 'donut' },
+                      { label: 'Blob', value: 'blob' },
+                      { label: 'Cloud', value: 'cloud' },
+                      { label: 'Lightning', value: 'lightning' },
+                      { label: 'Moon', value: 'moon' },
+                      { label: 'Sun', value: 'sun' },
+                      { label: 'Check', value: 'check' },
+                      { label: 'X Mark', value: 'x-mark' },
+                      { label: 'Bracket', value: 'bracket' },
+                      { label: 'Cursor', value: 'cursor' },
+                      { label: 'Zigzag', value: 'zigzag' },
+                      { label: 'Frame', value: 'frame' },
+                      { label: 'Corner', value: 'corner' },
+                      { label: 'Spiral', value: 'spiral' },
+                    ]}
+                  />
+                </Field>
+              )}
               {/* Background Color for shapes */}
               {element.type === 'shape' && (
                 <Field label="Fill Color">
@@ -652,31 +1607,290 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
         ) : (
           /* Animation tab */
           <>
+            {/* Animation Templates Section */}
+            <Section title="Animation Templates" icon={<Wand2 size={14} />} defaultOpen>
+              <div className="space-y-3">
+                {/* Template Category Filter */}
+                <div className="flex gap-1 flex-wrap">
+                  {[
+                    { label: 'GSAP', templates: GSAP_TEMPLATES, color: 'green' },
+                    { label: 'Anime', templates: ANIME_TEMPLATES, color: 'purple' },
+                    { label: 'Loop', templates: LOOP_TEMPLATES, color: 'orange' },
+                  ].map(({ label, templates, color }) => (
+                    <div key={label} className="flex-1 min-w-[80px]">
+                      <div className={`text-[10px] font-medium mb-1 text-${color}-400 flex items-center gap-1`}>
+                        <Zap size={10} /> {label}
+                      </div>
+                      <div className="space-y-1 max-h-32 overflow-y-auto">
+                        {templates.slice(0, 5).map((template: AnimationTemplate) => (
+                          <button
+                            key={template.id}
+                            onClick={() => {
+                              // Apply template animation
+                              if (template.category === 'emphasis' && template.id.startsWith('loop-')) {
+                                // Loop animation
+                                onUpdateElement({
+                                  animation: {
+                                    ...element.animation,
+                                    loop: {
+                                      ...template.animation,
+                                      engine: template.engine,
+                                      type: template.animation.type || 'pulse',
+                                    },
+                                  },
+                                } as Partial<StoryElement>);
+                              } else {
+                                // Enter animation
+                                onUpdateElement({
+                                  animation: {
+                                    ...element.animation,
+                                    enter: {
+                                      ...template.animation,
+                                      engine: template.engine,
+                                      gsapType: template.engine === 'gsap' ? template.animation.type : undefined,
+                                      animeType: template.engine === 'anime' ? template.animation.type : undefined,
+                                    },
+                                  },
+                                } as Partial<StoryElement>);
+                              }
+                              // Trigger animation preview
+                              setTimeout(() => onPreviewAnimation?.(), 50);
+                            }}
+                            className="w-full px-2 py-1.5 text-[10px] text-left bg-slate-700/50 hover:bg-slate-600 rounded transition-colors"
+                            title={template.description}
+                          >
+                            {template.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* All Templates Dropdown */}
+                <details className="group">
+                  <summary className="cursor-pointer text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                    <ChevronDown size={12} className="group-open:rotate-180 transition-transform" />
+                    Xem tất cả templates ({ALL_ANIMATION_TEMPLATES.length})
+                  </summary>
+                  <div className="mt-2 grid grid-cols-2 gap-1 max-h-48 overflow-y-auto p-1 bg-slate-800/50 rounded">
+                    {ALL_ANIMATION_TEMPLATES.map((template: AnimationTemplate) => (
+                      <button
+                        key={template.id}
+                        onClick={() => {
+                          if (template.category === 'emphasis' && template.id.startsWith('loop-')) {
+                            onUpdateElement({
+                              animation: {
+                                ...element.animation,
+                                loop: {
+                                  ...template.animation,
+                                  engine: template.engine,
+                                  type: template.animation.type || 'pulse',
+                                },
+                              },
+                            } as Partial<StoryElement>);
+                          } else {
+                            onUpdateElement({
+                              animation: {
+                                ...element.animation,
+                                enter: {
+                                  ...template.animation,
+                                  engine: template.engine,
+                                  gsapType: template.engine === 'gsap' ? template.animation.type : undefined,
+                                  animeType: template.engine === 'anime' ? template.animation.type : undefined,
+                                },
+                              },
+                            } as Partial<StoryElement>);
+                          }
+                          // Trigger animation preview
+                          setTimeout(() => onPreviewAnimation?.(), 50);
+                        }}
+                        className={`p-2 text-[10px] text-left rounded transition-colors ${
+                          template.engine === 'gsap'
+                            ? 'bg-green-900/30 hover:bg-green-800/50 border border-green-800/50'
+                            : template.engine === 'anime'
+                              ? 'bg-purple-900/30 hover:bg-purple-800/50 border border-purple-800/50'
+                              : 'bg-slate-700/50 hover:bg-slate-600 border border-slate-600/50'
+                        }`}
+                        title={template.description}
+                      >
+                        <div className="font-medium text-slate-200 truncate">{template.name}</div>
+                        <div className="text-[9px] text-slate-400 truncate">{template.category}</div>
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              </div>
+            </Section>
+
             <Section title="Enter Animation" defaultOpen>
-              <Field label="Type">
-                <Select
-                  value={element.animation?.enter?.type || 'none'}
-                  onChange={(v) =>
-                    onUpdateElement({
-                      animation: {
-                        ...element.animation,
-                        enter: {
-                          type: v as AnimationType,
-                          duration: ANIMATION_PRESETS[v as AnimationType].duration || 500,
-                          delay: element.animation?.enter?.delay || 0,
-                          easing: ANIMATION_PRESETS[v as AnimationType].easing || 'ease-out',
-                        },
-                      },
-                    } as Partial<StoryElement>)
-                  }
-                  options={animationOptions}
-                />
+              {/* Animation Engine Selector */}
+              <Field label="Engine">
+                <div className="flex gap-1">
+                  {(['css', 'gsap', 'anime'] as const).map((engine) => (
+                    <button
+                      key={engine}
+                      onClick={() =>
+                        onUpdateElement({
+                          animation: {
+                            ...element.animation,
+                            enter: { ...element.animation?.enter, engine, type: 'none' as AnimationType },
+                          },
+                        } as Partial<StoryElement>)
+                      }
+                      className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
+                        (element.animation?.enter?.engine || 'css') === engine
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      }`}
+                    >
+                      {engine === 'css' ? 'CSS' : engine === 'gsap' ? 'GSAP' : 'Anime'}
+                    </button>
+                  ))}
+                </div>
               </Field>
-              {element.animation?.enter?.type && element.animation.enter.type !== 'none' && (
+
+              {/* CSS Animations */}
+              {(element.animation?.enter?.engine || 'css') === 'css' && (
+                <Field label="Type">
+                  <Select
+                    value={element.animation?.enter?.type || 'none'}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        animation: {
+                          ...element.animation,
+                          enter: {
+                            ...element.animation?.enter,
+                            type: v as AnimationType,
+                            duration: ANIMATION_PRESETS[v as AnimationType]?.duration || 500,
+                            delay: element.animation?.enter?.delay || 0,
+                            easing: ANIMATION_PRESETS[v as AnimationType]?.easing || 'ease-out',
+                          },
+                        },
+                      } as Partial<StoryElement>)
+                    }
+                    options={animationOptions}
+                  />
+                </Field>
+              )}
+
+              {/* GSAP Animations */}
+              {element.animation?.enter?.engine === 'gsap' && (
+                <>
+                  <Field label="Animation">
+                    <Select
+                      value={element.animation?.enter?.gsapType || 'fadeIn'}
+                      onChange={(v) =>
+                        onUpdateElement({
+                          animation: {
+                            ...element.animation,
+                            enter: {
+                              ...element.animation?.enter,
+                              gsapType: v,
+                              type: 'fadeIn' as AnimationType,
+                              duration: element.animation?.enter?.duration || 600,
+                              delay: element.animation?.enter?.delay || 0,
+                              easing: 'ease-out',
+                            },
+                          },
+                        } as Partial<StoryElement>)
+                      }
+                      options={GSAP_ANIMATION_NAMES.map((name) => ({
+                        label: name.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()),
+                        value: name,
+                      }))}
+                    />
+                  </Field>
+                  <Field label="Easing">
+                    <Select
+                      value={element.animation?.enter?.gsapEase || 'power2.out'}
+                      onChange={(v) =>
+                        onUpdateElement({
+                          animation: {
+                            ...element.animation,
+                            enter: { ...element.animation?.enter, gsapEase: v },
+                          },
+                        } as Partial<StoryElement>)
+                      }
+                      options={GSAP_EASINGS}
+                    />
+                  </Field>
+                </>
+              )}
+
+              {/* Anime.js Animations */}
+              {element.animation?.enter?.engine === 'anime' && (
+                <>
+                  <Field label="Animation">
+                    <Select
+                      value={element.animation?.enter?.animeType || 'reveal'}
+                      onChange={(v) =>
+                        onUpdateElement({
+                          animation: {
+                            ...element.animation,
+                            enter: {
+                              ...element.animation?.enter,
+                              animeType: v,
+                              type: 'fadeIn' as AnimationType,
+                              duration: element.animation?.enter?.duration || 600,
+                              delay: element.animation?.enter?.delay || 0,
+                              easing: 'ease-out',
+                            },
+                          },
+                        } as Partial<StoryElement>)
+                      }
+                      options={[
+                        { label: 'Text Reveal', value: 'reveal' },
+                        { label: 'Text Wave', value: 'wave' },
+                        { label: 'Text Glitch', value: 'glitch' },
+                        { label: 'Cascade', value: 'cascade' },
+                      ]}
+                    />
+                  </Field>
+                  <Field label="Easing">
+                    <Select
+                      value={element.animation?.enter?.animeEase || 'easeOutQuad'}
+                      onChange={(v) =>
+                        onUpdateElement({
+                          animation: {
+                            ...element.animation,
+                            enter: { ...element.animation?.enter, animeEase: v },
+                          },
+                        } as Partial<StoryElement>)
+                      }
+                      options={ANIME_EASINGS}
+                    />
+                  </Field>
+                  {element.type === 'text' && (
+                    <Field label="Stagger">
+                      <NumberSlider
+                        value={element.animation?.enter?.stagger || 30}
+                        onChange={(v) =>
+                          onUpdateElement({
+                            animation: {
+                              ...element.animation,
+                              enter: { ...element.animation?.enter, stagger: v },
+                            },
+                          } as Partial<StoryElement>)
+                        }
+                        min={10}
+                        max={200}
+                        step={10}
+                        unit="ms"
+                      />
+                    </Field>
+                  )}
+                </>
+              )}
+
+              {/* Common timing controls */}
+              {(element.animation?.enter?.type !== 'none' ||
+                element.animation?.enter?.gsapType ||
+                element.animation?.enter?.animeType) && (
                 <>
                   <Field label="Duration">
                     <NumberSlider
-                      value={element.animation.enter.duration}
+                      value={element.animation?.enter?.duration || 500}
                       onChange={(v) =>
                         onUpdateElement({
                           animation: {
@@ -693,7 +1907,7 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
                   </Field>
                   <Field label="Delay">
                     <NumberSlider
-                      value={element.animation.enter.delay}
+                      value={element.animation?.enter?.delay || 0}
                       onChange={(v) =>
                         onUpdateElement({
                           animation: {
@@ -713,31 +1927,121 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
             </Section>
 
             <Section title="Loop Animation" defaultOpen={false}>
-              <Field label="Type">
-                <Select
-                  value={element.animation?.loop?.type || 'none'}
-                  onChange={(v) =>
-                    onUpdateElement({
-                      animation: {
-                        ...element.animation,
-                        loop: {
-                          type: v as AnimationType,
-                          duration: 1000,
-                          delay: 0,
-                          easing: 'ease-in-out',
-                        },
-                      },
-                    } as Partial<StoryElement>)
-                  }
-                  options={[
-                    { label: 'None', value: 'none' },
-                    { label: 'Pulse', value: 'pulse' },
-                    { label: 'Float', value: 'float' },
-                    { label: 'Shake', value: 'shake' },
-                  ]}
-                />
+              {/* Loop Engine */}
+              <Field label="Engine">
+                <div className="flex gap-1">
+                  {(['css', 'gsap', 'anime'] as const).map((engine) => (
+                    <button
+                      key={engine}
+                      onClick={() =>
+                        onUpdateElement({
+                          animation: {
+                            ...element.animation,
+                            loop: { ...element.animation?.loop, engine, type: 'none' as AnimationType },
+                          },
+                        } as Partial<StoryElement>)
+                      }
+                      className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
+                        (element.animation?.loop?.engine || 'css') === engine
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      }`}
+                    >
+                      {engine === 'css' ? 'CSS' : engine === 'gsap' ? 'GSAP' : 'Anime'}
+                    </button>
+                  ))}
+                </div>
               </Field>
+
+              {/* CSS Loop */}
+              {(element.animation?.loop?.engine || 'css') === 'css' && (
+                <Field label="Type">
+                  <Select
+                    value={element.animation?.loop?.type || 'none'}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        animation: {
+                          ...element.animation,
+                          loop: {
+                            type: v as AnimationType,
+                            duration: 1000,
+                            delay: 0,
+                            easing: 'ease-in-out',
+                          },
+                        },
+                      } as Partial<StoryElement>)
+                    }
+                    options={[
+                      { label: 'None', value: 'none' },
+                      { label: 'Pulse', value: 'pulse' },
+                      { label: 'Float', value: 'float' },
+                      { label: 'Shake', value: 'shake' },
+                    ]}
+                  />
+                </Field>
+              )}
+
+              {/* GSAP/Anime Loop */}
+              {(element.animation?.loop?.engine === 'gsap' || element.animation?.loop?.engine === 'anime') && (
+                <Field label="Type">
+                  <Select
+                    value={element.animation?.loop?.type || 'none'}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        animation: {
+                          ...element.animation,
+                          loop: {
+                            ...element.animation?.loop,
+                            type: v as AnimationType,
+                            duration: 1000,
+                            delay: 0,
+                            easing: 'ease-in-out',
+                          },
+                        },
+                      } as Partial<StoryElement>)
+                    }
+                    options={[
+                      { label: 'None', value: 'none' },
+                      ...LOOP_ANIMATION_NAMES.map((name) => ({
+                        label: name.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()),
+                        value: name,
+                      })),
+                    ]}
+                  />
+                </Field>
+              )}
+
+              {element.animation?.loop?.type && element.animation.loop.type !== 'none' && (
+                <Field label="Duration">
+                  <NumberSlider
+                    value={element.animation.loop.duration || 1000}
+                    onChange={(v) =>
+                      onUpdateElement({
+                        animation: {
+                          ...element.animation,
+                          loop: { ...element.animation!.loop!, duration: v },
+                        },
+                      } as Partial<StoryElement>)
+                    }
+                    min={200}
+                    max={5000}
+                    step={100}
+                    unit="ms"
+                  />
+                </Field>
+              )}
             </Section>
+
+            {/* Animation Preview Hint */}
+            <div className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg mx-3 mb-3">
+              <div className="flex items-center gap-2 text-xs text-slate-400">
+                <Zap size={14} className="text-yellow-500" />
+                <span>
+                  <strong className="text-slate-300">GSAP</strong> = Pro animations |{' '}
+                  <strong className="text-slate-300">Anime</strong> = Text effects
+                </span>
+              </div>
+            </div>
           </>
         )}
       </div>

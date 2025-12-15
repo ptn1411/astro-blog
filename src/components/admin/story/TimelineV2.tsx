@@ -260,7 +260,7 @@ export const TimelineV2: React.FC<TimelineProps> = ({
       </div>
 
       {/* Timeline content */}
-      <div className="flex-1 flex items-center px-4 gap-3 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+      <div className="flex-1 flex items-center px-4 pt-9 gap-3 overflow-x-auto overflow-y-visible scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={slides.map((s) => s.id)} strategy={horizontalListSortingStrategy}>
             {slides.map((slide, index) => (

@@ -103,6 +103,7 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
   const [previewStartIndex, setPreviewStartIndex] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [leftPanelTab, setLeftPanelTab] = useState<'resources' | 'layers' | 'audio'>('resources');
+  const [animationTrigger, setAnimationTrigger] = useState(0); // For triggering animation preview
 
   // Canvas state
   const [canvasState, setCanvasState] = useState<CanvasState>({
@@ -896,6 +897,7 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
                     onToggleLock={() => toggleElementLock(element.id)}
                     snapToGrid={canvasState.snapToGrid}
                     gridSize={canvasState.gridSize}
+                    playAnimation={selectedElementIds.includes(element.id) && animationTrigger > 0}
                   />
                 ))}
               </div>
@@ -949,6 +951,9 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
               if (selectedElement) {
                 toggleElementLock(selectedElement.id);
               }
+            }}
+            onPreviewAnimation={() => {
+              setAnimationTrigger((prev) => prev + 1);
             }}
           />
         </div>

@@ -1,5 +1,7 @@
-import { Music, Music2, Pause, Play, Plus, Trash2, Upload, Volume2, VolumeX } from 'lucide-react';
+import { Music, Music2, Pause, Play, Plus, Trash2, Volume2, VolumeX } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
+import { AudioRangeSlider } from './AudioRangeSlider';
+import { StoryAudioPicker } from './StoryMediaPicker';
 import type { Story, StorySlide } from './types';
 
 interface AudioPanelProps {
@@ -309,12 +311,14 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ story, currentSlide, onU
 
             {/* Add options */}
             <div className="space-y-2">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors"
-              >
-                <Upload size={16} /> Upload Audio File
-              </button>
+              <div className="text-xs text-slate-400 mb-1">Upload hoặc chọn từ thư viện:</div>
+              <StoryAudioPicker
+                value=""
+                onChange={(src) => {
+                  if (src) setBackgroundMusic(src);
+                }}
+                label="Background Music"
+              />
 
               <div className="flex gap-2">
                 <input
@@ -386,19 +390,30 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ story, currentSlide, onU
                   />
                 </div>
 
-                {/* Start time */}
-                <div>
-                  <label className="text-xs text-slate-400 block mb-1">Start Time (seconds)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={currentSlide.audio.startTime || 0}
-                    onChange={(e) =>
+                {/* Audio Range Slider */}
+                <div className="pt-2 border-t border-slate-700">
+                  <label className="text-xs text-slate-400 block mb-2">Trim Audio</label>
+                  <AudioRangeSlider
+                    src={currentSlide.audio.src}
+                    startTime={currentSlide.audio.startTime || 0}
+                    endTime={currentSlide.audio.endTime}
+                    onStartTimeChange={(time) =>
                       onUpdateSlide(currentSlide.id, {
-                        audio: { ...currentSlide.audio!, startTime: Number(e.target.value) },
+                        audio: { ...currentSlide.audio!, startTime: time },
                       })
                     }
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white"
+                    onEndTimeChange={(time) =>
+                      onUpdateSlide(currentSlide.id, {
+                        audio: { ...currentSlide.audio!, endTime: time },
+                      })
+                    }
+                    onDurationLoad={(duration) => {
+                      if (!currentSlide.audio?.duration) {
+                        onUpdateSlide(currentSlide.id, {
+                          audio: { ...currentSlide.audio!, duration },
+                        });
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -414,12 +429,14 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ story, currentSlide, onU
 
             {/* Add options */}
             <div className="space-y-2">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors"
-              >
-                <Upload size={16} /> Upload Audio File
-              </button>
+              <div className="text-xs text-slate-400 mb-1">Upload hoặc chọn từ thư viện:</div>
+              <StoryAudioPicker
+                value=""
+                onChange={(src) => {
+                  if (src) setSlideAudio(src);
+                }}
+                label="Slide Audio"
+              />
 
               <div className="flex gap-2">
                 <input

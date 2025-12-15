@@ -38,7 +38,22 @@ export type ElementType =
   | 'poll'
   | 'link'
   | 'countdown'
-  | 'button';
+  | 'button'
+  | 'divider'
+  | 'quote'
+  | 'list'
+  | 'avatar'
+  | 'rating'
+  | 'progress'
+  | 'timer'
+  | 'location'
+  | 'embed'
+  | 'codeblock'
+  | 'mention'
+  | 'hashtag'
+  | 'qrcode'
+  | 'carousel'
+  | 'slider';
 
 export type ShapeType =
   | 'rectangle'
@@ -63,10 +78,30 @@ export type ShapeType =
   | 'thought-bubble'
   | 'explosion'
   | 'wave'
-  | 'arc';
+  | 'arc'
+  | 'blob'
+  | 'squircle'
+  | 'pill'
+  | 'ring'
+  | 'donut'
+  | 'corner'
+  | 'frame'
+  | 'bracket'
+  | 'zigzag'
+  | 'spiral'
+  | 'cloud'
+  | 'lightning'
+  | 'moon'
+  | 'sun'
+  | 'cursor'
+  | 'check'
+  | 'x-mark';
 
 export type TextAlign = 'left' | 'center' | 'right';
 export type FontWeight = 'normal' | 'medium' | 'semibold' | 'bold' | 'extrabold';
+
+// Animation Engine
+export type AnimationEngine = 'css' | 'gsap' | 'anime';
 
 // Animation Configuration
 export interface Animation {
@@ -74,6 +109,13 @@ export interface Animation {
   duration: number; // in ms
   delay: number; // in ms
   easing: 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'spring';
+  // Advanced animation options
+  engine?: AnimationEngine;
+  gsapType?: string; // GSAP animation preset name
+  animeType?: string; // Anime.js animation preset name
+  gsapEase?: string; // GSAP easing
+  animeEase?: string; // Anime.js easing
+  stagger?: number; // Stagger delay for text animations
 }
 
 // Element Style
@@ -141,6 +183,98 @@ export interface StoryElement {
     target?: '_blank' | '_self';
     variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   };
+  // Quote element
+  quote?: {
+    author?: string;
+    source?: string;
+    style?: 'simple' | 'decorative' | 'modern' | 'minimal';
+  };
+  // List element
+  list?: {
+    items: string[];
+    type: 'bullet' | 'numbered' | 'checklist' | 'icon';
+    icon?: string;
+  };
+  // Avatar element
+  avatar?: {
+    name?: string;
+    subtitle?: string;
+    size?: 'sm' | 'md' | 'lg' | 'xl';
+    shape?: 'circle' | 'square' | 'rounded';
+  };
+  // Rating element
+  rating?: {
+    value: number;
+    max: number;
+    icon?: 'star' | 'heart' | 'circle';
+    showValue?: boolean;
+  };
+  // Progress element
+  progress?: {
+    value: number;
+    max: number;
+    label?: string;
+    showPercent?: boolean;
+    variant?: 'bar' | 'circle' | 'ring';
+  };
+  // Timer element
+  timer?: {
+    duration: number; // seconds
+    autoStart?: boolean;
+    showLabels?: boolean;
+    format?: 'hms' | 'ms' | 's';
+  };
+  // Location element
+  location?: {
+    name: string;
+    address?: string;
+    coordinates?: { lat: number; lng: number };
+  };
+  // Embed element
+  embed?: {
+    type: 'youtube' | 'spotify' | 'twitter' | 'instagram' | 'tiktok' | 'custom';
+    url: string;
+  };
+  // Codeblock element
+  codeblock?: {
+    language: string;
+    theme?: 'dark' | 'light';
+    showLineNumbers?: boolean;
+  };
+  // Mention element
+  mention?: {
+    username: string;
+    platform?: 'instagram' | 'twitter' | 'tiktok' | 'youtube';
+    verified?: boolean;
+  };
+  // Hashtag element
+  hashtag?: {
+    tags: string[];
+    clickable?: boolean;
+  };
+  // QR Code element
+  qrcode?: {
+    data: string;
+    size?: number;
+    color?: string;
+    bgColor?: string;
+  };
+  // Divider element
+  divider?: {
+    style: 'solid' | 'dashed' | 'dotted' | 'gradient' | 'fancy';
+    thickness?: number;
+  };
+  // Carousel element
+  carousel?: {
+    images: string[];
+    autoPlay?: boolean;
+    interval?: number;
+  };
+  // Slider element
+  slider?: {
+    images: { src: string; caption?: string }[];
+    currentIndex?: number;
+  };
   locked?: boolean;
   visible?: boolean;
 }
@@ -149,6 +283,10 @@ export interface StoryElement {
 export interface SlideBackground {
   type: 'color' | 'image' | 'video' | 'gradient';
   value: string;
+  // Image specific
+  size?: string; // 'cover' | 'contain' | 'auto' | '100% 100%'
+  position?: string; // 'center' | 'top' | 'bottom' etc.
+  overlay?: string; // rgba overlay color
   gradient?: {
     type: 'linear' | 'radial';
     angle?: number;
@@ -176,6 +314,8 @@ export interface StorySlide {
     src: string;
     volume: number;
     startTime?: number;
+    endTime?: number;
+    duration?: number; // Total duration of audio file
   };
 }
 
