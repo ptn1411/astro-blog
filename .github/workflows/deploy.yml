@@ -16,7 +16,7 @@ jobs:
         if: success()
         run: |
           DEPLOY_URL="https://bug.edu.vn"
-          AUTHOR_NAME=$(git log -1 --pretty=format:'%an')
+          AUTHOR_NAME="${{ github.event.head_commit.author.name }}"
           MESSAGE=$(printf "✅ Build và Deploy Thành Công!\n\n🌐 <a href=\"%s\">Xem website</a>\n🕓 <i>%s</i>" "$DEPLOY_URL"\n "$AUTHOR_NAME")
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
