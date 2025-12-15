@@ -26,7 +26,7 @@ const IMPORTS: Record<WidgetType, string> = {
   Features: '~/components/widgets/Features.astro',
   Features2: '~/components/widgets/Features2.astro',
   Features3: '~/components/widgets/Features3.astro',
-  Content: '~/components/widgets/Content.astro',
+  Content1: '~/components/widgets/Content.astro',
   CallToAction: '~/components/widgets/CallToAction.astro',
   Pricing: '~/components/widgets/Pricing.astro',
   Stats: '~/components/widgets/Stats.astro',

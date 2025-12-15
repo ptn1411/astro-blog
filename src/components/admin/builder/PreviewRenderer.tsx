@@ -76,7 +76,7 @@ export const PreviewRenderer: React.FC<PreviewRendererProps> = ({ type, props })
     case 'Features2':
     case 'Features3':
       return <FeaturesRenderer {...props} def={widgetDef} />;
-    case 'Content':
+    case 'Content1':
       return <ContentRenderer {...props} def={widgetDef} />;
     case 'Steps':
     case 'Steps2':

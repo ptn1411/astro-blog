@@ -44,7 +44,7 @@ export type WidgetType =
   | 'Features'
   | 'Features2'
   | 'Features3'
-  | 'Content'
+  | 'Content1'
   | 'CallToAction'
   | 'Pricing'
   | 'Stats'
@@ -284,7 +284,7 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
     ],
   },
   {
-    type: 'Content',
+    type: 'Content1',
     category: 'content',
     icon: FileText,
     label: 'Content Block',
