@@ -1,21 +1,117 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
-import Layout from '~/layouts/Layout.astro';
-
 import ClientPreviewStories from '~/components/admin/story/ClientPreviewStories';
 import type { Story } from '~/components/admin/story/types';
+import Layout from '~/layouts/Layout.astro';
 
-// Pre-render all story pages
 export const prerender = true;
 
 export const getStaticPaths = (async () => {
   const stories = await getCollection('stories');
 
-  return stories.map((story) => ({
-    params: { id: story.id },
-    props: { story: story.data },
-  }));
+  // Load all assets using glob
+  const images = import.meta.glob('/src/assets/images/**/*', {
+    eager: false,
+    import: 'default',
+  });
+
+  const audios = import.meta.glob('/src/assets/audio/**/*', {
+    eager: false,
+    import: 'default',
+  });
+
+  const videos = import.meta.glob('/src/assets/video/**/*', {
+    eager: false,
+    import: 'default',
+  });
+
+  return Promise.all(
+    stories.map(async (story) => {
+      // Clone story data để không mutate original
+      const storyData = JSON.parse(JSON.stringify(story.data));
+
+      // Helper function to resolve asset path
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resolveAsset = async (assetPath: string, assetsGlob: Record<string, any>) => {
+        if (!assetPath || !assetPath.startsWith('/src/assets/')) {
+          return assetPath;
+        }
+
+        try {
+          const fileName = assetPath.split('/').pop();
+          const matchingKey = Object.keys(assetsGlob).find((key) => key.includes(fileName || ''));
+
+          if (matchingKey) {
+            const assetModule = await assetsGlob[matchingKey]();
+            return assetModule.src || assetModule;
+          }
+        } catch (error) {
+          console.error(`Failed to load asset: ${assetPath}`, error);
+        }
+
+        return assetPath;
+      };
+
+      // Process each slide
+      for (const slide of storyData.slides) {
+        // Process background image
+        if (slide.background?.type === 'image' && slide.background.value) {
+          slide.background.value = await resolveAsset(slide.background.value, images);
+        }
+
+        // Process background video
+        if (slide.background?.type === 'video' && slide.background.value) {
+          slide.background.value = await resolveAsset(slide.background.value, videos);
+        }
+
+        // Process slide audio
+        if (slide.audio?.src) {
+          slide.audio.src = await resolveAsset(slide.audio.src, audios);
+        }
+
+        // Process elements
+        if (slide.elements) {
+          for (const element of slide.elements) {
+            // Process image elements (có thể dùng content hoặc src)
+            if (element.type === 'image') {
+              if (element.content) {
+                element.content = await resolveAsset(element.content, images);
+              }
+              if (element.src) {
+                element.src = await resolveAsset(element.src, images);
+              }
+            }
+
+            // Process video elements
+            if (element.type === 'video') {
+              if (element.content) {
+                element.content = await resolveAsset(element.content, videos);
+              }
+              if (element.src) {
+                element.src = await resolveAsset(element.src, videos);
+              }
+            }
+
+            // Process audio elements
+            if (element.type === 'audio') {
+              if (element.content) {
+                element.content = await resolveAsset(element.content, audios);
+              }
+              if (element.src) {
+                element.src = await resolveAsset(element.src, audios);
+              }
+            }
+          }
+        }
+      }
+
+      return {
+        params: { id: story.id },
+        props: { story: storyData },
+      };
+    })
+  );
 }) satisfies GetStaticPaths;
 
 type Props = {
@@ -30,9 +126,7 @@ if (!story) {
 
 const metadata = {
   title: story.title || `Story: ${story.id}`,
-  description:
-    story.description ||
-    'View an interactive story created with Story Builder. Featuring animations, transitions, and engaging visual effects.',
+  description: story.description || 'View an interactive story created with Story Builder.',
   canonical: new URL(Astro.url.pathname, Astro.site).toString(),
 };
 ---
@@ -41,7 +135,6 @@ const metadata = {
   <div class="min-h-screen bg-black w-full">
     <ClientPreviewStories story={story} client:only="react" />
   </div>
-
   <style>
     :global(body) {
       margin: 0;
