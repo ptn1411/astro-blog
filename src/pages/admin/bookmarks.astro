@@ -1,0 +1,12 @@
+---
+import BookmarkAdminApp from '~/components/bookmark/BookmarkAdmin';
+import Layout from '~/layouts/PageLayout.astro';
+
+const metadata = {
+  title: 'Bookmark Admin Dashboard',
+};
+---
+
+<Layout metadata={metadata}>
+  <BookmarkAdminApp client:only="react" />
+</Layout>

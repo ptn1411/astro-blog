@@ -12,23 +12,19 @@ export const headerData = {
     },
     {
       text: 'Dịch vụ',
-      href: getPermalink('/services'),
+      links: [
+        { text: 'Tất cả dịch vụ', href: getPermalink('/services') },
+        { text: 'Bảng giá', href: getPermalink('/pricing') },
+        { text: 'Dự án', href: getPermalink('/personal#projects') },
+      ],
     },
     {
-      text: 'Dự án',
-      href: getPermalink('/personal#projects'),
-    },
-    {
-      text: 'Bảng giá',
-      href: getPermalink('/pricing'),
-    },
-    {
-      text: 'Blog',
-      href: getBlogPermalink(),
-    },
-    {
-      text: 'Stories',
-      href: getPermalink('/stories'),
+      text: 'Nội dung',
+      links: [
+        { text: 'Blog', href: getBlogPermalink() },
+        { text: 'Stories', href: getPermalink('/stories') },
+        { text: 'Bookmarks', href: getPermalink('/bookmarks') },
+      ],
     },
     {
       text: 'Liên hệ',

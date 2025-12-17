@@ -1,0 +1,12 @@
+---
+import BookmarkManagerData from '~/components/bookmark/BookmarkManager';
+import Layout from '~/layouts/PageLayout.astro';
+
+const metadata = {
+  title: 'Bookmark Manager',
+};
+---
+
+<Layout metadata={metadata}>
+  <BookmarkManagerData client:only="react" />
+</Layout>
