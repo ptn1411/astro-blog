@@ -1,50 +1,13 @@
-import { IconExternalLink, IconFilter, IconLayoutGrid, IconList, IconSearch, IconStar } from '@tabler/icons-react';
+import { IconExternalLink, IconFilter, IconLayoutGrid, IconList, IconSearch, IconX } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
-import ApiSheet from '~/utils/apiSheet';
-
-// --- Interfaces ---
-
-interface Bookmark {
-  id: string;
-  title: string;
-  url: string;
-  description: string;
-  favicon: string;
-  folder_id: string;
-  tag_ids: string; // csv
-  is_favorite: boolean;
-}
-
-interface Folder {
-  id: string;
-  name: string;
-  slug: string;
-  parent_id: string;
-  icon: string;
-  sort_order: number;
-}
-
-interface Tag {
-  id: string;
-  name: string;
-  slug: string;
-  color: string;
-}
+import ApiSheet, { type BookmarkEntity, type FolderEntity } from '~/utils/apiSheet';
 
 // --- Components ---
 
-const BookmarkCard = ({ bookmark, tags, viewMode }: { bookmark: Bookmark; tags: Tag[]; viewMode: 'grid' | 'list' }) => {
-  const bookmarkTags = useMemo(() => {
-    if (!bookmark.tag_ids) return [];
-    const ids = bookmark.tag_ids
-      .toString()
-      .split(',')
-      .map((s) => s.trim());
-    return tags.filter((t) => ids.includes(t.id));
-  }, [bookmark.tag_ids, tags]);
-
-  // Default favicon if none provided
-  const getFavicon = (url: string) => {
+const BookmarkCard = ({ bookmark, viewMode }: { bookmark: BookmarkEntity; viewMode: 'grid' | 'list' }) => {
+  // Default favicon
+  const getFavicon = (url?: string) => {
+    if (!url) return 'https://www.google.com/s2/favicons?domain=example.com';
     try {
       const domain = new URL(url).hostname;
       return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
@@ -53,12 +16,12 @@ const BookmarkCard = ({ bookmark, tags, viewMode }: { bookmark: Bookmark; tags: 
     }
   };
 
-  const faviconUrl = bookmark.favicon || getFavicon(bookmark.url);
+  const faviconUrl = getFavicon(bookmark.url);
 
   if (viewMode === 'list') {
     return (
       <a
-        href={bookmark.url}
+        href={bookmark.url || '#'}
         target="_blank"
         rel="noopener noreferrer"
         className="group flex items-center p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200"
@@ -76,21 +39,10 @@ const BookmarkCard = ({ bookmark, tags, viewMode }: { bookmark: Bookmark; tags: 
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {bookmark.title}
             </h3>
-            {bookmark.is_favorite && <IconStar className="w-3 h-3 text-yellow-500 fill-current" />}
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{bookmark.url}</p>
         </div>
-        <div className="hidden sm:flex items-center gap-2 ml-4">
-          {bookmarkTags.map((tag) => (
-            <span
-              key={tag.id}
-              className="px-2 py-0.5 rounded text-[10px] font-medium"
-              style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
-            >
-              #{tag.name}
-            </span>
-          ))}
-        </div>
+
         <IconExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-500 ml-4 opacity-0 group-hover:opacity-100 transition-all" />
       </a>
     );
@@ -98,7 +50,7 @@ const BookmarkCard = ({ bookmark, tags, viewMode }: { bookmark: Bookmark; tags: 
 
   return (
     <a
-      href={bookmark.url}
+      href={bookmark.url || '#'}
       target="_blank"
       rel="noopener noreferrer"
       className="group flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
@@ -113,11 +65,6 @@ const BookmarkCard = ({ bookmark, tags, viewMode }: { bookmark: Bookmark; tags: 
               onError={(e) => (e.currentTarget.style.display = 'none')}
             />
           </div>
-          {bookmark.is_favorite && (
-            <div className="p-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-full text-yellow-500">
-              <IconStar className="w-4 h-4 fill-current" />
-            </div>
-          )}
         </div>
 
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -126,21 +73,9 @@ const BookmarkCard = ({ bookmark, tags, viewMode }: { bookmark: Bookmark; tags: 
         <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-4">
           {bookmark.description || bookmark.url}
         </p>
-
-        <div className="flex flex-wrap gap-1.5 mt-auto">
-          {bookmarkTags.map((tag) => (
-            <span
-              key={tag.id}
-              className="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider"
-              style={{ backgroundColor: `${tag.color}15`, color: tag.color }}
-            >
-              {tag.name}
-            </span>
-          ))}
-        </div>
       </div>
       <div className="px-5 py-3 bg-gray-50 dark:bg-slate-900/50 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between text-xs text-gray-400">
-        <span className="truncate max-w-[80%]">{new URL(bookmark.url).hostname}</span>
+        <span className="truncate max-w-[80%]">{bookmark.url ? new URL(bookmark.url).hostname : 'No URL'}</span>
         <IconExternalLink className="w-3 h-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
       </div>
     </a>
@@ -148,27 +83,23 @@ const BookmarkCard = ({ bookmark, tags, viewMode }: { bookmark: Bookmark; tags: 
 };
 
 export default function BookmarkManager() {
-  const [api, setApi] = useState<ApiSheet | null>(null);
-  const [data, setData] = useState<{ bookmarks: Bookmark[]; folders: Folder[]; tags: Tag[] }>({
+  const [data, setData] = useState<{ bookmarks: BookmarkEntity[]; folders: FolderEntity[] }>({
     bookmarks: [],
     folders: [],
-    tags: [],
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   // UI State
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile
 
   useEffect(() => {
     const init = async () => {
-      const url = localStorage.getItem('bookmark_script_url');
-      const key = localStorage.getItem('bookmark_api_key');
-
+      const url = 'AKfycbx62imWuDJupXYYgEmXFIfG9DK0Bqcu4lO1pqJAz3d_oRQ9FgnULx60L8ahbR_jtkVT';
+      const key = 'public_read_key_qnzwjacphuhqvifeswilhhywggvdffox';
       if (!url) {
         setIsLoading(false);
         setError('Configuration missing. Please set up one in Admin Dashboard first.');
@@ -177,18 +108,15 @@ export default function BookmarkManager() {
 
       try {
         const apiSheet = new ApiSheet(url, key || undefined);
-        setApi(apiSheet);
 
-        const [bookmarks, folders, tags] = await Promise.all([
-          apiSheet.findAll<Bookmark[]>('Bookmarks'),
-          apiSheet.findAll<Folder[]>('Folders'),
-          apiSheet.findAll<Tag[]>('Tags'),
+        const [bookmarks, folders] = await Promise.all([
+          apiSheet.findAll<BookmarkEntity[]>('Bookmarks'),
+          apiSheet.findAll<FolderEntity[]>('Folders'),
         ]);
 
         setData({
           bookmarks: Array.isArray(bookmarks) ? bookmarks : [],
           folders: Array.isArray(folders) ? folders : [],
-          tags: Array.isArray(tags) ? tags : [],
         });
       } catch (err) {
         console.error(err);
@@ -203,42 +131,31 @@ export default function BookmarkManager() {
 
   const filteredBookmarks = useMemo(() => {
     return data.bookmarks.filter((b) => {
+      // 0. Only show "link" type or undefined (legacy)
+      if (b.type && b.type !== 'link') return false;
+
       // 1. Filter by Folder (if selected)
-      if (activeFolderId && b.folder_id != activeFolderId) return false;
+      // activeFolderId corresponds to chromeId of the folder
+      if (activeFolderId && b.parentId !== activeFolderId) return false;
 
-      // 2. Filter by Tags (if any selected) - OR logic (contains ANY selected tag) -> Changed to AND logic? Let's do OR for now
-      if (selectedTagIds.length > 0) {
-        if (!b.tag_ids) return false;
-        const bTags = b.tag_ids
-          .toString()
-          .split(',')
-          .map((t) => t.trim());
-        const hasTag = selectedTagIds.some((id) => bTags.includes(id));
-        if (!hasTag) return false;
-      }
-
-      // 3. Filter by Search
+      // 2. Filter by Search
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
           b.title.toLowerCase().includes(query) ||
           b.description?.toLowerCase().includes(query) ||
-          b.url.toLowerCase().includes(query)
+          (b.url && b.url.toLowerCase().includes(query))
         );
       }
 
       return true;
     });
-  }, [data.bookmarks, activeFolderId, selectedTagIds, searchQuery]);
+  }, [data.bookmarks, activeFolderId, searchQuery]);
 
   // Sort folders
   const sortedFolders = useMemo(() => {
-    return [...data.folders].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    return [...data.folders].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [data.folders]);
-
-  const toggleTag = (id: string) => {
-    setSelectedTagIds((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
-  };
 
   if (isLoading) {
     return (
@@ -281,11 +198,24 @@ export default function BookmarkManager() {
       `}
       >
         <div className="h-full flex flex-col p-6 overflow-y-auto custom-scrollbar">
+          <div className="flex justify-between items-center lg:hidden mb-6">
+            <span className="text-lg font-bold text-gray-900 dark:text-white">Menu</span>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-2 -mr-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <IconX className="w-5 h-5" />
+            </button>
+          </div>
+
           <div className="mb-8">
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Folders</h2>
             <nav className="space-y-1">
               <button
-                onClick={() => setActiveFolderId(null)}
+                onClick={() => {
+                  setActiveFolderId(null);
+                  setIsSidebarOpen(false);
+                }}
                 className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                   activeFolderId === null
                     ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
@@ -298,45 +228,30 @@ export default function BookmarkManager() {
               {sortedFolders.map((folder) => (
                 <button
                   key={folder.id}
-                  onClick={() => setActiveFolderId(folder.id)}
+                  onClick={() => {
+                    setActiveFolderId(folder.chromeId);
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    activeFolderId === folder.id
+                    activeFolderId === folder.chromeId
                       ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
                       : 'text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 >
-                  <span className="w-4 h-4 mr-3 flex items-center justify-center text-lg">{folder.icon || '📁'}</span>
+                  <span className="w-4 h-4 mr-3 flex items-center justify-center text-lg">{'📁'}</span>
                   {folder.name}
                 </button>
               ))}
             </nav>
-          </div>
-
-          <div>
-            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Tags</h2>
-            <div className="flex flex-wrap gap-2">
-              {data.tags.map((tag) => (
-                <button
-                  key={tag.id}
-                  onClick={() => toggleTag(tag.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    selectedTagIds.includes(tag.id)
-                      ? 'ring-2 ring-offset-1 dark:ring-offset-gray-900'
-                      : 'hover:opacity-80'
-                  }`}
-                  style={
-                    {
-                      backgroundColor: selectedTagIds.includes(tag.id) ? tag.color : `${tag.color}15`,
-                      color: selectedTagIds.includes(tag.id) ? '#fff' : tag.color,
-                      borderColor: tag.color,
-                      '--tw-ring-color': tag.color,
-                    } as any
-                  }
-                >
-                  {tag.name}
-                </button>
-              ))}
-            </div>
+            {localStorage.getItem('bookmark_api_key') && (
+              <a
+                href="/admin/bookmarks"
+                className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <IconExternalLink className="w-4 h-4 mr-3" />
+                Open Admin
+              </a>
+            )}
           </div>
         </div>
       </aside>
@@ -353,7 +268,7 @@ export default function BookmarkManager() {
               <IconList className="w-6 h-6" />
             </button>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {activeFolderId ? data.folders.find((f) => f.id === activeFolderId)?.name : 'Library'}
+              {activeFolderId ? data.folders.find((f) => f.chromeId === activeFolderId)?.name : 'Library'}
             </h1>
             <span className="ml-3 px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-500">
               {filteredBookmarks.length}
@@ -393,13 +308,13 @@ export default function BookmarkManager() {
           {viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredBookmarks.map((bookmark) => (
-                <BookmarkCard key={bookmark.id} bookmark={bookmark} tags={data.tags} viewMode="grid" />
+                <BookmarkCard key={bookmark.id} bookmark={bookmark} viewMode="grid" />
               ))}
             </div>
           ) : (
             <div className="space-y-3 max-w-4xl mx-auto">
               {filteredBookmarks.map((bookmark) => (
-                <BookmarkCard key={bookmark.id} bookmark={bookmark} tags={data.tags} viewMode="list" />
+                <BookmarkCard key={bookmark.id} bookmark={bookmark} viewMode="list" />
               ))}
             </div>
           )}
@@ -410,11 +325,10 @@ export default function BookmarkManager() {
                 <IconFilter className="w-10 h-10 opacity-50" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">No items match your filter</h3>
-              <p>Try selecting a different folder or clearing tags.</p>
+              <p>Try selecting a different folder.</p>
               <button
                 onClick={() => {
                   setActiveFolderId(null);
-                  setSelectedTagIds([]);
                   setSearchQuery('');
                 }}
                 className="mt-6 text-blue-600 hover:underline text-sm font-medium"

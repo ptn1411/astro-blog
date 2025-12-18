@@ -16,6 +16,45 @@ export interface ApiResult<T = any> {
   error?: string;
 }
 
+// Table: Bookmarks
+export interface BookmarkEntity {
+  id?: number; // Sheet ID (auto-generated)
+  chromeId: string; // chromeId
+  title: string; // title
+  url?: string; // url
+  parentId?: string; // parentId
+  index?: number; // index
+  type: 'folder' | 'link'; // type
+  description?: string; // description
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Table: Folders
+export interface FolderEntity {
+  id?: number;
+  chromeId: string; // ADDED
+  name: string;
+  slug?: string;
+  parentId?: string; // Changed to string for ChromeID mapping compatibility, or we map to ID?
+  // User schema said "parent_id".
+  icon?: string;
+  sortOrder?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Table: BookmarkMeta
+export interface BookmarkMetaEntity {
+  id?: number;
+  bookmark_id: number;
+  last_opened_at?: string;
+  open_count?: number;
+  note?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export class ApiSheet {
   private client: AxiosInstance;
   private apiKey?: string;
