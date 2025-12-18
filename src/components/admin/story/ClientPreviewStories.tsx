@@ -11,7 +11,17 @@ export default function ClientPreviewStories({ story }: Props) {
 
   useEffect(() => {
     // optional: side effects nếu cần
-  }, []);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          // element is in the viewport
+          console.log('element is in the viewport');
+        }
+      });
+    });
+    observer.observe(containerRef.current!);
+    return () => observer.disconnect();
+  }, [containerRef]);
 
   return (
     <div

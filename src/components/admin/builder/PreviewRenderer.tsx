@@ -58,6 +58,8 @@ export const PreviewRenderer: React.FC<PreviewRendererProps> = ({ type, props })
       return <VideoRenderer {...props} />;
     case 'Gallery':
       return <GalleryRenderer {...props} />;
+    case 'ImageSlider':
+      return <ImageSliderRenderer {...props} />;
     case 'Team':
       return <TeamRenderer {...props} />;
     case 'Quote':
@@ -636,6 +638,45 @@ const GalleryRenderer = (props: any) => {
               className="w-full h-auto rounded shadow-lg object-cover hover:scale-[1.02] transition-transform"
             />
           ))}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ImageSliderRenderer = (props: any) => {
+  const { title, subtitle, tagline, images, autoplay } = props;
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-6xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} tagline={tagline} />
+      <div className="relative aspect-video bg-gray-100 dark:bg-slate-800 rounded-xl overflow-hidden shadow-lg group">
+        {images && images.length > 0 ? (
+          <>
+            <img src={images[0].src} alt={images[0].alt} className="w-full h-full object-cover" />
+            {images.length > 1 && (
+              <>
+                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4">
+                  <div className="p-2 bg-black/30 rounded-full text-white">
+                    <TablerIcons.IconChevronLeft size={24} />
+                  </div>
+                  <div className="p-2 bg-black/30 rounded-full text-white">
+                    <TablerIcons.IconChevronRight size={24} />
+                  </div>
+                </div>
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {images.map((_: any, i: number) => (
+                    <div key={i} className={cn('w-2 h-2 rounded-full', i === 0 ? 'bg-white' : 'bg-white/50')} />
+                  ))}
+                </div>
+              </>
+            )}
+            {autoplay && (
+              <div className="absolute top-4 right-4 text-xs bg-black/50 text-white px-2 py-1 rounded">Autoplay On</div>
+            )}
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-400">No Images Selected</div>
+        )}
       </div>
     </section>
   );

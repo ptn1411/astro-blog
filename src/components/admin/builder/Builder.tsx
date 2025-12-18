@@ -27,6 +27,8 @@ import {
   Layers,
   Monitor,
   Moon,
+  PanelLeft,
+  PanelRight,
   PenSquare,
   Plus,
   Redo2,
@@ -69,13 +71,15 @@ import {
   type BuilderBlock,
   type PageMetadata,
 } from './index';
- export type BuilderMode = 'create' | 'edit';
+export type BuilderMode = 'create' | 'edit';
 // --- Main Builder Component ---
 export default function BuilderApp() {
   // --- View Mode State ---
   const [currentView, setCurrentView] = useState<'pages' | 'builder'>('pages');
   const [editingPath, setEditingPath] = useState<string | null>(null);
   const [builderMode, setBuilderMode] = useState<BuilderMode>('create');
+  const [showBlocksPanel, setShowBlocksPanel] = useState(true);
+  const [showPropsPanel, setShowPropsPanel] = useState(true);
   // --- Core State ---
   const [blocks, setBlocks] = useState<BuilderBlock[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -89,7 +93,7 @@ export default function BuilderApp() {
   const [pasteJsonText, setPasteJsonText] = useState('');
   const [isAIPromptModalOpen, setIsAIPromptModalOpen] = useState(false);
   const [websiteDescription, setWebsiteDescription] = useState('');
- 
+
   // Refs
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -845,7 +849,42 @@ Hãy tạo JSON hoàn chỉnh cho trang web theo mô tả trên.`;
               </div>
             </>
           )}
-
+          {currentView === 'builder' && (
+            <>
+              <div className={`w-px h-4 mx-1 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`} />
+              <button
+                onClick={() => setShowBlocksPanel(!showBlocksPanel)}
+                className={`p-1.5 rounded-md transition-colors ${
+                  showBlocksPanel
+                    ? isDarkMode
+                      ? 'bg-gray-600 text-white'
+                      : 'bg-white shadow text-gray-800'
+                    : isDarkMode
+                      ? 'text-gray-400 hover:text-gray-200'
+                      : 'text-gray-600 hover:text-gray-800'
+                }`}
+                title="Toggle Blocks Panel"
+              >
+                <PanelLeft size={16} />
+              </button>
+              <button
+                onClick={() => setShowPropsPanel(!showPropsPanel)}
+                className={`p-1.5 rounded-md transition-colors ${
+                  showPropsPanel
+                    ? isDarkMode
+                      ? 'bg-gray-600 text-white'
+                      : 'bg-white shadow text-gray-800'
+                    : isDarkMode
+                      ? 'text-gray-400 hover:text-gray-200'
+                      : 'text-gray-600 hover:text-gray-800'
+                }`}
+                title="Toggle Properties Panel"
+              >
+                <PanelRight size={16} />
+              </button>
+              <div className={`w-px h-4 mx-1 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`} />
+            </>
+          )}
           {/* Dark Mode Toggle */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -995,40 +1034,45 @@ Hãy tạo JSON hoàn chỉnh cho trang web theo mô tả trên.`;
           <div className={`flex-1 flex flex-col overflow-hidden ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
             <div className="flex-1 flex gap-4 p-4 overflow-hidden">
               {/* Blocks List */}
-              <div
-                className={`w-72 flex-shrink-0 overflow-y-auto rounded-lg border p-3 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
-              >
-                <h3 className={`text-sm font-semibold mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Page Structure ({blocks.length})
-                </h3>
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
-                    {blocks.map((block) => (
-                      <CanvasItem
-                        key={block.id}
-                        block={block}
-                        isSelected={selectedId === block.id}
-                        onSelect={() => setSelectedId(block.id)}
-                        onDelete={(e) => {
-                          e.stopPropagation();
-                          deleteBlock(block.id);
-                        }}
-                        onDuplicate={(e) => {
-                          e.stopPropagation();
-                          duplicateBlock(block.id);
-                        }}
-                        isDarkMode={isDarkMode}
-                      />
-                    ))}
-                  </SortableContext>
-                </DndContext>
-                {blocks.length === 0 && (
-                  <div className={`text-center py-8 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                    <p className="text-sm">No blocks yet</p>
-                    <p className="text-xs mt-1">Click a widget to add</p>
-                  </div>
-                )}
-              </div>
+              {showBlocksPanel && (
+                <div
+                  className={`w-72 flex-shrink-0 overflow-y-auto rounded-lg border p-3 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+                >
+                  <h3 className={`text-sm font-semibold mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Page Structure ({blocks.length})
+                  </h3>
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+                      {blocks.map((block) => (
+                        <CanvasItem
+                          key={block.id}
+                          block={block}
+                          isSelected={selectedId === block.id}
+                          onSelect={() => {
+                            setSelectedId(block.id);
+                            setShowPropsPanel(true);
+                          }}
+                          onDelete={(e) => {
+                            e.stopPropagation();
+                            deleteBlock(block.id);
+                          }}
+                          onDuplicate={(e) => {
+                            e.stopPropagation();
+                            duplicateBlock(block.id);
+                          }}
+                          isDarkMode={isDarkMode}
+                        />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
+                  {blocks.length === 0 && (
+                    <div className={`text-center py-8 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      <p className="text-sm">No blocks yet</p>
+                      <p className="text-xs mt-1">Click a widget to add</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Preview */}
               <div className="flex-1 flex flex-col overflow-hidden">
@@ -1046,21 +1090,23 @@ Hãy tạo JSON hoàn chỉnh cho trang web theo mô tả trên.`;
           </div>
 
           {/* Properties Panel */}
-          <div
-            className={`w-80 flex-shrink-0 overflow-y-auto p-4 border-l ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
-          >
-            <h3 className={`text-sm font-semibold mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              {selectedBlock ? `Edit: ${selectedDef?.label || selectedBlock.type}` : 'Page Settings'}
-            </h3>
-            <PropsEditor
-              selectedBlock={selectedBlock || null}
-              selectedDef={selectedDef || null}
-              updateBlockProps={updateBlockProps}
-              metadata={metadata}
-              setMetadata={setMetadata}
-              isDarkMode={isDarkMode}
-            />
-          </div>
+          {showPropsPanel && (
+            <div
+              className={`w-80 flex-shrink-0 overflow-y-auto p-4 border-l ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+            >
+              <h3 className={`text-sm font-semibold mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                {selectedBlock ? `Edit: ${selectedDef?.label || selectedBlock.type}` : 'Page Settings'}
+              </h3>
+              <PropsEditor
+                selectedBlock={selectedBlock || null}
+                selectedDef={selectedDef || null}
+                updateBlockProps={updateBlockProps}
+                metadata={metadata}
+                setMetadata={setMetadata}
+                isDarkMode={isDarkMode}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

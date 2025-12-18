@@ -14,8 +14,20 @@ import {
   Wand2,
   Zap,
 } from 'lucide-react';
-import React, { useState } from 'react';
-import { ANIME_EASINGS, GSAP_ANIMATION_NAMES, GSAP_EASINGS, LOOP_ANIMATION_NAMES } from './animations';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ANIME_EASINGS,
+  GSAP_ANIMATION_NAMES,
+  GSAP_EASINGS,
+  LOOP_ANIMATION_NAMES,
+  playAnimeAnimation,
+  playAnimeLoopAnimation,
+  playGSAPAnimation,
+  playLoopAnimation,
+  playSpringLoopAnimation,
+  SPRING_ANIMATION_NAMES,
+  stopAnimations,
+} from './animations';
 import {
   ALL_ANIMATION_TEMPLATES,
   ANIME_TEMPLATES,
@@ -165,6 +177,166 @@ const ColorPicker: React.FC<{
     </div>
   </div>
 );
+
+// Loop Animation Preview Component
+const LoopAnimationPreview: React.FC<{
+  animationType: string;
+  engine: 'css' | 'gsap' | 'anime';
+  bounce?: number;
+  loopDelay?: number;
+}> = ({ animationType, engine, bounce = 0.7, loopDelay = 250 }) => {
+  const previewRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<ReturnType<typeof playLoopAnimation> | ReturnType<typeof playAnimeLoopAnimation> | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (!previewRef.current || !animationType || animationType === 'none') {
+      return;
+    }
+
+    // Clean up previous animation
+    if (animationRef.current) {
+      if (engine === 'gsap') {
+        stopAnimations(previewRef.current);
+      } else if ('cancel' in animationRef.current) {
+        (animationRef.current as { cancel: () => void }).cancel();
+      }
+    }
+
+    // Start new animation
+    if (engine === 'gsap') {
+      animationRef.current = playLoopAnimation(previewRef.current, animationType, 'gsap');
+    } else if (engine === 'anime') {
+      if (animationType.startsWith('spring')) {
+        animationRef.current = playSpringLoopAnimation(previewRef.current, animationType, {
+          bounce,
+          loopDelay,
+        });
+      } else {
+        animationRef.current = playAnimeLoopAnimation(previewRef.current, animationType, {
+          duration: 1000,
+        });
+      }
+    }
+
+    return () => {
+      if (previewRef.current && animationRef.current) {
+        if (engine === 'gsap') {
+          stopAnimations(previewRef.current);
+        } else if ('cancel' in animationRef.current) {
+          (animationRef.current as { cancel: () => void }).cancel();
+        }
+      }
+    };
+  }, [animationType, engine, bounce, loopDelay]);
+
+  if (!animationType || animationType === 'none') {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 p-3 bg-slate-900 rounded-lg border border-slate-700">
+      <div className="text-xs text-slate-500 mb-2">Preview</div>
+      <div className="flex justify-center items-center h-16 bg-slate-800 rounded">
+        <div ref={previewRef} className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-lg" />
+      </div>
+    </div>
+  );
+};
+
+// Enter Animation Preview Component
+const EnterAnimationPreview: React.FC<{
+  animationType: string;
+  engine?: 'css' | 'gsap' | 'anime';
+  gsapType?: string;
+  animeType?: string;
+  duration?: number;
+  easing?: string;
+}> = ({ animationType, engine = 'css', gsapType, animeType, duration = 500, easing }) => {
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [key, setKey] = useState(0); // For re-triggering animation
+
+  const playAnimation = useCallback(() => {
+    if (!previewRef.current) return;
+
+    setIsPlaying(true);
+
+    // Reset element to initial state
+    const el = previewRef.current;
+    el.style.opacity = '0';
+    el.style.transform = 'scale(0.5)';
+
+    // Small delay to ensure reset is applied
+    setTimeout(() => {
+      if (!previewRef.current) return;
+
+      if (engine === 'gsap' && gsapType) {
+        playGSAPAnimation(previewRef.current, gsapType, {
+          duration: duration / 1000,
+          ease: easing,
+          onComplete: () => setIsPlaying(false),
+        });
+      } else if (engine === 'anime' && animeType) {
+        const anim = playAnimeAnimation(previewRef.current, animeType, {
+          duration,
+          easing,
+          onComplete: () => setIsPlaying(false),
+        });
+        if (!anim) {
+          // Fallback if animation not found
+          el.style.opacity = '1';
+          el.style.transform = 'scale(1)';
+          setIsPlaying(false);
+        }
+      } else {
+        // CSS animation fallback
+        el.style.transition = `all ${duration}ms ${easing || 'ease-out'}`;
+        el.style.opacity = '1';
+        el.style.transform = 'scale(1)';
+        setTimeout(() => setIsPlaying(false), duration);
+      }
+    }, 50);
+  }, [engine, gsapType, animeType, duration, easing]);
+
+  // Play animation when type changes
+  useEffect(() => {
+    if (gsapType || animeType || animationType !== 'none') {
+      playAnimation();
+    }
+  }, [gsapType, animeType, animationType, key, playAnimation]);
+
+  // Don't show if no animation selected
+  const hasAnimation = engine === 'gsap' ? gsapType : engine === 'anime' ? animeType : animationType !== 'none';
+  if (!hasAnimation) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 p-3 bg-slate-900 rounded-lg border border-slate-700">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xs text-slate-500">Preview</div>
+        <button
+          onClick={() => setKey((k) => k + 1)}
+          disabled={isPlaying}
+          className={`px-2 py-1 text-xs rounded transition-colors ${
+            isPlaying ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-500'
+          }`}
+        >
+          {isPlaying ? '...' : '▶ Replay'}
+        </button>
+      </div>
+      <div className="flex justify-center items-center h-16 bg-slate-800 rounded overflow-hidden">
+        <div
+          ref={previewRef}
+          className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-lg"
+          style={{ opacity: 0, transform: 'scale(0.5)' }}
+        />
+      </div>
+    </div>
+  );
+};
 
 export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
   element,
@@ -571,6 +743,103 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
               </Section>
             )}
 
+            {/* Image-specific properties */}
+            {element.type === 'image' && (
+              <Section title="Image" defaultOpen>
+                <Field label="Image Source">
+                  <StoryImagePicker
+                    value={element.content || ''}
+                    onChange={(value) => onUpdateElement({ content: value })}
+                  />
+                </Field>
+                <Field label="Size">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        onUpdateElement({
+                          style: {
+                            ...element.style,
+                            width: 360,
+                            height: 640,
+                            x: 0,
+                            y: 0,
+                          },
+                        })
+                      }
+                      className="flex-1 py-2 text-xs rounded transition-colors bg-slate-700 text-slate-300 hover:bg-slate-600"
+                    >
+                      Full Size
+                    </button>
+                    <button
+                      onClick={() =>
+                        onUpdateElement({
+                          style: { ...element.style, width: 280, height: 200 },
+                        })
+                      }
+                      className="flex-1 py-2 text-xs rounded transition-colors bg-slate-700 text-slate-300 hover:bg-slate-600"
+                    >
+                      Medium
+                    </button>
+                    <button
+                      onClick={() =>
+                        onUpdateElement({
+                          style: { ...element.style, width: 150, height: 150 },
+                        })
+                      }
+                      className="flex-1 py-2 text-xs rounded transition-colors bg-slate-700 text-slate-300 hover:bg-slate-600"
+                    >
+                      Small
+                    </button>
+                  </div>
+                </Field>
+                <Field label="Shape">
+                  <div className="flex gap-2">
+                    {(
+                      [
+                        { label: 'Square', value: 0 },
+                        { label: 'Rounded', value: 12 },
+                        { label: 'Circle', value: 999 },
+                      ] as const
+                    ).map((shape) => (
+                      <button
+                        key={shape.label}
+                        onClick={() =>
+                          onUpdateElement({
+                            borderRadius: shape.value,
+                          })
+                        }
+                        className={`flex-1 py-2 text-xs rounded transition-colors ${
+                          element.style.borderRadius === shape.value
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {shape.label}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Border Radius">
+                  <NumberSlider
+                    value={element.style.borderRadius || 0}
+                    onChange={(v) => onUpdateElement({ borderRadius: v })}
+                    min={0}
+                    max={100}
+                    unit="px"
+                  />
+                </Field>
+                <Field label="Opacity">
+                  <NumberSlider
+                    value={(element.style.opacity ?? 1) * 100}
+                    onChange={(v) => onUpdateElement({ opacity: v / 100 })}
+                    min={0}
+                    max={100}
+                    unit="%"
+                  />
+                </Field>
+              </Section>
+            )}
+
             {/* Button-specific properties */}
             {element.type === 'button' && (
               <Section title="Button" defaultOpen>
@@ -922,12 +1191,9 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
             {element.type === 'avatar' && (
               <Section title="Avatar" defaultOpen>
                 <Field label="Image URL">
-                  <input
-                    type="text"
+                  <StoryImagePicker
                     value={element.content || ''}
-                    onChange={(e) => onUpdateElement({ content: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
-                    placeholder="Image URL (optional)"
+                    onChange={(value) => onUpdateElement({ content: value })}
                   />
                 </Field>
                 <Field label="Name">
@@ -1924,6 +2190,20 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
                   </Field>
                 </>
               )}
+
+              {/* Live Enter Animation Preview */}
+              {(element.animation?.enter?.type !== 'none' ||
+                element.animation?.enter?.gsapType ||
+                element.animation?.enter?.animeType) && (
+                <EnterAnimationPreview
+                  animationType={element.animation?.enter?.type || 'none'}
+                  engine={(element.animation?.enter?.engine as 'css' | 'gsap' | 'anime') || 'css'}
+                  gsapType={element.animation?.enter?.gsapType}
+                  animeType={element.animation?.enter?.animeType}
+                  duration={element.animation?.enter?.duration || 500}
+                  easing={element.animation?.enter?.gsapEase || element.animation?.enter?.animeEase}
+                />
+              )}
             </Section>
 
             <Section title="Loop Animation" defaultOpen={false}>
@@ -1981,8 +2261,8 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
                 </Field>
               )}
 
-              {/* GSAP/Anime Loop */}
-              {(element.animation?.loop?.engine === 'gsap' || element.animation?.loop?.engine === 'anime') && (
+              {/* GSAP Loop */}
+              {element.animation?.loop?.engine === 'gsap' && (
                 <Field label="Type">
                   <Select
                     value={element.animation?.loop?.type || 'none'}
@@ -2011,6 +2291,99 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
                 </Field>
               )}
 
+              {/* Anime Loop - includes Spring animations */}
+              {element.animation?.loop?.engine === 'anime' && (
+                <>
+                  <Field label="Type">
+                    <Select
+                      value={element.animation?.loop?.type || 'none'}
+                      onChange={(v) =>
+                        onUpdateElement({
+                          animation: {
+                            ...element.animation,
+                            loop: {
+                              ...element.animation?.loop,
+                              type: v as AnimationType,
+                              duration: 1000,
+                              delay: 0,
+                              easing: 'ease-in-out',
+                              bounce: v.startsWith('spring') ? 0.7 : undefined,
+                              loopDelay: v.startsWith('spring') ? 250 : undefined,
+                            },
+                          },
+                        } as Partial<StoryElement>)
+                      }
+                      options={[
+                        { label: 'None', value: 'none' },
+                        { label: '── Standard ──', value: '_standard_header', disabled: true } as {
+                          label: string;
+                          value: string;
+                          disabled?: boolean;
+                        },
+                        ...LOOP_ANIMATION_NAMES.map((name) => ({
+                          label: name.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()),
+                          value: name,
+                        })),
+                        { label: '── Spring Physics ──', value: '_spring_header', disabled: true } as {
+                          label: string;
+                          value: string;
+                          disabled?: boolean;
+                        },
+                        ...SPRING_ANIMATION_NAMES.map((name) => ({
+                          label:
+                            name
+                              .replace('spring', '')
+                              .replace(/([A-Z])/g, ' $1')
+                              .replace(/^./, (s) => s.toUpperCase())
+                              .trim() || 'Spring',
+                          value: name,
+                        })),
+                      ]}
+                    />
+                  </Field>
+
+                  {/* Spring-specific controls */}
+                  {element.animation?.loop?.type?.startsWith('spring') && (
+                    <>
+                      <Field label="Bounce">
+                        <NumberSlider
+                          value={(element.animation?.loop?.bounce || 0.7) * 100}
+                          onChange={(v) =>
+                            onUpdateElement({
+                              animation: {
+                                ...element.animation,
+                                loop: { ...element.animation!.loop!, bounce: v / 100 },
+                              },
+                            } as Partial<StoryElement>)
+                          }
+                          min={10}
+                          max={100}
+                          step={5}
+                          unit="%"
+                        />
+                      </Field>
+                      <Field label="Loop Delay">
+                        <NumberSlider
+                          value={element.animation?.loop?.loopDelay || 250}
+                          onChange={(v) =>
+                            onUpdateElement({
+                              animation: {
+                                ...element.animation,
+                                loop: { ...element.animation!.loop!, loopDelay: v },
+                              },
+                            } as Partial<StoryElement>)
+                          }
+                          min={0}
+                          max={1000}
+                          step={50}
+                          unit="ms"
+                        />
+                      </Field>
+                    </>
+                  )}
+                </>
+              )}
+
               {element.animation?.loop?.type && element.animation.loop.type !== 'none' && (
                 <Field label="Duration">
                   <NumberSlider
@@ -2030,16 +2403,29 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
                   />
                 </Field>
               )}
+
+              {/* Live Animation Preview */}
+              {element.animation?.loop?.type && element.animation.loop.type !== 'none' && (
+                <LoopAnimationPreview
+                  animationType={element.animation.loop.type}
+                  engine={(element.animation.loop.engine as 'css' | 'gsap' | 'anime') || 'css'}
+                  bounce={element.animation.loop.bounce}
+                  loopDelay={element.animation.loop.loopDelay}
+                />
+              )}
             </Section>
 
             {/* Animation Preview Hint */}
             <div className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg mx-3 mb-3">
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <Zap size={14} className="text-yellow-500" />
-                <span>
-                  <strong className="text-slate-300">GSAP</strong> = Pro animations |{' '}
-                  <strong className="text-slate-300">Anime</strong> = Text effects
-                </span>
+              <div className="flex flex-col gap-1 text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                  <Zap size={14} className="text-yellow-500" />
+                  <span>
+                    <strong className="text-slate-300">GSAP</strong> = Pro animations |{' '}
+                    <strong className="text-slate-300">Anime</strong> = Text & Spring effects
+                  </span>
+                </div>
+                <div className="pl-6 text-slate-500">💫 Spring = Physics-based bouncy motion</div>
               </div>
             </div>
           </>

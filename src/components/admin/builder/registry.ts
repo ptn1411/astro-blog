@@ -64,6 +64,7 @@ export type WidgetType =
   | 'Quote'
   | 'Video'
   | 'Gallery'
+  | 'ImageSlider'
   | 'Team'
   | 'Newsletter'
   | 'Countdown'
@@ -679,6 +680,39 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
       { name: 'videoUrl', label: 'Video Embed URL', type: 'text' },
       { name: 'aspectRatio', label: 'Aspect Ratio (16:9/4:3)', type: 'text' },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'ImageSlider',
+    category: 'content',
+    icon: GalleryHorizontal,
+    label: 'Image Slider',
+    defaultProps: {
+      title: 'Image Slider',
+      subtitle: 'Showcase your images',
+      autoplay: true,
+      interval: 3000,
+      images: [
+        { src: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200', alt: 'Slide 1' },
+        { src: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200', alt: 'Slide 2' },
+        { src: 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=1200', alt: 'Slide 3' },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      { name: 'autoplay', label: 'Autoplay', type: 'boolean' },
+      { name: 'interval', label: 'Interval (ms)', type: 'number' },
+      {
+        name: 'images',
+        label: 'Images',
+        type: 'array',
+        arraySchema: [
+          { key: 'src', label: 'Image', type: 'image' },
+          { key: 'alt', label: 'Alt Text', type: 'text' },
+        ],
+      },
       ...COMMON_FIELDS,
     ],
   },

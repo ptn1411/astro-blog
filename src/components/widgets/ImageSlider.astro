@@ -1,0 +1,216 @@
+---
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  tagline?: string;
+  images?: { src: string; alt: string }[];
+  id?: string;
+  isDark?: boolean;
+  bg?: string;
+  autoplay?: boolean;
+  interval?: number;
+}
+
+const {
+  title = '',
+  subtitle = '',
+  tagline = '',
+  images = [],
+  id,
+  isDark = false,
+  bg,
+  autoplay = true,
+  interval = 3000,
+} = Astro.props;
+---
+
+<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-6xl">
+  <Headline title={title} subtitle={subtitle} tagline={tagline} />
+
+  <div class="relative group" data-slider data-autoplay={autoplay} data-interval={interval}>
+    <div
+      class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide scroll-smooth relative z-10"
+      style="scrollbar-width: none; -ms-overflow-style: none;">
+      {
+        images.map((image, index) => (
+          <div class="flex-shrink-0 w-full h-[300px] md:h-[500px] snap-center">
+            <div class="w-full h-full relative overflow-hidden rounded-xl">
+              <img
+                src={image.src}
+                alt={image.alt || `Slide ${index + 1}`}
+                class="w-full h-full object-cover"
+                loading={index === 0 ? 'eager' : 'lazy'}
+              />
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- Controls -->
+    {
+      images.length > 1 && (
+        <>
+          <button
+            class="absolute top-1/2 left-4 z-20 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition opacity-0 group-hover:opacity-100 focus:opacity-100"
+            data-prev
+            aria-label="Previous Slide">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M15 6l-6 6l6 6" />
+            </svg>
+          </button>
+          <button
+            class="absolute top-1/2 right-4 z-20 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition opacity-0 group-hover:opacity-100 focus:opacity-100"
+            data-next
+            aria-label="Next Slide">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M9 6l6 6l-6 6" />
+            </svg>
+          </button>
+        </>
+      )
+    }
+
+    <!-- Indicators -->
+    {
+      images.length > 1 && (
+        <div class="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 flex space-x-2">
+          {images.map((_, index) => (
+            <button
+              class="w-2 h-2 rounded-full bg-white/50 transition-[width,background-color] hover:bg-white data-[active]:bg-white data-[active]:w-4"
+              data-indicator={index}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      )
+    }
+  </div>
+</WidgetWrapper>
+
+<script>
+  class ImageSlider {
+    slider: HTMLElement;
+    container: HTMLElement;
+    prevBtn: HTMLElement | null;
+    nextBtn: HTMLElement | null;
+    indicators: NodeListOf<HTMLElement>;
+    autoplay: boolean;
+    intervalTime: number;
+    intervalId: number | null = null;
+
+    constructor(el: HTMLElement) {
+      this.slider = el;
+      this.container = el.querySelector('.flex.overflow-x-auto') as HTMLElement;
+      this.prevBtn = el.querySelector('[data-prev]');
+      this.nextBtn = el.querySelector('[data-next]');
+      this.indicators = el.querySelectorAll('[data-indicator]');
+      this.autoplay = el.hasAttribute('data-autoplay');
+      this.intervalTime = parseInt(el.getAttribute('data-interval') || '3000');
+
+      this.init();
+    }
+
+    init() {
+      if (this.prevBtn) this.prevBtn.addEventListener('click', () => this.scroll('prev'));
+      if (this.nextBtn) this.nextBtn.addEventListener('click', () => this.scroll('next'));
+
+      this.indicators.forEach((indicator, index) => {
+        indicator.addEventListener('click', () => this.scrollToIndex(index));
+      });
+
+      this.container.addEventListener('scroll', () => this.onScroll());
+
+      if (this.autoplay) {
+        this.startAutoplay();
+        this.slider.addEventListener('mouseenter', () => this.stopAutoplay());
+        this.slider.addEventListener('mouseleave', () => this.startAutoplay());
+      }
+
+      // Initial active state
+      this.updateIndicators(0);
+    }
+
+    scroll(direction: 'prev' | 'next') {
+      const scrollAmount = this.container.clientWidth;
+      const currentScroll = this.container.scrollLeft;
+
+      if (direction === 'next') {
+        if (currentScroll + scrollAmount >= this.container.scrollWidth - 5) {
+          // Tolerance
+          this.container.scrollTo({ left: 0, behavior: 'smooth' }); // Loop back
+        } else {
+          this.container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+      } else {
+        if (currentScroll <= 5) {
+          this.container.scrollTo({ left: this.container.scrollWidth, behavior: 'smooth' }); // Loop to end
+        } else {
+          this.container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        }
+      }
+    }
+
+    scrollToIndex(index: number) {
+      const scrollAmount = this.container.clientWidth * index;
+      this.container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+    }
+
+    onScroll() {
+      const index = Math.round(this.container.scrollLeft / this.container.clientWidth);
+      this.updateIndicators(index);
+    }
+
+    updateIndicators(activeIndex: number) {
+      this.indicators.forEach((indicator, index) => {
+        if (index === activeIndex) {
+          indicator.setAttribute('data-active', '');
+        } else {
+          indicator.removeAttribute('data-active');
+        }
+      });
+    }
+
+    startAutoplay() {
+      if (this.intervalId) return;
+      this.intervalId = window.setInterval(() => this.scroll('next'), this.intervalTime);
+    }
+
+    stopAutoplay() {
+      if (this.intervalId) {
+        window.clearInterval(this.intervalId);
+        this.intervalId = null;
+      }
+    }
+  }
+
+  // Initialize
+  document.querySelectorAll('[data-slider]').forEach((el) => {
+    new ImageSlider(el as HTMLElement);
+  });
+</script>

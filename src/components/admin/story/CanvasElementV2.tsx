@@ -13,6 +13,8 @@ interface CanvasElementProps {
   snapToGrid?: boolean;
   gridSize?: number;
   playAnimation?: boolean;
+  currentTime?: number;
+  renderMode?: boolean; // If true, hide elements completely when not visible
 }
 
 type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
@@ -29,6 +31,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   snapToGrid = false,
   gridSize = 10,
   playAnimation = false,
+  currentTime,
+  renderMode = false,
 }) => {
   const elementRef = useRef<HTMLDivElement>(null);
   const [activeAction, setActiveAction] = useState<DragAction | null>(null);
@@ -36,11 +40,32 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPos, setContextMenuPos] = useState({ x: 0, y: 0 });
   const [isAnimating, setIsAnimating] = useState(false);
+  const [hasPlayedAnimation, setHasPlayedAnimation] = useState(false);
+  // Check if element is visible at current time
+  const isVisibleAtCurrentTime = React.useMemo(() => {
+    if (currentTime === undefined || !element.timings) return true;
+    const { start, duration } = element.timings;
+    return currentTime >= start && currentTime <= start + duration;
+  }, [currentTime, element.timings]);
+
+  // If not visible and not selected (to allow editing), hide or reduce opacity
+  // When editing (selected), show full opacity so user can see it clearly.
+  // After animation has played, keep element visible even when not selected
+  const opacity =
+    isVisibleAtCurrentTime || (isSelected && !renderMode) || hasPlayedAnimation
+      ? (element.style.opacity ?? 1)
+      : renderMode
+        ? 0
+        : 0.1;
+  const pointerEvents = isVisibleAtCurrentTime || hasPlayedAnimation ? 'auto' : isSelected ? 'auto' : 'none';
+
+  // Play animation when triggered (keep existing logic)
 
   // Play animation when triggered
   useEffect(() => {
     if (playAnimation && element.animation?.enter) {
       setIsAnimating(true);
+      setHasPlayedAnimation(true); // Mark that animation has played
       const duration = element.animation.enter.duration || 500;
       const timer = setTimeout(() => {
         setIsAnimating(false);
@@ -49,11 +74,22 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     }
   }, [playAnimation, element.animation?.enter]);
 
-  // Get animation class based on type
+  // Reset animation played state when deselected
+  useEffect(() => {
+    if (!isSelected) {
+      setHasPlayedAnimation(false);
+    }
+  }, [isSelected]);
+
   const getAnimationClass = () => {
-    if (!isAnimating || !element.animation?.enter) return '';
+    const isSeeking = currentTime !== undefined;
+    // Show animation if:
+    // 1. Actively animating (Preview)
+    // 2. OR Seeking (Timeline) AND (Render Mode OR Not Selected)
+    const shouldShow = isAnimating || (isSeeking && (renderMode || !isSelected));
+
+    if (!shouldShow || !element.animation?.enter) return '';
     const type = element.animation.enter.type;
-    const duration = element.animation.enter.duration || 500;
 
     // CSS animation classes
     const animationMap: Record<string, string> = {
@@ -81,8 +117,26 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
   // Get animation style
   const getAnimationStyle = (): React.CSSProperties => {
+    // 1. Timeline State (Seeking)
+    // Show if: Current time exists, Animation exists, (Available in Render OR Not Selected), AND Not actively animating (Preview overrides)
+    const showTimelineState =
+      currentTime !== undefined && element.animation?.enter && (renderMode || !isSelected) && !isAnimating;
+
+    if (showTimelineState) {
+      const startTime = element.timings?.start || 0;
+      const duration = element.animation!.enter!.duration || 500;
+      const elapsed = Math.max(0, currentTime - startTime);
+
+      return {
+        animationDuration: `${duration}ms`,
+        animationFillMode: 'both',
+        animationPlayState: 'paused',
+        animationDelay: `-${elapsed}ms`,
+      };
+    }
+
     if (!isAnimating || !element.animation?.enter) return {};
-    const duration = element.animation.enter.duration || 500;
+    const duration = element.animation!.enter!.duration || 500;
     return {
       animationDuration: `${duration}ms`,
       animationFillMode: 'both',
@@ -128,6 +182,12 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // TODO: Implement text editing
+    console.log('Double click text', element.id);
   };
 
   // Handle resize
@@ -461,7 +521,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             </div>
           </div>
         );
-      case 'rating':
+      case 'rating': {
         const ratingValue = element.rating?.value || 0;
         const maxRating = element.rating?.max || 5;
         const ratingIcon = element.rating?.icon || 'star';
@@ -482,7 +542,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             )}
           </div>
         );
-      case 'progress':
+      }
+      case 'progress': {
         const progressValue = element.progress?.value || 0;
         const progressMax = element.progress?.max || 100;
         const progressPercent = Math.round((progressValue / progressMax) * 100);
@@ -531,7 +592,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             )}
           </div>
         );
-      case 'timer':
+      }
+      case 'timer': {
         const timerDuration = element.timer?.duration || 60;
         const minutes = Math.floor(timerDuration / 60);
         const seconds = timerDuration % 60;
@@ -558,6 +620,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             )}
           </div>
         );
+      }
       case 'countdown':
         return (
           <div
@@ -1255,27 +1318,44 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         ref={elementRef}
         onPointerDown={handlePointerDown}
         onContextMenu={handleContextMenu}
-        className={`absolute group transition-shadow ${
+        className={`absolute group transition-shadow select-none ${
           element.locked ? 'cursor-not-allowed' : 'cursor-move'
-        } ${isSelected ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:ring-1 hover:ring-blue-400'} ${
-          activeAction ? 'z-50' : ''
-        } ${getAnimationClass()}`}
+        } ${
+          (isSelected || activeAction) && isVisibleAtCurrentTime && !isAnimating
+            ? 'ring-2 ring-blue-500 shadow-lg'
+            : 'hover:ring-1 hover:ring-blue-400'
+        } ${activeAction ? 'z-50' : ''} ${getAnimationClass()}`}
         style={{
           left: element.style.x,
           top: element.style.y,
           width: element.style.width,
           height: element.style.height,
-          transform: `rotate(${element.style.rotation || 0}deg)`,
+          transform: `rotate(${element.style.rotation}deg)`,
           zIndex: element.style.zIndex,
-          opacity: element.style.opacity ?? 1,
-          filter: element.style.blur ? `blur(${element.style.blur}px)` : undefined,
-          boxShadow: element.style.boxShadow,
+          opacity: opacity, // Use dynamic opacity
+          pointerEvents: pointerEvents as any,
           ...getBackgroundStyle(),
           ...getAnimationStyle(),
         }}
       >
-        {/* Content */}
-        <div className="w-full h-full overflow-hidden select-none">{renderContent()}</div>
+        {/* Element content */}
+        <div
+          className="w-full h-full overflow-hidden"
+          style={{
+            borderRadius: element.style.borderRadius,
+            // Apply box shadow and blur here to content wrapper
+            boxShadow: element.style.boxShadow,
+            filter: element.style.blur ? `blur(${element.style.blur}px)` : undefined,
+            // Handle background color properly for shapes vs text
+            backgroundColor:
+              element.type !== 'shape' && element.type !== 'video' && element.type !== 'image'
+                ? element.style.backgroundColor
+                : undefined,
+          }}
+          onDoubleClick={element.type === 'text' ? handleDoubleClick : undefined}
+        >
+          {renderContent()}
+        </div>
 
         {/* Lock indicator */}
         {element.locked && (
@@ -1285,7 +1365,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         )}
 
         {/* Selection handles */}
-        {isSelected && !element.locked && (
+        {isSelected && !element.locked && !activeAction && isVisibleAtCurrentTime && (
           <>
             {/* Corner resize handles */}
             <div

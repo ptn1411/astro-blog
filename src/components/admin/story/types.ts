@@ -116,6 +116,9 @@ export interface Animation {
   gsapEase?: string; // GSAP easing
   animeEase?: string; // Anime.js easing
   stagger?: number; // Stagger delay for text animations
+  // Spring animation options (Anime.js v4)
+  bounce?: number; // Spring bounce factor (0-1)
+  loopDelay?: number; // Delay between loop iterations in ms
 }
 
 // Element Style
@@ -274,6 +277,10 @@ export interface StoryElement {
   slider?: {
     images: { src: string; caption?: string }[];
     currentIndex?: number;
+  };
+  timings?: {
+    start: number; // Start time in ms relative to slide start
+    duration: number; // Duration in ms
   };
   locked?: boolean;
   visible?: boolean;

@@ -1,6 +1,15 @@
 import { Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { animateTextByLetters, gsap, playGSAPAnimation, playLoopAnimation, stopAnimations } from './animations';
+import {
+  animateTextByLetters,
+  gsap,
+  playAnimeAnimation,
+  playAnimeLoopAnimation,
+  playGSAPAnimation,
+  playLoopAnimation,
+  playSpringLoopAnimation,
+  stopAnimations,
+} from './animations';
 import type { Story, StoryElement, TransitionType } from './types';
 
 interface StoryPreviewProps {
@@ -432,6 +441,14 @@ const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAni
           ease: anim.gsapEase || 'power2.out',
         });
       }
+    } else if (anim.engine === 'anime' && anim.animeType) {
+      // Use Anime.js for advanced animations
+      hasAnimatedRef.current = true;
+      playAnimeAnimation(elementRef.current, anim.animeType, {
+        duration: anim.duration,
+        delay: anim.delay,
+        easing: anim.animeEase || 'outQuad',
+      });
     }
 
     // Handle text animations with letter-by-letter effect
@@ -454,13 +471,36 @@ const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAni
     if (!loopAnim || loopAnim.type === 'none') return;
 
     // Use advanced loop animation
-    if (loopAnim.engine === 'gsap' || loopAnim.engine === 'anime') {
+    if (loopAnim.engine === 'gsap') {
       const animation = playLoopAnimation(elementRef.current, loopAnim.type, loopAnim.engine);
       return () => {
         if (animation) {
           stopAnimations(elementRef.current!);
         }
       };
+    } else if (loopAnim.engine === 'anime') {
+      // Check if it's a spring animation type
+      if (loopAnim.type.startsWith('spring')) {
+        const animation = playSpringLoopAnimation(elementRef.current, loopAnim.type, {
+          bounce: loopAnim.bounce || 0.7,
+          loopDelay: loopAnim.loopDelay || 250,
+          duration: loopAnim.duration,
+        });
+        return () => {
+          if (animation) {
+            animation.cancel();
+          }
+        };
+      } else {
+        const animation = playAnimeLoopAnimation(elementRef.current, loopAnim.type, {
+          duration: loopAnim.duration,
+        });
+        return () => {
+          if (animation) {
+            animation.cancel();
+          }
+        };
+      }
     }
   }, [element.animation?.loop]);
 
@@ -1503,9 +1543,17 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
             )}
 
             {/* Elements - render with higher z-index for interactive elements */}
-            {currentSlide.elements.map((el) => (
-              <PreviewElement key={el.id} element={el} isAnimating={!isTransitioning} />
-            ))}
+            {currentSlide.elements.map((el) => {
+              // Timeline visibility check
+              if (el.timings) {
+                const currentTimeMs = (progress / 100) * (currentSlide.duration * 1000);
+                const { start, duration } = el.timings;
+                const isVisible = currentTimeMs >= start && currentTimeMs <= start + duration;
+                if (!isVisible) return null;
+              }
+
+              return <PreviewElement key={el.id} element={el} isAnimating={!isTransitioning} />;
+            })}
           </div>
         </SlideTransition>
 

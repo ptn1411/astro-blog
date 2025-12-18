@@ -11,7 +11,6 @@ import {
   Hash,
   Heart,
   Hexagon,
-  Image as ImageIcon,
   LayoutTemplate,
   Link2,
   List,
@@ -45,6 +44,7 @@ import {
 import React, { useRef, useState } from 'react';
 import { uploadMediaLocally } from '~/utils/media';
 import { GiphyPanel } from './GiphyPanel';
+import { StoryImagePicker } from './StoryMediaPicker';
 import type { ElementType, ShapeType, StoryTemplate } from './types';
 
 interface ResourcePanelProps {
@@ -1418,18 +1418,9 @@ export const ResourcePanelV2: React.FC<ResourcePanelProps> = ({ onAddElement, on
                   <span className="text-xs font-medium text-slate-200">Text</span>
                 </button>
 
-                <button
-                  onClick={() => triggerUpload('image')}
-                  disabled={isUploading}
-                  className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500 disabled:opacity-50"
-                >
-                  {isUploading && uploadType === 'image' ? (
-                    <Loader2 size={24} className="mb-2 text-blue-400 animate-spin" />
-                  ) : (
-                    <ImageIcon size={24} className="mb-2 text-blue-400" />
-                  )}
-                  <span className="text-xs font-medium text-slate-200">Image</span>
-                </button>
+                <div className="flex flex-col items-center justify-center p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors border border-slate-600/50 hover:border-slate-500">
+                  <StoryImagePicker value="" onChange={(path) => path && onAddElement('image', path)} />
+                </div>
 
                 <button
                   onClick={() => triggerUpload('video')}
