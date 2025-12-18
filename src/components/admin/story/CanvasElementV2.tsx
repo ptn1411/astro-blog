@@ -85,8 +85,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     const isSeeking = currentTime !== undefined;
     // Show animation if:
     // 1. Actively animating (Preview)
-    // 2. OR Seeking (Timeline) AND (Render Mode OR Not Selected)
-    const shouldShow = isAnimating || (isSeeking && (renderMode || !isSelected));
+    // 2. OR Render Mode (Exporting) - strictly follow timeline
+    // 3. User can still preview by clicking "Preview" or checking renderMode
+    const shouldShow = isAnimating || (isSeeking && renderMode);
 
     if (!shouldShow || !element.animation?.enter) return '';
     const type = element.animation.enter.type;
