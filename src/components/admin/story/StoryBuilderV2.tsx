@@ -17,6 +17,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
+import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from '~/hooks/useHistory';
 import { getPendingMedia, uploadAllPendingMedia } from '~/utils/media';
@@ -503,14 +504,14 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
 
       const confirmed = window.confirm(
         '🚀 Ultra-Fast Rendering Mode\n\n' +
-          'Using WebCodecs API for 3-5x faster encoding.\n' +
+          'Using WebCodecs API & mp4-muxer for instant export.\n' +
           'Please do not switch tabs during rendering.'
       );
       if (!confirmed) return;
 
       setIsRendering(true);
       setRenderProgress(0);
-      setLoadingStatus('Initializing WebCodecs encoder...');
+      setLoadingStatus('Initializing encoder...');
 
       await new Promise((r) => setTimeout(r, 300));
 
@@ -538,16 +539,25 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
       });
       if (!ctx) throw new Error('Failed to create canvas context');
 
-      // Encoded video chunks
-      const chunks: Uint8Array[] = [];
+      // Initialize mp4-muxer
+
+      const muxer = new Muxer({
+        target: new ArrayBufferTarget(),
+        video: {
+          codec: 'avc',
+          width,
+          height,
+        },
+        firstTimestampBehavior: 'offset',
+        fastStart: 'in-memory',
+      });
+
       let frameCount = 0;
 
       // Configure VideoEncoder
       const encoder = new VideoEncoder({
-        output: (chunk, metadata) => {
-          const data = new Uint8Array(chunk.byteLength);
-          chunk.copyTo(data);
-          chunks.push(data);
+        output: (chunk, meta) => {
+          muxer.addVideoChunk(chunk, meta);
         },
         error: (e) => {
           console.error('VideoEncoder error:', e);
@@ -604,7 +614,7 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
           videoFrame.close();
 
           frameCount++;
-          setRenderProgress(Math.round(((i + 1) / totalFrames) * 90)); // Save 10% for finalization
+          setRenderProgress(Math.round(((i + 1) / totalFrames) * 100));
           setLoadingStatus(`Encoding frame ${i + 1}/${totalFrames}`);
         } catch (err) {
           console.error(`Frame ${i} failed:`, err);
@@ -617,60 +627,20 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
       await encoder.flush();
       encoder.close();
 
-      setRenderProgress(95);
-      setLoadingStatus('Muxing video container...');
+      // Finalize muxing
+      muxer.finalize();
+      const { buffer } = muxer.target;
 
-      // Combine chunks into MP4 using FFmpeg for proper container
-      const ffmpeg = ffmpegRef.current;
-      if (!ffmpeg.loaded) {
-        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-        await ffmpeg.load({
-          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-        });
-      }
-
-      // Concatenate all chunks
-      const totalSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-      const videoData = new Uint8Array(totalSize);
-      let offset = 0;
-      for (const chunk of chunks) {
-        videoData.set(chunk, offset);
-        offset += chunk.length;
-      }
-
-      // Write raw H.264 stream
-      await ffmpeg.writeFile('input.h264', videoData);
-
-      // Mux into MP4 container
-      await ffmpeg.exec([
-        '-framerate',
-        String(fps),
-        '-i',
-        'input.h264',
-        '-c',
-        'copy', // Copy codec (no re-encoding!)
-        '-movflags',
-        '+faststart', // Web optimization
-        'output.mp4',
-      ]);
-
-      setRenderProgress(100);
       setLoadingStatus('Downloading...');
 
       // Download
-      const data = await ffmpeg.readFile('output.mp4');
-      const mp4Blob = new Blob([data as unknown as BlobPart], { type: 'video/mp4' });
+      const mp4Blob = new Blob([buffer], { type: 'video/mp4' });
       const url = URL.createObjectURL(mp4Blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `${story.title.replace(/\s+/g, '-').toLowerCase()}_webcodecs.mp4`;
       a.click();
       URL.revokeObjectURL(url);
-
-      // Cleanup
-      await ffmpeg.deleteFile('input.h264');
-      await ffmpeg.deleteFile('output.mp4');
 
       console.log(`✅ Rendered ${frameCount} frames successfully`);
     } catch (err) {
@@ -695,10 +665,9 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
 
       const ffmpeg = ffmpegRef.current;
       if (!ffmpeg.loaded) {
-        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
         await ffmpeg.load({
-          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+          coreURL: await toBlobURL(`/ffmpeg-core.js`, 'text/javascript'),
+          wasmURL: await toBlobURL(`/ffmpeg-core.wasm`, 'application/wasm'),
         });
       }
 
