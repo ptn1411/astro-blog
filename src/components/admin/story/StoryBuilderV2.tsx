@@ -2,6 +2,7 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import html2canvas from 'html2canvas';
 import {
+  Copy,
   Download,
   Film,
   Grid3X3,
@@ -12,6 +13,7 @@ import {
   Redo2,
   Save,
   Settings,
+  Sparkles,
   Undo2,
   Upload,
   ZoomIn,
@@ -21,6 +23,7 @@ import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from '~/hooks/useHistory';
 import { getPendingMedia, uploadAllPendingMedia } from '~/utils/media';
+import { GSAP_ANIMATION_NAMES, LOOP_ANIMATION_NAMES, SPRING_ANIMATION_NAMES } from './animations';
 import { AudioPanel } from './AudioPanel';
 import { CanvasElement } from './CanvasElementV2';
 import { LayersPanel } from './LayersPanel';
@@ -107,8 +110,14 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [previewStartIndex, setPreviewStartIndex] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
   const [leftPanelTab, setLeftPanelTab] = useState<'resources' | 'layers' | 'audio'>('resources');
   const [animationTrigger, setAnimationTrigger] = useState(0); // For triggering animation preview
+
+  // AI prompt / paste JSON
+  const [aiTopic, setAiTopic] = useState('');
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiJsonText, setAiJsonText] = useState('');
 
   // FFmpeg state
   const [isRendering, setIsRendering] = useState(false); // For frame-by-frame rendering
@@ -290,6 +299,24 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
         ...(extra?.shapeType ? { shapeType: extra.shapeType as StoryElement['shapeType'] } : {}),
         ...(extra?.animation ? { animation: extra.animation as StoryElement['animation'] } : {}),
         ...(extra?.button ? { button: extra.button as StoryElement['button'] } : {}),
+        ...(extra?.link ? { link: extra.link as StoryElement['link'] } : {}),
+        ...(extra?.poll ? { poll: extra.poll as StoryElement['poll'] } : {}),
+        ...(extra?.countdown ? { countdown: extra.countdown as StoryElement['countdown'] } : {}),
+        ...(extra?.timer ? { timer: extra.timer as StoryElement['timer'] } : {}),
+        ...(extra?.quote ? { quote: extra.quote as StoryElement['quote'] } : {}),
+        ...(extra?.list ? { list: extra.list as StoryElement['list'] } : {}),
+        ...(extra?.avatar ? { avatar: extra.avatar as StoryElement['avatar'] } : {}),
+        ...(extra?.rating ? { rating: extra.rating as StoryElement['rating'] } : {}),
+        ...(extra?.progress ? { progress: extra.progress as StoryElement['progress'] } : {}),
+        ...(extra?.location ? { location: extra.location as StoryElement['location'] } : {}),
+        ...(extra?.embed ? { embed: extra.embed as StoryElement['embed'] } : {}),
+        ...(extra?.codeblock ? { codeblock: extra.codeblock as StoryElement['codeblock'] } : {}),
+        ...(extra?.mention ? { mention: extra.mention as StoryElement['mention'] } : {}),
+        ...(extra?.hashtag ? { hashtag: extra.hashtag as StoryElement['hashtag'] } : {}),
+        ...(extra?.qrcode ? { qrcode: extra.qrcode as StoryElement['qrcode'] } : {}),
+        ...(extra?.divider ? { divider: extra.divider as StoryElement['divider'] } : {}),
+        ...(extra?.carousel ? { carousel: extra.carousel as StoryElement['carousel'] } : {}),
+        ...(extra?.slider ? { slider: extra.slider as StoryElement['slider'] } : {}),
       };
 
       updateSlide(currentSlideId, {
@@ -486,6 +513,305 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
     a.click();
     URL.revokeObjectURL(url);
   }, [story]);
+
+  const generateAIPrompt = useCallback((topic: string) => {
+    const exampleStyle: ElementStyle = {
+      ...DEFAULT_ELEMENT_STYLE,
+      x: 80,
+      y: 120,
+      width: 560,
+      height: 180,
+      fontSize: 48,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    };
+
+    return `Bạn là AI chuyên gia tạo JSON cho Story Builder.
+
+Nhiệm vụ: tạo 1 object JSON theo đúng schema bên dưới để hiển thị bản tin dạng story (9:16).
+
+Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
+
+=== YÊU CẦU OUTPUT (BẮT BUỘC) ===
+1) Chỉ trả về DUY NHẤT JSON (không giải thích, không markdown, không \`\`\`)
+2) JSON phải parse được, không trailing comma
+3) Tạo nội dung tiếng Việt phù hợp với chủ đề
+4) Tạo tối thiểu 3 slides, tối đa 6 slides
+5) Mỗi slide duration: 5-8 (giây)
+6) background có thể dùng:
+   - color: { "type": "color", "value": "#111827" }
+   - gradient: { "type": "gradient", "value": "", "gradient": { "type": "linear", "angle": 135, "colors": [{"color":"#ec4899","position":0},{"color":"#8b5cf6","position":100}] } }
+7) Elements: ưu tiên type "text". Nếu dùng image/video thì content là URL.
+
+=== HÌNH ẢNH (IMAGE) ===
+1) Element ảnh:
+  - "type": "image"
+  - "content": "https://images.unsplash.com/photo-...?..." (URL ảnh)
+  - style width/height theo canvas 360x640
+2) Nếu cần dùng ảnh nền:
+  - background: { "type": "image", "value": "https://images.unsplash.com/photo-...?..." }
+3) Gợi ý URL ảnh (dễ dùng, public): Unsplash
+  - Ví dụ: https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1080
+4) Tránh URL private / token / expired.
+
+=== CHUYỂN CẢNH (SLIDE TRANSITION) ===
+Trong mỗi slide có thể thêm:
+"transition": { "type": "fade" | "slide" | "zoom" | "flip" | "cube" | "dissolve" | "wipe" | "none", "duration": 400-900 }
+Gợi ý: slide 1 fade, slide 2 slide, slide 3 zoom.
+
+=== HIỆU ỨNG (ANIMATION) ===
+Bạn có thể thêm hiệu ứng cho mỗi element theo dạng:
+"animation": {
+  "enter": { "type": "fadeIn", "duration": 500, "delay": 0, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeIn", "gsapEase": "power2.out" },
+  "exit": { ... } ,
+  "loop": { "type": "pulse", "duration": 1000, "delay": 0, "easing": "ease-in-out", "engine": "gsap", "gsapType": "pulse" }
+}
+
+1) type (AnimationType) hợp lệ (theo types.ts):
+none, fadeIn, fadeOut, bounce, fadeInUp, slideInLeft, slideInRight, slideInUp, slideInDown, scaleIn, scaleOut, bounceIn, rotateIn, typewriter, zoomIn, pulse, fadeInDown, shake, rotate, float
+
+2) Nếu engine = "gsap":
+  - dùng "gsapType" trong danh sách:
+${JSON.stringify(GSAP_ANIMATION_NAMES)}
+
+3) Nếu dùng animation loop (lặp):
+  - ưu tiên type thuộc danh sách loop có sẵn:
+${JSON.stringify(LOOP_ANIMATION_NAMES)}
+  - hoặc spring loop:
+${JSON.stringify(SPRING_ANIMATION_NAMES)}
+
+4) Nếu engine = "anime": chỉ dùng các type chắc chắn được hỗ trợ:
+scaleIn, fadeIn, fadeInUp, fadeInDown, slideInLeft, slideInRight, slideInUp, slideInDown, bounceIn, rotateIn, zoomIn, pulse, shake, bounce, rotate, float
+
+5) Quy tắc:
+  - enter thường dùng 300-900ms
+  - loop thường dùng 1000-3000ms
+  - delay (ms) có thể dùng để tạo nhịp (0-600)
+  - không tạo animation quá nhiều gây rối: mỗi slide tối đa 2-4 elements có animation.
+
+=== JSON MẪU THAM KHẢO (BẮT CHƯỚC CẤU TRÚC) ===
+Ví dụ 1 (3 slides, có ảnh + text + animation):
+{
+  "id": "story-sample-1",
+  "title": "Bản tin: Công nghệ hôm nay",
+  "description": "Tóm tắt nhanh 3 điểm nổi bật",
+  "settings": { "autoAdvance": true, "loop": false, "showProgressBar": true },
+  "slides": [
+    {
+      "id": "slide-1",
+      "duration": 6,
+      "background": {
+        "type": "image",
+        "value": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1080"
+      },
+      "transition": { "type": "fade", "duration": 600 },
+      "elements": [
+        {
+          "id": "el-1",
+          "type": "text",
+          "content": "CÔNG NGHỆ HÔM NAY",
+          "style": { "x": 20, "y": 60, "width": 320, "height": 80, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 28, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "bold", "textAlign": "center", "backgroundColor": "rgba(0,0,0,0.35)", "borderRadius": 12 },
+          "animation": { "enter": { "type": "fadeInDown", "duration": 700, "delay": 0, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeInDown", "gsapEase": "power2.out" } }
+        },
+        {
+          "id": "el-2",
+          "type": "text",
+          "content": "3 điểm nóng trong 60 giây",
+          "style": { "x": 40, "y": 150, "width": 280, "height": 60, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#e5e7eb", "fontSize": 18, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "medium", "textAlign": "center", "backgroundColor": "rgba(17,24,39,0.55)", "borderRadius": 12 },
+          "animation": { "enter": { "type": "fadeInUp", "duration": 650, "delay": 150, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeInUp", "gsapEase": "power2.out" } }
+        },
+        {
+          "id": "el-3",
+          "type": "shape",
+          "content": "",
+          "shapeType": "rectangle",
+          "style": { "x": 0, "y": 0, "width": 360, "height": 640, "rotation": 0, "zIndex": 1, "opacity": 0.35, "backgroundColor": "#000000" },
+          "animation": { "enter": { "type": "fadeIn", "duration": 400, "delay": 0, "easing": "ease-out" } }
+        }
+      ]
+    },
+    {
+      "id": "slide-2",
+      "duration": 6,
+      "background": { "type": "gradient", "value": "", "gradient": { "type": "linear", "angle": 135, "colors": [{ "color": "#0ea5e9", "position": 0 }, { "color": "#8b5cf6", "position": 100 }] } },
+      "transition": { "type": "slide", "duration": 650 },
+      "elements": [
+        {
+          "id": "el-4",
+          "type": "text",
+          "content": "1) AI hỗ trợ viết code nhanh hơn",
+          "style": { "x": 24, "y": 120, "width": 312, "height": 60, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 20, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "semibold", "textAlign": "left" },
+          "animation": { "enter": { "type": "slideInLeft", "duration": 650, "delay": 0, "easing": "ease-out", "engine": "gsap", "gsapType": "slideInLeft", "gsapEase": "power2.out" } }
+        },
+        {
+          "id": "el-5",
+          "type": "text",
+          "content": "2) Smartphone: pin tốt hơn, camera tốt hơn",
+          "style": { "x": 24, "y": 190, "width": 312, "height": 60, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 20, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "semibold", "textAlign": "left" },
+          "animation": { "enter": { "type": "slideInLeft", "duration": 650, "delay": 150, "easing": "ease-out", "engine": "gsap", "gsapType": "slideInLeft", "gsapEase": "power2.out" } }
+        },
+        {
+          "id": "el-6",
+          "type": "text",
+          "content": "3) Bảo mật: bật 2FA ngay",
+          "style": { "x": 24, "y": 260, "width": 312, "height": 60, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 20, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "semibold", "textAlign": "left" },
+          "animation": { "enter": { "type": "slideInLeft", "duration": 650, "delay": 300, "easing": "ease-out", "engine": "gsap", "gsapType": "slideInLeft", "gsapEase": "power2.out" } }
+        },
+        {
+          "id": "el-7",
+          "type": "text",
+          "content": "Theo dõi để nhận bản tin mỗi ngày",
+          "style": { "x": 24, "y": 520, "width": 312, "height": 60, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#111827", "fontSize": 16, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "bold", "textAlign": "center", "backgroundColor": "rgba(255,255,255,0.9)", "borderRadius": 14 },
+          "animation": { "enter": { "type": "zoomIn", "duration": 700, "delay": 200, "easing": "ease-out", "engine": "gsap", "gsapType": "zoomIn", "gsapEase": "back.out(1.7)" }, "loop": { "type": "pulse", "duration": 1400, "delay": 0, "easing": "ease-in-out", "engine": "gsap", "gsapType": "pulse" } }
+        }
+      ]
+    },
+    {
+      "id": "slide-3",
+      "duration": 6,
+      "background": { "type": "color", "value": "#111827" },
+      "transition": { "type": "zoom", "duration": 650 },
+      "elements": [
+        {
+          "id": "el-8",
+          "type": "image",
+          "content": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1080",
+          "style": { "x": 20, "y": 110, "width": 320, "height": 220, "rotation": 0, "zIndex": 1, "opacity": 1, "borderRadius": 16 },
+          "animation": { "enter": { "type": "zoomIn", "duration": 700, "delay": 0, "easing": "ease-out", "engine": "gsap", "gsapType": "zoomIn", "gsapEase": "power2.out" } }
+        },
+        {
+          "id": "el-9",
+          "type": "text",
+          "content": "Kết luận: Ưu tiên an toàn + tận dụng AI đúng cách",
+          "style": { "x": 24, "y": 360, "width": 312, "height": 120, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 18, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "semibold", "textAlign": "center" },
+          "animation": { "enter": { "type": "fadeInUp", "duration": 650, "delay": 150, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeInUp", "gsapEase": "power2.out" } }
+        }
+      ]
+    }
+  ]
+}
+
+Ví dụ 2 (ít element, dùng loop nhẹ):
+{
+  "id": "story-sample-2",
+  "title": "Bản tin: Thời tiết",
+  "settings": { "autoAdvance": true, "loop": false, "showProgressBar": true },
+  "slides": [
+    {
+      "id": "slide-a",
+      "duration": 5,
+      "background": { "type": "image", "value": "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=1080" },
+      "transition": { "type": "fade", "duration": 600 },
+      "elements": [
+        {
+          "id": "el-a1",
+          "type": "text",
+          "content": "THỜI TIẾT HÔM NAY",
+          "style": { "x": 20, "y": 70, "width": 320, "height": 64, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 26, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "bold", "textAlign": "center", "backgroundColor": "rgba(0,0,0,0.35)", "borderRadius": 12 },
+          "animation": { "enter": { "type": "fadeInDown", "duration": 700, "delay": 0, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeInDown", "gsapEase": "power2.out" } }
+        },
+        {
+          "id": "el-a2",
+          "type": "text",
+          "content": "28°C • Có mưa rào • Gió nhẹ",
+          "style": { "x": 20, "y": 150, "width": 320, "height": 56, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#e5e7eb", "fontSize": 18, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "medium", "textAlign": "center" },
+          "animation": { "enter": { "type": "fadeInUp", "duration": 650, "delay": 120, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeInUp", "gsapEase": "power2.out" }, "loop": { "type": "float", "duration": 1800, "delay": 0, "easing": "ease-in-out", "engine": "gsap", "gsapType": "float" } }
+        }
+      ]
+    }
+  ]
+}
+
+=== SCHEMA TÓM TẮT ===
+Story:
+{
+  "id": "story-<any>",
+  "title": "...",
+  "description": "..." (optional),
+  "thumbnail": "..." (optional),
+  "slides": StorySlide[],
+  "settings": { "autoAdvance": true, "loop": false, "showProgressBar": true }
+}
+
+StorySlide:
+{
+  "id": "slide-<any>",
+  "duration": 5,
+  "background": SlideBackground,
+  "elements": StoryElement[],
+  "transition": { "type": "fade" | "slide" | "zoom" | "flip" | "cube" | "dissolve" | "wipe" | "none", "duration": 500 }
+}
+
+StoryElement:
+{
+  "id": "el-<any>",
+  "type": "text" | "image" | "video" | "shape" | ...,
+  "content": "...",
+  "style": {
+    "x": 0-360,
+    "y": 0-640,
+    "width": 0-360,
+    "height": 0-640,
+    "rotation": 0,
+    "zIndex": 1,
+    "opacity": 0-1,
+    "color": "#ffffff" (optional),
+    "backgroundColor": "rgba(...)" (optional),
+    "fontSize": number (optional),
+    "fontFamily": string (optional),
+    "fontWeight": string (optional),
+    "textAlign": "left"|"center"|"right"|"justify" (optional)
+  },
+  "animation": { "enter": {"type":"fadeIn","duration":500,"delay":0,"easing":"ease-out"} } (optional)
+}
+
+=== VÍ DỤ STYLE CHO TEXT CHÍNH (tham khảo) ===
+${JSON.stringify(exampleStyle, null, 2)}
+`;
+  }, []);
+
+  const parseImportedStoryFromText = useCallback(
+    (text: string): { success: true; story: Story } | { success: false; error: string } => {
+      try {
+        const raw = JSON.parse(text) as unknown;
+        if (!raw || typeof raw !== 'object') return { success: false, error: 'JSON must be an object' };
+
+        const obj = raw as Partial<Story>;
+        if (!obj.title || typeof obj.title !== 'string')
+          return { success: false, error: 'Missing/invalid story.title' };
+        if (!Array.isArray(obj.slides) || obj.slides.length === 0)
+          return { success: false, error: 'Missing/invalid story.slides' };
+
+        const invalidSlide = obj.slides.find((s) => {
+          if (!s || typeof s !== 'object') return true;
+          if (!('id' in s) || typeof (s as StorySlide).id !== 'string') return true;
+          if (!('duration' in s) || typeof (s as StorySlide).duration !== 'number') return true;
+          if (!('background' in s) || !(s as StorySlide).background) return true;
+          if (!('elements' in s) || !Array.isArray((s as StorySlide).elements)) return true;
+          return false;
+        });
+        if (invalidSlide)
+          return { success: false, error: 'Invalid slide schema (id/duration/background/elements required)' };
+
+        const normalized: Story = {
+          ...obj,
+          id: `story-${Date.now()}`,
+          updatedAt: new Date().toISOString(),
+          createdAt: obj.createdAt || new Date().toISOString(),
+          settings: obj.settings || {
+            autoAdvance: true,
+            loop: false,
+            showProgressBar: true,
+          },
+        } as Story;
+
+        return { success: true, story: normalized };
+      } catch (e) {
+        return { success: false, error: e instanceof Error ? e.message : 'Invalid JSON' };
+      }
+    },
+    []
+  );
 
   // Render High Quality Video with WebCodecs API (FASTEST)
   const handleRenderHighQuality = async () => {
@@ -1111,6 +1437,13 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
               <Upload size={16} />
             </button>
             <button
+              onClick={() => setShowAiModal(true)}
+              className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+              title="AI JSON"
+            >
+              <Sparkles size={16} />
+            </button>
+            <button
               onClick={exportStory}
               className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
               title="Export Story JSON"
@@ -1310,6 +1643,7 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
                     onToggleLock={() => toggleElementLock(element.id)}
                     snapToGrid={canvasState.snapToGrid}
                     gridSize={canvasState.gridSize}
+                    zoom={canvasState.zoom}
                     playAnimation={selectedElementIds.includes(element.id) && animationTrigger > 0}
                   />
                 ))}
@@ -1499,6 +1833,137 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium transition-colors"
               >
                 Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI JSON Modal */}
+      {showAiModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-slate-800 rounded-xl shadow-2xl w-[680px] border border-slate-700">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+              <h3 className="font-semibold text-white">AI JSON</h3>
+              <button
+                onClick={() => setShowAiModal(false)}
+                className="p-1 hover:bg-slate-700 rounded transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="text-sm text-slate-200">
+                    Tạo prompt để AI sinh JSON bản tin từ chủ đề, sau đó paste JSON vào đây.
+                  </div>
+                  <div className="text-xs text-slate-400">Lưu ý: AI phải trả về JSON-only.</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const prompt = generateAIPrompt(aiTopic);
+                    setAiPrompt(prompt);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded text-sm text-slate-200 transition-colors"
+                  title="Generate AI prompt"
+                >
+                  <Sparkles size={16} /> Generate
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <label className="block text-xs text-slate-400">Chủ đề</label>
+                    <input
+                      type="text"
+                      value={aiTopic}
+                      onChange={(e) => setAiTopic(e.target.value)}
+                      placeholder="Ví dụ: Bản tin công nghệ hôm nay"
+                      className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs text-slate-400">Prompt</label>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const prompt = aiPrompt || generateAIPrompt(aiTopic);
+                          setAiPrompt(prompt);
+                          try {
+                            await navigator.clipboard.writeText(prompt);
+                          } catch {
+                            alert('Copy failed. Please copy manually.');
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[11px] text-slate-200 transition-colors"
+                        title="Copy prompt"
+                      >
+                        <Copy size={12} /> Copy
+                      </button>
+                    </div>
+                    <textarea
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      placeholder="Nhấn Generate để tạo prompt..."
+                      rows={14}
+                      className="w-full bg-slate-900/40 border border-slate-600 rounded px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 resize-none font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs text-slate-400">Paste JSON (AI trả về)</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!aiJsonText.trim()) {
+                            alert('Vui lòng paste JSON trước');
+                            return;
+                          }
+                          const result = parseImportedStoryFromText(aiJsonText);
+                          if (!result.success) {
+                            alert(result.error);
+                            return;
+                          }
+                          setStory(result.story);
+                          if (result.story.slides[0]) setCurrentSlideId(result.story.slides[0].id);
+                          setSelectedElementIds([]);
+                          setAiJsonText('');
+                          setShowAiModal(false);
+                          alert('Imported successfully!');
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm text-white transition-colors"
+                        title="Apply JSON"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                    <textarea
+                      value={aiJsonText}
+                      onChange={(e) => setAiJsonText(e.target.value)}
+                      placeholder="Dán JSON (bắt đầu bằng { ... })"
+                      rows={18}
+                      className="w-full bg-slate-900/40 border border-slate-600 rounded px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 resize-none font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-4 py-3 border-t border-slate-700 flex justify-end gap-2">
+              <button
+                onClick={() => setShowAiModal(false)}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>

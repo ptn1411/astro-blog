@@ -1372,6 +1372,85 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
               </Section>
             )}
 
+            {element.type === 'slider' && (
+              <Section title="Slider" defaultOpen>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-slate-400">Slides</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const prevImages = element.slider?.images || [];
+                        const nextImages = [...prevImages, { src: '', caption: `Slide ${prevImages.length + 1}` }];
+                        onUpdateElement({
+                          slider: { ...element.slider, images: nextImages },
+                        });
+                      }}
+                      className="px-2 py-1 text-xs rounded bg-slate-700 text-slate-200 hover:bg-slate-600"
+                    >
+                      Add slide
+                    </button>
+                  </div>
+
+                  {(element.slider?.images || []).length === 0 && (
+                    <div className="text-xs text-slate-400">No slides yet. Click "Add slide".</div>
+                  )}
+
+                  {(element.slider?.images || []).map((img, idx) => (
+                    <div key={idx} className="p-3 rounded-lg border border-slate-700 bg-slate-900/40 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-slate-300 font-medium">Slide {idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const prevImages = element.slider?.images || [];
+                            const nextImages = prevImages.filter((_, i) => i !== idx);
+                            onUpdateElement({
+                              slider: { ...element.slider, images: nextImages },
+                            });
+                          }}
+                          className="px-2 py-1 text-xs rounded bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      <Field label="Image">
+                        <StoryImagePicker
+                          value={img.src || ''}
+                          onChange={(value) => {
+                            const prevImages = element.slider?.images || [];
+                            const nextImages = prevImages.map((it, i) => (i === idx ? { ...it, src: value } : it));
+                            onUpdateElement({
+                              slider: { ...element.slider, images: nextImages },
+                            });
+                          }}
+                        />
+                      </Field>
+
+                      <Field label="Caption">
+                        <input
+                          type="text"
+                          value={img.caption || ''}
+                          onChange={(e) => {
+                            const prevImages = element.slider?.images || [];
+                            const nextImages = prevImages.map((it, i) =>
+                              i === idx ? { ...it, caption: e.target.value } : it
+                            );
+                            onUpdateElement({
+                              slider: { ...element.slider, images: nextImages },
+                            });
+                          }}
+                          className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                          placeholder="Slide caption"
+                        />
+                      </Field>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
+
             {/* Location-specific properties */}
             {element.type === 'location' && (
               <Section title="Location" defaultOpen>
@@ -1680,6 +1759,19 @@ export const PropertiesPanelV2: React.FC<PropertiesPanelProps> = ({
                     className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
                     rows={4}
                     placeholder="Option A&#10;Option B&#10;Option C"
+                  />
+                </Field>
+                <Field label="Submit URL (POST)">
+                  <input
+                    type="url"
+                    value={element.poll?.submitUrl || ''}
+                    onChange={(e) =>
+                      onUpdateElement({
+                        poll: { ...element.poll!, submitUrl: e.target.value },
+                      })
+                    }
+                    className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                    placeholder="https://your-endpoint.example.com/poll"
                   />
                 </Field>
               </Section>

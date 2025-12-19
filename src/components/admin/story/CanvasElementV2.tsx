@@ -12,6 +12,7 @@ interface CanvasElementProps {
   onToggleLock?: () => void;
   snapToGrid?: boolean;
   gridSize?: number;
+  zoom?: number;
   playAnimation?: boolean;
   currentTime?: number;
   renderMode?: boolean; // If true, hide elements completely when not visible
@@ -30,6 +31,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   onToggleLock,
   snapToGrid = false,
   gridSize = 10,
+  zoom = 1,
   playAnimation = false,
   currentTime,
   renderMode = false,
@@ -166,8 +168,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     initialStyle.current = { ...element.style };
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
-      const deltaX = moveEvent.clientX - startPos.current.x;
-      const deltaY = moveEvent.clientY - startPos.current.y;
+      const deltaX = (moveEvent.clientX - startPos.current.x) / (zoom || 1);
+      const deltaY = (moveEvent.clientY - startPos.current.y) / (zoom || 1);
 
       onUpdate({
         x: snapValue(initialStyle.current.x + deltaX),
@@ -202,8 +204,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     initialStyle.current = { ...element.style };
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
-      const deltaX = moveEvent.clientX - startPos.current.x;
-      const deltaY = moveEvent.clientY - startPos.current.y;
+      const deltaX = (moveEvent.clientX - startPos.current.x) / (zoom || 1);
+      const deltaY = (moveEvent.clientY - startPos.current.y) / (zoom || 1);
 
       const updates: Partial<ElementStyle> = {};
       const { x, y, width, height } = initialStyle.current;

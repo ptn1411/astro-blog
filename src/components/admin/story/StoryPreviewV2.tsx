@@ -16,7 +16,11 @@ interface StoryPreviewProps {
   story: Story;
   onClose: () => void;
   startSlideIndex?: number;
+  pollSubmitUrl?: string;
 }
+
+const PREVIEW_BASE_WIDTH = 360;
+const PREVIEW_BASE_HEIGHT = 640;
 
 // CSS keyframes for animations
 const animationKeyframes = `
@@ -397,9 +401,125 @@ const ShapeRenderer = ({ element }: { element: StoryElement }) => {
   }
 };
 
-const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAnimating: boolean }) => {
+const PreviewElement = ({
+  element,
+  isAnimating,
+  storyId,
+  slideId,
+  pollSubmitUrl,
+}: {
+  element: StoryElement;
+  isAnimating: boolean;
+  storyId: string;
+  slideId: string;
+  pollSubmitUrl?: string;
+}) => {
   const elementRef = useRef<HTMLDivElement>(null);
   const hasAnimatedRef = useRef(false);
+  const [pollSelectedIndex, setPollSelectedIndex] = useState<number | null>(null);
+  const [pollIsSubmitting, setPollIsSubmitting] = useState(false);
+  const [pollSubmitState, setPollSubmitState] = useState<'idle' | 'success' | 'error'>('idle');
+  const [sliderCurrentIndex, setSliderCurrentIndex] = useState(0);
+  const [sliderDisplayedIndex, setSliderDisplayedIndex] = useState(0);
+  const [sliderTransition, setSliderTransition] = useState<{ from: number; to: number; active: boolean }>(() => ({
+    from: 0,
+    to: 0,
+    active: false,
+  }));
+  const [sliderTransitionStarted, setSliderTransitionStarted] = useState(false);
+  const [timerRemaining, setTimerRemaining] = useState<number>(element.timer?.duration || 60);
+  const [countdownRemainingMs, setCountdownRemainingMs] = useState<number>(() => {
+    const targetDate = element.countdown?.targetDate;
+    const targetMs = targetDate ? new Date(targetDate).getTime() : NaN;
+    if (!Number.isFinite(targetMs)) return 0;
+    return Math.max(0, targetMs - Date.now());
+  });
+
+  const pollResolvedSubmitUrl = element.poll?.submitUrl || pollSubmitUrl;
+  const pollHasSubmit = Boolean(pollResolvedSubmitUrl);
+
+  useEffect(() => {
+    setPollSelectedIndex(null);
+    setPollIsSubmitting(false);
+    setPollSubmitState('idle');
+    setSliderCurrentIndex(0);
+    setSliderDisplayedIndex(0);
+    setSliderTransition({ from: 0, to: 0, active: false });
+    setSliderTransitionStarted(false);
+    setTimerRemaining(element.timer?.duration || 60);
+    const targetDate = element.countdown?.targetDate;
+    const targetMs = targetDate ? new Date(targetDate).getTime() : NaN;
+    setCountdownRemainingMs(Number.isFinite(targetMs) ? Math.max(0, targetMs - Date.now()) : 0);
+  }, [element.id]);
+
+  useEffect(() => {
+    if (element.type !== 'slider' && element.type !== 'carousel') return;
+    if (sliderCurrentIndex === sliderDisplayedIndex) return;
+
+    setSliderTransition({ from: sliderDisplayedIndex, to: sliderCurrentIndex, active: true });
+    setSliderTransitionStarted(false);
+
+    const raf = requestAnimationFrame(() => setSliderTransitionStarted(true));
+    const timer = setTimeout(() => {
+      setSliderDisplayedIndex(sliderCurrentIndex);
+      setSliderTransition((prev) => ({ ...prev, active: false }));
+      setSliderTransitionStarted(false);
+    }, 300);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [element.type, sliderCurrentIndex, sliderDisplayedIndex]);
+
+  useEffect(() => {
+    if (element.type !== 'slider' && element.type !== 'carousel') return;
+
+    const count =
+      element.type === 'slider' ? element.slider?.images?.length || 0 : element.carousel?.images?.length || 0;
+    if (count <= 1) return;
+
+    const intervalMs = element.type === 'carousel' ? element.carousel?.interval || 3000 : 3000;
+    const id = setInterval(() => {
+      setSliderCurrentIndex((prev) => (prev + 1) % count);
+    }, intervalMs);
+
+    return () => clearInterval(id);
+  }, [
+    element.id,
+    element.type,
+    element.slider?.images?.length,
+    element.carousel?.images?.length,
+    element.carousel?.interval,
+  ]);
+
+  useEffect(() => {
+    if (element.type !== 'timer') return;
+
+    const id = setInterval(() => {
+      setTimerRemaining((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [element.type]);
+
+  useEffect(() => {
+    if (element.type !== 'countdown') return;
+    const targetDate = element.countdown?.targetDate;
+    const targetMs = targetDate ? new Date(targetDate).getTime() : NaN;
+    if (!Number.isFinite(targetMs)) {
+      setCountdownRemainingMs(0);
+      return;
+    }
+
+    const update = () => {
+      setCountdownRemainingMs(Math.max(0, targetMs - Date.now()));
+    };
+
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [element.type, element.countdown?.targetDate]);
 
   // Use GSAP/Anime.js for advanced animations
   useEffect(() => {
@@ -573,7 +693,8 @@ const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAni
   };
 
   // Interactive elements need higher z-index to be clickable above navigation zones
-  const isInteractive = element.type === 'button' || element.type === 'poll';
+  const isInteractive =
+    element.type === 'button' || element.type === 'poll' || element.type === 'slider' || element.type === 'carousel';
 
   return (
     <div
@@ -585,7 +706,7 @@ const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAni
         width: element.style.width,
         height: element.style.height,
         transform: `rotate(${element.style.rotation || 0}deg)`,
-        zIndex: isInteractive ? 30 : element.style.zIndex,
+        zIndex: isInteractive ? Math.max(40, element.style.zIndex) : element.style.zIndex,
         opacity: element.style.opacity ?? 1,
         borderRadius: element.style.borderRadius,
         boxShadow: element.style.boxShadow,
@@ -638,10 +759,15 @@ const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAni
           href={element.button?.href || '#'}
           target={element.button?.target || '_self'}
           rel={element.button?.target === '_blank' ? 'noopener noreferrer' : undefined}
-          onClick={(e) => {
+          onPointerDownCapture={(e) => {
             e.stopPropagation();
-            e.nativeEvent.stopImmediatePropagation();
-            if (!element.button?.href || element.button.href === '#') {
+          }}
+          onClickCapture={(e) => {
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            const href = element.button?.href;
+            if (!href || href === '#') {
               e.preventDefault();
             }
           }}
@@ -857,9 +983,9 @@ const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAni
           }}
         >
           <div className="flex items-center gap-1">
-            <span>{String(Math.floor((element.timer?.duration || 60) / 60)).padStart(2, '0')}</span>
+            <span>{String(Math.floor(timerRemaining / 60)).padStart(2, '0')}</span>
             <span className="animate-pulse">:</span>
-            <span>{String((element.timer?.duration || 60) % 60).padStart(2, '0')}</span>
+            <span>{String(timerRemaining % 60).padStart(2, '0')}</span>
           </div>
           {element.timer?.showLabels && (
             <div className="flex gap-4 mt-1 text-xs opacity-70">
@@ -869,28 +995,41 @@ const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAni
           )}
         </div>
       )}
-      {element.type === 'countdown' && (
-        <div
-          className="w-full h-full flex flex-col items-center justify-center"
-          style={{
-            color: element.style.color || '#ffffff',
-            fontSize: element.style.fontSize || 28,
-            fontWeight: element.style.fontWeight || 'bold',
-          }}
-        >
-          {element.countdown?.label && <p className="text-sm opacity-70 mb-2">{element.countdown.label}</p>}
-          <div className="flex gap-3">
-            {['D', 'H', 'M', 'S'].map((unit) => (
-              <div key={unit} className="flex flex-col items-center">
-                <span className="bg-white/10 rounded-lg px-3 py-2" style={{ fontSize: element.style.fontSize || 28 }}>
-                  00
-                </span>
-                <span className="text-xs opacity-70 mt-1">{unit}</span>
+      {element.type === 'countdown' &&
+        (() => {
+          const totalSeconds = Math.floor(countdownRemainingMs / 1000);
+          const days = Math.floor(totalSeconds / (60 * 60 * 24));
+          const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+          const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+          const seconds = totalSeconds % 60;
+          const values = [days, hours, minutes, seconds].map((v) => String(v).padStart(2, '0'));
+
+          return (
+            <div
+              className="w-full h-full flex flex-col items-center justify-center"
+              style={{
+                color: element.style.color || '#ffffff',
+                fontSize: element.style.fontSize || 28,
+                fontWeight: element.style.fontWeight || 'bold',
+              }}
+            >
+              {element.countdown?.label && <p className="text-sm opacity-70 mb-2">{element.countdown.label}</p>}
+              <div className="flex gap-3">
+                {['D', 'H', 'M', 'S'].map((unit, i) => (
+                  <div key={unit} className="flex flex-col items-center">
+                    <span
+                      className="bg-white/10 rounded-lg px-3 py-2"
+                      style={{ fontSize: element.style.fontSize || 28 }}
+                    >
+                      {values[i]}
+                    </span>
+                    <span className="text-xs opacity-70 mt-1">{unit}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </div>
+          );
+        })()}
       {element.type === 'location' && (
         <div
           className="w-full h-full flex items-center gap-2 p-2"
@@ -944,6 +1083,8 @@ const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAni
       {element.type === 'poll' && (
         <div
           className="w-full h-full p-3 rounded-xl"
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
           style={{
             backgroundColor: element.style.backgroundColor || 'rgba(255,255,255,0.1)',
             borderRadius: element.style.borderRadius || 12,
@@ -956,12 +1097,74 @@ const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAni
             {element.poll?.options?.map((option, i) => (
               <div
                 key={i}
-                className="bg-white/20 rounded-lg px-3 py-2 text-white text-sm hover:bg-white/30 cursor-pointer transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.nativeEvent.stopImmediatePropagation();
+                  if (pollIsSubmitting) return;
+
+                  setPollSelectedIndex(i);
+
+                  // If user provided an endpoint, submit vote
+                  if (pollResolvedSubmitUrl) {
+                    setPollIsSubmitting(true);
+                    setPollSubmitState('idle');
+
+                    fetch('/api/poll-vote', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        forwardUrl: pollResolvedSubmitUrl,
+                        storyId,
+                        slideId,
+                        elementId: element.id,
+                        optionIndex: i,
+                        optionLabel: option,
+                        question: element.poll?.question,
+                      }),
+                    })
+                      .then(async (res) => {
+                        if (!res.ok) {
+                          throw new Error(await res.text());
+                        }
+                        setPollSubmitState('success');
+                      })
+                      .catch(() => {
+                        setPollSubmitState('error');
+                      })
+                      .finally(() => {
+                        setPollIsSubmitting(false);
+                      });
+                  }
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className={`rounded-lg px-3 py-2 text-white text-sm cursor-pointer transition-colors ${
+                  pollSelectedIndex === i
+                    ? pollSubmitState === 'error'
+                      ? 'bg-red-500/40'
+                      : pollSubmitState === 'success'
+                        ? 'bg-emerald-500/35'
+                        : 'bg-white/40'
+                    : pollIsSubmitting
+                      ? 'bg-white/10 opacity-60 cursor-not-allowed'
+                      : 'bg-white/20 hover:bg-white/30'
+                }`}
               >
                 {option}
               </div>
             ))}
           </div>
+          {pollHasSubmit && (
+            <div className="mt-2 text-xs opacity-70" style={{ color: '#ffffff' }}>
+              {pollIsSubmitting
+                ? 'Sending...'
+                : pollSubmitState === 'success'
+                  ? 'Sent'
+                  : pollSubmitState === 'error'
+                    ? 'Failed'
+                    : ''}
+            </div>
+          )}
         </div>
       )}
       {element.type === 'qrcode' && (
@@ -1018,22 +1221,151 @@ const PreviewElement = ({ element, isAnimating }: { element: StoryElement; isAni
           </div>
         </div>
       )}
-      {(element.type === 'slider' || element.type === 'carousel') && (
-        <div
-          className="w-full h-full flex items-center justify-center bg-black/30 rounded-xl relative overflow-hidden"
-          style={{ borderRadius: element.style.borderRadius || 12 }}
-        >
-          <div className="text-center text-white">
-            <div className="text-4xl mb-2">🖼️</div>
-            <p className="text-sm opacity-70">Image Slider</p>
-          </div>
-          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1">
-            {Array.from({ length: element.slider?.images?.length || 3 }).map((_, i) => (
-              <div key={i} className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-white' : 'bg-white/40'}`} />
-            ))}
-          </div>
-        </div>
-      )}
+      {(element.type === 'slider' || element.type === 'carousel') &&
+        (() => {
+          const rawImages = (element.slider?.images || element.carousel?.images || []) as Array<
+            string | { src: string; caption?: string }
+          >;
+          const images = rawImages.map((img) => (typeof img === 'string' ? { src: img } : img));
+          const count = images.length;
+          const index = count ? Math.max(0, Math.min(sliderCurrentIndex, count - 1)) : 0;
+          const displayIndex = count ? Math.max(0, Math.min(sliderDisplayedIndex, count - 1)) : 0;
+          const src = images[displayIndex]?.src;
+          const caption = images[displayIndex]?.caption;
+
+          const transitionFrom = count ? Math.max(0, Math.min(sliderTransition.from, count - 1)) : 0;
+          const transitionTo = count ? Math.max(0, Math.min(sliderTransition.to, count - 1)) : 0;
+          const fromSrc = images[transitionFrom]?.src;
+          const toSrc = images[transitionTo]?.src;
+          const toCaption = images[transitionTo]?.caption;
+
+          const goPrev = (e: React.MouseEvent | React.TouchEvent) => {
+            e.stopPropagation();
+            const nativeEvent = (e as unknown as { nativeEvent?: { stopImmediatePropagation?: () => void } })
+              .nativeEvent;
+            nativeEvent?.stopImmediatePropagation?.();
+            if (!count) return;
+            setSliderCurrentIndex((prev) => (prev - 1 + count) % count);
+          };
+
+          const goNext = (e: React.MouseEvent | React.TouchEvent) => {
+            e.stopPropagation();
+            const nativeEvent = (e as unknown as { nativeEvent?: { stopImmediatePropagation?: () => void } })
+              .nativeEvent;
+            nativeEvent?.stopImmediatePropagation?.();
+            if (!count) return;
+            setSliderCurrentIndex((prev) => (prev + 1) % count);
+          };
+
+          return (
+            <div
+              className="w-full h-full bg-black/30 rounded-xl relative overflow-hidden"
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              style={{ borderRadius: element.style.borderRadius || 12 }}
+            >
+              {count > 0 ? (
+                <div className="absolute inset-0 pointer-events-none">
+                  {sliderTransition.active && fromSrc && toSrc && fromSrc !== toSrc ? (
+                    <>
+                      <img
+                        src={fromSrc}
+                        alt={caption || 'slide'}
+                        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+                        style={{
+                          borderRadius: element.style.borderRadius || 12,
+                          opacity: sliderTransitionStarted ? 0 : 1,
+                        }}
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
+                      />
+                      <img
+                        src={toSrc}
+                        alt={toCaption || 'slide'}
+                        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+                        style={{
+                          borderRadius: element.style.borderRadius || 12,
+                          opacity: sliderTransitionStarted ? 1 : 0,
+                        }}
+                        draggable={false}
+                        onDragStart={(e) => e.preventDefault()}
+                      />
+                    </>
+                  ) : src ? (
+                    <img
+                      src={src}
+                      alt={caption || 'slide'}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      style={{ borderRadius: element.style.borderRadius || 12 }}
+                      draggable={false}
+                      onDragStart={(e) => e.preventDefault()}
+                    />
+                  ) : (
+                    <div
+                      className="absolute inset-0 w-full h-full flex items-center justify-center text-white/80"
+                      style={{ borderRadius: element.style.borderRadius || 12 }}
+                    >
+                      <div className="text-center">
+                        <div className="text-4xl mb-2">🖼️</div>
+                        <p className="text-sm opacity-70">Slide {displayIndex + 1}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/80">
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">🖼️</div>
+                    <p className="text-sm opacity-70">Image Slider</p>
+                  </div>
+                </div>
+              )}
+
+              {count > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={goPrev}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white text-lg flex items-center justify-center z-20"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goNext}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white text-lg flex items-center justify-center z-20"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+
+              {count > 0 && (
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1 z-20">
+                  {Array.from({ length: count }).map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.nativeEvent.stopImmediatePropagation();
+                        setSliderCurrentIndex(i);
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      className={`w-2 h-2 rounded-full ${i === index ? 'bg-white' : 'bg-white/40'}`}
+                      aria-label={`Go to slide ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
     </div>
   );
 };
@@ -1152,27 +1484,50 @@ const SlideTransition = ({
   };
 
   return (
-    <div ref={slideRef} className="absolute inset-0" style={getTransitionStyle()}>
+    <div ref={slideRef} className="absolute inset-0 z-20" style={getTransitionStyle()}>
       {children}
     </div>
   );
 };
 
-export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, startSlideIndex = 0 }) => {
+export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, startSlideIndex = 0, pollSubmitUrl }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(startSlideIndex);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(false); // Start with sound enabled
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<'in' | 'out'>('in');
+  const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
 
-  const currentSlide = story.slides[currentSlideIndex];
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _nextSlide = story.slides[currentSlideIndex + 1];
   const bgAudioRef = useRef<HTMLAudioElement | null>(null);
   const slideAudioRef = useRef<HTMLAudioElement | null>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const [stageScale, setStageScale] = useState(1);
+
+  const currentSlide = story.slides[currentSlideIndex] || story.slides[0];
+
+  useEffect(() => {
+    const el = previewContainerRef.current;
+    if (!el) return;
+
+    const updateScale = () => {
+      const width = el.clientWidth || PREVIEW_BASE_WIDTH;
+      setStageScale(width / PREVIEW_BASE_WIDTH);
+    };
+
+    updateScale();
+
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateScale) : null;
+    ro?.observe(el);
+    window.addEventListener('resize', updateScale);
+
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', updateScale);
+    };
+  }, []);
 
   // Auto-hide controls
   const resetControlsTimeout = useCallback(() => {
@@ -1409,7 +1764,10 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
       <div className="absolute right-0 top-0 bottom-0 w-1/4 cursor-pointer z-10" onClick={goToNextSlide} />
 
       {/* Container - full height with 9:16 aspect ratio */}
-      <div className="relative h-full max-h-screen aspect-[9/16] bg-black overflow-hidden shadow-2xl rounded-2xl z-20">
+      <div
+        ref={previewContainerRef}
+        className="relative h-full max-h-screen aspect-[9/16] bg-black overflow-hidden shadow-2xl rounded-2xl z-20"
+      >
         {/* Progress Bars */}
         <div className="absolute top-2 left-2 right-2 flex gap-1 z-30">
           {story.slides.map((slide, idx) => (
@@ -1490,70 +1848,89 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
           isExiting={isTransitioning && transitionDirection === 'out'}
         >
           <div className="absolute inset-0 w-full h-full" style={getBackgroundStyle()}>
-            {/* Background media */}
-            {currentSlide.background.type === 'image' && currentSlide.background.value && (
-              <>
-                <img
-                  src={
-                    currentSlide.background.value.startsWith('~/')
-                      ? currentSlide.background.value.replace('~/', '/src/')
-                      : currentSlide.background.value
-                  }
-                  className="absolute inset-0 w-full h-full"
-                  alt="slide-bg"
-                  style={{
-                    objectFit:
-                      currentSlide.background.size === 'cover' ||
-                      currentSlide.background.size === 'contain' ||
-                      !currentSlide.background.size
-                        ? ((currentSlide.background.size || 'cover') as 'cover' | 'contain')
+            <div
+              className="absolute left-0 top-0"
+              style={{
+                width: PREVIEW_BASE_WIDTH,
+                height: PREVIEW_BASE_HEIGHT,
+                transform: `scale(${stageScale})`,
+                transformOrigin: 'top left',
+              }}
+            >
+              {/* Background media */}
+              {currentSlide.background.type === 'image' && currentSlide.background.value && (
+                <>
+                  <img
+                    src={
+                      currentSlide.background.value.startsWith('~/')
+                        ? currentSlide.background.value.replace('~/', '/src/')
+                        : currentSlide.background.value
+                    }
+                    className="absolute inset-0 w-full h-full"
+                    alt="slide-bg"
+                    style={{
+                      objectFit:
+                        currentSlide.background.size === 'cover' ||
+                        currentSlide.background.size === 'contain' ||
+                        !currentSlide.background.size
+                          ? ((currentSlide.background.size || 'cover') as 'cover' | 'contain')
+                          : undefined,
+                      width: currentSlide.background.size === '100% 100%' ? '100%' : undefined,
+                      height: currentSlide.background.size === '100% 100%' ? '100%' : undefined,
+                      objectPosition: currentSlide.background.position || 'center',
+                      filter: currentSlide.background.filter
+                        ? `blur(${currentSlide.background.filter.blur || 0}px) brightness(${currentSlide.background.filter.brightness || 100}%) contrast(${currentSlide.background.filter.contrast || 100}%)`
                         : undefined,
-                    width: currentSlide.background.size === '100% 100%' ? '100%' : undefined,
-                    height: currentSlide.background.size === '100% 100%' ? '100%' : undefined,
-                    objectPosition: currentSlide.background.position || 'center',
-                    filter: currentSlide.background.filter
-                      ? `blur(${currentSlide.background.filter.blur || 0}px) brightness(${currentSlide.background.filter.brightness || 100}%) contrast(${currentSlide.background.filter.contrast || 100}%)`
-                      : undefined,
-                  }}
-                />
-                {/* Overlay */}
-                {currentSlide.background.overlay && (
-                  <div className="absolute inset-0" style={{ backgroundColor: currentSlide.background.overlay }} />
-                )}
-              </>
-            )}
-            {currentSlide.background.type === 'video' && currentSlide.background.value && (
-              <>
-                <video
-                  src={
-                    currentSlide.background.value.startsWith('~/')
-                      ? currentSlide.background.value.replace('~/assets/videos', '/src/assets/videos')
-                      : currentSlide.background.value
-                  }
-                  className="absolute inset-0 w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                />
-                {/* Overlay */}
-                {currentSlide.background.overlay && (
-                  <div className="absolute inset-0" style={{ backgroundColor: currentSlide.background.overlay }} />
-                )}
-              </>
-            )}
+                    }}
+                  />
+                  {/* Overlay */}
+                  {currentSlide.background.overlay && (
+                    <div className="absolute inset-0" style={{ backgroundColor: currentSlide.background.overlay }} />
+                  )}
+                </>
+              )}
+              {currentSlide.background.type === 'video' && currentSlide.background.value && (
+                <>
+                  <video
+                    src={
+                      currentSlide.background.value.startsWith('~/')
+                        ? currentSlide.background.value.replace('~/assets/videos', '/src/assets/videos')
+                        : currentSlide.background.value
+                    }
+                    className="absolute inset-0 w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                  />
+                  {/* Overlay */}
+                  {currentSlide.background.overlay && (
+                    <div className="absolute inset-0" style={{ backgroundColor: currentSlide.background.overlay }} />
+                  )}
+                </>
+              )}
 
-            {/* Elements - render with higher z-index for interactive elements */}
-            {currentSlide.elements.map((el) => {
-              // Timeline visibility check
-              if (el.timings) {
-                const currentTimeMs = (progress / 100) * (currentSlide.duration * 1000);
-                const { start, duration } = el.timings;
-                const isVisible = currentTimeMs >= start && currentTimeMs <= start + duration;
-                if (!isVisible) return null;
-              }
+              {/* Elements - render with higher z-index for interactive elements */}
+              {currentSlide.elements.map((el) => {
+                // Timeline visibility check
+                if (el.timings) {
+                  const currentTimeMs = (progress / 100) * (currentSlide.duration * 1000);
+                  const { start, duration } = el.timings;
+                  const isVisible = currentTimeMs >= start && currentTimeMs <= start + duration;
+                  if (!isVisible) return null;
+                }
 
-              return <PreviewElement key={el.id} element={el} isAnimating={!isTransitioning} />;
-            })}
+                return (
+                  <PreviewElement
+                    key={el.id}
+                    element={el}
+                    isAnimating={!isTransitioning}
+                    storyId={story.id}
+                    slideId={currentSlide.id}
+                    pollSubmitUrl={pollSubmitUrl}
+                  />
+                );
+              })}
+            </div>
           </div>
         </SlideTransition>
 

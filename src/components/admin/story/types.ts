@@ -176,6 +176,7 @@ export interface StoryElement {
   poll?: {
     question: string;
     options: string[];
+    submitUrl?: string;
   };
   countdown?: {
     targetDate: string;
