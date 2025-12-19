@@ -23,7 +23,6 @@ import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from '~/hooks/useHistory';
 import { getPendingMedia, uploadAllPendingMedia } from '~/utils/media';
-import { GSAP_ANIMATION_NAMES, LOOP_ANIMATION_NAMES, SPRING_ANIMATION_NAMES } from './animations';
 import { AudioPanel } from './AudioPanel';
 import { CanvasElement } from './CanvasElementV2';
 import { LayersPanel } from './LayersPanel';
@@ -515,258 +514,99 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
   }, [story]);
 
   const generateAIPrompt = useCallback((topic: string) => {
-    const exampleStyle: ElementStyle = {
-      ...DEFAULT_ELEMENT_STYLE,
-      x: 80,
-      y: 120,
-      width: 560,
-      height: 180,
-      fontSize: 48,
-      fontWeight: 'bold',
-      textAlign: 'center',
-    };
+    return `Bạn là AI chuyên gia tạo JSON cho Story Builder chuyên nghiệp.
 
-    return `Bạn là AI chuyên gia tạo JSON cho Story Builder.
-
-Nhiệm vụ: tạo 1 object JSON theo đúng schema bên dưới để hiển thị bản tin dạng story (9:16).
+Nhiệm vụ: tạo 1 object JSON theo đúng schema để hiển thị bản tin dạng story (9:16) cực kỳ sinh động và giàu nội dung.
 
 Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
 
 === YÊU CẦU OUTPUT (BẮT BUỘC) ===
 1) Chỉ trả về DUY NHẤT JSON (không giải thích, không markdown, không \`\`\`)
 2) JSON phải parse được, không trailing comma
-3) Tạo nội dung tiếng Việt phù hợp với chủ đề
-4) Tạo tối thiểu 3 slides, tối đa 6 slides
-5) Mỗi slide duration: 5-8 (giây)
-6) background có thể dùng:
-   - color: { "type": "color", "value": "#111827" }
-   - gradient: { "type": "gradient", "value": "", "gradient": { "type": "linear", "angle": 135, "colors": [{"color":"#ec4899","position":0},{"color":"#8b5cf6","position":100}] } }
-7) Elements: ưu tiên type "text". Nếu dùng image/video thì content là URL.
+3) Nội dung tiếng Việt chuyên nghiệp, hấp dẫn
+4) Quy mô: 3-6 slides.
+5) MẬT ĐỘ NỘI DUNG: Mỗi slide PHẢI có từ 4 đến 8 elements (Text, Image, Video, Poll, Button, Sticker, etc.).
+6) TƯƠNG TÁC: Ít nhất 50% số slide phải có các phần tử tương tác như Poll (bình chọn), Button (nút bấm), hoặc Slider.
 
-=== HÌNH ẢNH (IMAGE) ===
-1) Element ảnh:
-  - "type": "image"
-  - "content": "https://images.unsplash.com/photo-...?..." (URL ảnh)
-  - style width/height theo canvas 360x640
-2) Nếu cần dùng ảnh nền:
-  - background: { "type": "image", "value": "https://images.unsplash.com/photo-...?..." }
-3) Gợi ý URL ảnh (dễ dùng, public): Unsplash
-  - Ví dụ: https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1080
-4) Tránh URL private / token / expired.
+=== CÁCH GẮN LINK (QUAN TRỌNG) ===
+- Đối với BUTTON: Dùng object "button" bên trong element.
+  Ví dụ: "button": { "href": "https://...", "target": "_blank", "variant": "solid" }
+- Đối với IMAGE/STICKER/GIF/VIDEO: Nếu muốn gắn link, dùng object "link".
+  Ví dụ: "link": { "url": "https://...", "target": "_blank" }
 
-=== CHUYỂN CẢNH (SLIDE TRANSITION) ===
-Trong mỗi slide có thể thêm:
-"transition": { "type": "fade" | "slide" | "zoom" | "flip" | "cube" | "dissolve" | "wipe" | "none", "duration": 400-900 }
-Gợi ý: slide 1 fade, slide 2 slide, slide 3 zoom.
+=== CÁC LOẠI ELEMENT HỖ TRỢ ===
+- "text": nội dung văn bản.
+- "image"/"video": "content" là URL.
+- "poll": { "question": "...", "options": ["A", "B", "C"] }
+- "button": { "href": "...", "target": "_blank", "variant": "solid" | "outline" | "ghost" }
+- "slider"/"carousel": { "images": ["URL1", "URL2", "URL3"] }
+- "list": { "type": "bullet" | "numbered" | "checklist", "items": ["...", "..."] }
+- "sticker"/"gif": "content" là URL.
+- "rating": { "value": 4, "max": 5, "icon": "star" | "heart" }
 
-=== HIỆU ỨNG (ANIMATION) ===
-Bạn có thể thêm hiệu ứng cho mỗi element theo dạng:
-"animation": {
-  "enter": { "type": "fadeIn", "duration": 500, "delay": 0, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeIn", "gsapEase": "power2.out" },
-  "exit": { ... } ,
-  "loop": { "type": "pulse", "duration": 1000, "delay": 0, "easing": "ease-in-out", "engine": "gsap", "gsapType": "pulse" }
-}
-
-1) type (AnimationType) hợp lệ (theo types.ts):
-none, fadeIn, fadeOut, bounce, fadeInUp, slideInLeft, slideInRight, slideInUp, slideInDown, scaleIn, scaleOut, bounceIn, rotateIn, typewriter, zoomIn, pulse, fadeInDown, shake, rotate, float
-
-2) Nếu engine = "gsap":
-  - dùng "gsapType" trong danh sách:
-${JSON.stringify(GSAP_ANIMATION_NAMES)}
-
-3) Nếu dùng animation loop (lặp):
-  - ưu tiên type thuộc danh sách loop có sẵn:
-${JSON.stringify(LOOP_ANIMATION_NAMES)}
-  - hoặc spring loop:
-${JSON.stringify(SPRING_ANIMATION_NAMES)}
-
-4) Nếu engine = "anime": chỉ dùng các type chắc chắn được hỗ trợ:
-scaleIn, fadeIn, fadeInUp, fadeInDown, slideInLeft, slideInRight, slideInUp, slideInDown, bounceIn, rotateIn, zoomIn, pulse, shake, bounce, rotate, float
-
-5) Quy tắc:
-  - enter thường dùng 300-900ms
-  - loop thường dùng 1000-3000ms
-  - delay (ms) có thể dùng để tạo nhịp (0-600)
-  - không tạo animation quá nhiều gây rối: mỗi slide tối đa 2-4 elements có animation.
-
-=== JSON MẪU THAM KHẢO (BẮT CHƯỚC CẤU TRÚC) ===
-Ví dụ 1 (3 slides, có ảnh + text + animation):
+=== VÍ DỤ JSON MẪU CHUẨN (BẮT CHƯỚC CẤU TRÚC NÀY) ===
 {
-  "id": "story-sample-1",
-  "title": "Bản tin: Công nghệ hôm nay",
-  "description": "Tóm tắt nhanh 3 điểm nổi bật",
+  "id": "story-standard-sample",
+  "title": "Bản tin Vitamin B",
+  "description": "Sức khỏe và Năng lượng",
   "settings": { "autoAdvance": true, "loop": false, "showProgressBar": true },
   "slides": [
     {
       "id": "slide-1",
-      "duration": 6,
-      "background": {
-        "type": "image",
-        "value": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1080"
-      },
-      "transition": { "type": "fade", "duration": 600 },
+      "duration": 7,
+      "background": { "type": "image", "value": "https://images.unsplash.com/photo-1506806732259-39c2d0268443?w=1080" },
       "elements": [
         {
-          "id": "el-1",
-          "type": "text",
-          "content": "CÔNG NGHỆ HÔM NAY",
-          "style": { "x": 20, "y": 60, "width": 320, "height": 80, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 28, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "bold", "textAlign": "center", "backgroundColor": "rgba(0,0,0,0.35)", "borderRadius": 12 },
-          "animation": { "enter": { "type": "fadeInDown", "duration": 700, "delay": 0, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeInDown", "gsapEase": "power2.out" } }
-        },
-        {
-          "id": "el-2",
-          "type": "text",
-          "content": "3 điểm nóng trong 60 giây",
-          "style": { "x": 40, "y": 150, "width": 280, "height": 60, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#e5e7eb", "fontSize": 18, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "medium", "textAlign": "center", "backgroundColor": "rgba(17,24,39,0.55)", "borderRadius": 12 },
-          "animation": { "enter": { "type": "fadeInUp", "duration": 650, "delay": 150, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeInUp", "gsapEase": "power2.out" } }
-        },
-        {
-          "id": "el-3",
+          "id": "el-overlay",
           "type": "shape",
-          "content": "",
           "shapeType": "rectangle",
-          "style": { "x": 0, "y": 0, "width": 360, "height": 640, "rotation": 0, "zIndex": 1, "opacity": 0.35, "backgroundColor": "#000000" },
-          "animation": { "enter": { "type": "fadeIn", "duration": 400, "delay": 0, "easing": "ease-out" } }
+          "style": { "x": 0, "y": 0, "width": 360, "height": 640, "zIndex": 1, "opacity": 0.45, "backgroundColor": "#000000" }
+        },
+        {
+          "id": "el-title",
+          "type": "text",
+          "content": "VITAMIN B LÀ GÌ?",
+          "style": { "x": 20, "y": 60, "width": 320, "height": 70, "zIndex": 5, "color": "#ffffff", "fontSize": 30, "fontWeight": "bold", "textAlign": "center" },
+          "animation": { "enter": { "type": "fadeInDown", "duration": 700, "engine": "gsap", "gsapType": "fadeInDown" } }
+        },
+        {
+          "id": "el-poll",
+          "type": "poll",
+          "poll": { "question": "Bạn đã biết về Vitamin B?", "options": ["Rồi", "Chưa", "Một chút"] },
+          "style": { "x": 30, "y": 300, "width": 300, "height": 160, "zIndex": 8, "backgroundColor": "rgba(255,255,255,0.18)", "borderRadius": 16 },
+          "animation": { "enter": { "type": "zoomIn", "duration": 600, "delay": 600, "engine": "gsap", "gsapType": "zoomIn" } }
         }
       ]
     },
     {
       "id": "slide-2",
-      "duration": 6,
-      "background": { "type": "gradient", "value": "", "gradient": { "type": "linear", "angle": 135, "colors": [{ "color": "#0ea5e9", "position": 0 }, { "color": "#8b5cf6", "position": 100 }] } },
-      "transition": { "type": "slide", "duration": 650 },
+      "duration": 7,
+      "background": { "type": "image", "value": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1080" },
       "elements": [
         {
-          "id": "el-4",
-          "type": "text",
-          "content": "1) AI hỗ trợ viết code nhanh hơn",
-          "style": { "x": 24, "y": 120, "width": 312, "height": 60, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 20, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "semibold", "textAlign": "left" },
-          "animation": { "enter": { "type": "slideInLeft", "duration": 650, "delay": 0, "easing": "ease-out", "engine": "gsap", "gsapType": "slideInLeft", "gsapEase": "power2.out" } }
-        },
-        {
-          "id": "el-5",
-          "type": "text",
-          "content": "2) Smartphone: pin tốt hơn, camera tốt hơn",
-          "style": { "x": 24, "y": 190, "width": 312, "height": 60, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 20, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "semibold", "textAlign": "left" },
-          "animation": { "enter": { "type": "slideInLeft", "duration": 650, "delay": 150, "easing": "ease-out", "engine": "gsap", "gsapType": "slideInLeft", "gsapEase": "power2.out" } }
-        },
-        {
-          "id": "el-6",
-          "type": "text",
-          "content": "3) Bảo mật: bật 2FA ngay",
-          "style": { "x": 24, "y": 260, "width": 312, "height": 60, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 20, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "semibold", "textAlign": "left" },
-          "animation": { "enter": { "type": "slideInLeft", "duration": 650, "delay": 300, "easing": "ease-out", "engine": "gsap", "gsapType": "slideInLeft", "gsapEase": "power2.out" } }
-        },
-        {
-          "id": "el-7",
-          "type": "text",
-          "content": "Theo dõi để nhận bản tin mỗi ngày",
-          "style": { "x": 24, "y": 520, "width": 312, "height": 60, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#111827", "fontSize": 16, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "bold", "textAlign": "center", "backgroundColor": "rgba(255,255,255,0.9)", "borderRadius": 14 },
-          "animation": { "enter": { "type": "zoomIn", "duration": 700, "delay": 200, "easing": "ease-out", "engine": "gsap", "gsapType": "zoomIn", "gsapEase": "back.out(1.7)" }, "loop": { "type": "pulse", "duration": 1400, "delay": 0, "easing": "ease-in-out", "engine": "gsap", "gsapType": "pulse" } }
-        }
-      ]
-    },
-    {
-      "id": "slide-3",
-      "duration": 6,
-      "background": { "type": "color", "value": "#111827" },
-      "transition": { "type": "zoom", "duration": 650 },
-      "elements": [
-        {
-          "id": "el-8",
+          "id": "el-img-link",
           "type": "image",
-          "content": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1080",
-          "style": { "x": 20, "y": 110, "width": 320, "height": 220, "rotation": 0, "zIndex": 1, "opacity": 1, "borderRadius": 16 },
-          "animation": { "enter": { "type": "zoomIn", "duration": 700, "delay": 0, "easing": "ease-out", "engine": "gsap", "gsapType": "zoomIn", "gsapEase": "power2.out" } }
+          "content": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1080",
+          "link": { "url": "https://example.com/health", "target": "_blank" },
+          "style": { "x": 30, "y": 100, "width": 300, "height": 180, "zIndex": 5, "borderRadius": 12 }
         },
         {
-          "id": "el-9",
-          "type": "text",
-          "content": "Kết luận: Ưu tiên an toàn + tận dụng AI đúng cách",
-          "style": { "x": 24, "y": 360, "width": 312, "height": 120, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 18, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "semibold", "textAlign": "center" },
-          "animation": { "enter": { "type": "fadeInUp", "duration": 650, "delay": 150, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeInUp", "gsapEase": "power2.out" } }
+          "id": "el-button",
+          "type": "button",
+          "content": "TÌM HIỂU CHI TIẾT",
+          "button": { "href": "https://vi.wikipedia.org/wiki/Vitamin_B", "target": "_blank", "variant": "solid" },
+          "style": { "x": 60, "y": 320, "width": 240, "height": 50, "zIndex": 8, "backgroundColor": "#22c55e", "color": "#ffffff", "borderRadius": 25, "fontWeight": "bold" },
+          "animation": { "enter": { "type": "bounceIn", "duration": 700, "delay": 600, "engine": "gsap", "gsapType": "bounceIn" } }
         }
       ]
     }
   ]
 }
 
-Ví dụ 2 (ít element, dùng loop nhẹ):
-{
-  "id": "story-sample-2",
-  "title": "Bản tin: Thời tiết",
-  "settings": { "autoAdvance": true, "loop": false, "showProgressBar": true },
-  "slides": [
-    {
-      "id": "slide-a",
-      "duration": 5,
-      "background": { "type": "image", "value": "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=1080" },
-      "transition": { "type": "fade", "duration": 600 },
-      "elements": [
-        {
-          "id": "el-a1",
-          "type": "text",
-          "content": "THỜI TIẾT HÔM NAY",
-          "style": { "x": 20, "y": 70, "width": 320, "height": 64, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#ffffff", "fontSize": 26, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "bold", "textAlign": "center", "backgroundColor": "rgba(0,0,0,0.35)", "borderRadius": 12 },
-          "animation": { "enter": { "type": "fadeInDown", "duration": 700, "delay": 0, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeInDown", "gsapEase": "power2.out" } }
-        },
-        {
-          "id": "el-a2",
-          "type": "text",
-          "content": "28°C • Có mưa rào • Gió nhẹ",
-          "style": { "x": 20, "y": 150, "width": 320, "height": 56, "rotation": 0, "zIndex": 2, "opacity": 1, "color": "#e5e7eb", "fontSize": 18, "fontFamily": "system-ui, -apple-system, sans-serif", "fontWeight": "medium", "textAlign": "center" },
-          "animation": { "enter": { "type": "fadeInUp", "duration": 650, "delay": 120, "easing": "ease-out", "engine": "gsap", "gsapType": "fadeInUp", "gsapEase": "power2.out" }, "loop": { "type": "float", "duration": 1800, "delay": 0, "easing": "ease-in-out", "engine": "gsap", "gsapType": "float" } }
-        }
-      ]
-    }
-  ]
-}
-
-=== SCHEMA TÓM TẮT ===
-Story:
-{
-  "id": "story-<any>",
-  "title": "...",
-  "description": "..." (optional),
-  "thumbnail": "..." (optional),
-  "slides": StorySlide[],
-  "settings": { "autoAdvance": true, "loop": false, "showProgressBar": true }
-}
-
-StorySlide:
-{
-  "id": "slide-<any>",
-  "duration": 5,
-  "background": SlideBackground,
-  "elements": StoryElement[],
-  "transition": { "type": "fade" | "slide" | "zoom" | "flip" | "cube" | "dissolve" | "wipe" | "none", "duration": 500 }
-}
-
-StoryElement:
-{
-  "id": "el-<any>",
-  "type": "text" | "image" | "video" | "shape" | ...,
-  "content": "...",
-  "style": {
-    "x": 0-360,
-    "y": 0-640,
-    "width": 0-360,
-    "height": 0-640,
-    "rotation": 0,
-    "zIndex": 1,
-    "opacity": 0-1,
-    "color": "#ffffff" (optional),
-    "backgroundColor": "rgba(...)" (optional),
-    "fontSize": number (optional),
-    "fontFamily": string (optional),
-    "fontWeight": string (optional),
-    "textAlign": "left"|"center"|"right"|"justify" (optional)
-  },
-  "animation": { "enter": {"type":"fadeIn","duration":500,"delay":0,"easing":"ease-out"} } (optional)
-}
-
-=== VÍ DỤ STYLE CHO TEXT CHÍNH (tham khảo) ===
-${JSON.stringify(exampleStyle, null, 2)}
+=== QUY TẮC TỌA ĐỘ ===
+- Canvas chuẩn: 360x640 (9:16).
+- Căn lề tối thiểu 20px.
+- Sắp xếp zIndex hợp lý (Text/Poll/Button nên ở lớp trên cùng).
 `;
   }, []);
 

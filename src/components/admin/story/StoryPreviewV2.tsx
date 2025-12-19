@@ -692,9 +692,37 @@ const PreviewElement = ({
     return { backgroundColor: element.style.backgroundColor };
   };
 
+  const Wrapper = ({ children, link }: { children: React.ReactNode; link?: { url: string; target?: string } }) => {
+    if (link?.url) {
+      return (
+        <a
+          href={link.url}
+          target={link.target || '_blank'}
+          className="w-full h-full block"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          {children}
+        </a>
+      );
+    }
+    return <>{children}</>;
+  };
+
   // Interactive elements need higher z-index to be clickable above navigation zones
   const isInteractive =
-    element.type === 'button' || element.type === 'poll' || element.type === 'slider' || element.type === 'carousel';
+    element.type === 'button' ||
+    element.type === 'poll' ||
+    element.type === 'slider' ||
+    element.type === 'carousel' ||
+    element.type === 'mention' ||
+    element.type === 'hashtag' ||
+    element.type === 'location' ||
+    element.type === 'avatar' ||
+    element.type === 'qrcode' ||
+    element.type === 'embed' ||
+    !!element.link?.url;
 
   return (
     <div
@@ -734,25 +762,37 @@ const PreviewElement = ({
         </div>
       )}
       {element.type === 'image' && (
-        <img
-          src={element.content}
-          alt="element"
-          className="w-full h-full object-cover"
-          style={{ borderRadius: element.style.borderRadius }}
-        />
+        <Wrapper link={element.link}>
+          <img
+            src={element.content}
+            className="w-full h-full object-cover"
+            alt={element.content}
+            style={{ borderRadius: element.style.borderRadius || 0 }}
+          />
+        </Wrapper>
       )}
       {element.type === 'video' && (
-        <video
-          src={element.content}
-          className="w-full h-full object-cover"
-          autoPlay
-          muted
-          loop
-          style={{ borderRadius: element.style.borderRadius }}
-        />
+        <Wrapper link={element.link}>
+          <video
+            src={element.content}
+            className="w-full h-full object-cover"
+            muted
+            playsInline
+            autoPlay
+            loop
+            style={{ borderRadius: element.style.borderRadius || 0 }}
+          />
+        </Wrapper>
       )}
       {(element.type === 'sticker' || element.type === 'gif') && (
-        <img src={element.content} alt={element.type} className="w-full h-full object-contain" />
+        <Wrapper link={element.link}>
+          <img
+            src={element.content}
+            className="w-full h-full object-contain"
+            alt={element.type}
+            style={{ borderRadius: element.style.borderRadius || 0 }}
+          />
+        </Wrapper>
       )}
       {element.type === 'button' && (
         <a
@@ -1821,25 +1861,6 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
           </div>
         </div>
 
-        {/* Tap Navigation Zones - lower z-index so buttons can be clicked */}
-        <div className="absolute inset-0 z-10 flex pointer-events-none">
-          <div
-            className="w-1/3 h-full cursor-pointer pointer-events-auto"
-            onClick={(e) => {
-              e.stopPropagation();
-              goToPrevSlide();
-            }}
-          />
-          <div className="w-1/3 h-full pointer-events-auto" onClick={() => setIsPaused(!isPaused)} />
-          <div
-            className="w-1/3 h-full cursor-pointer pointer-events-auto"
-            onClick={(e) => {
-              e.stopPropagation();
-              goToNextSlide();
-            }}
-          />
-        </div>
-
         {/* Slide Content with Transition */}
         <SlideTransition
           type={currentSlide.transition?.type || 'fade'}
@@ -1857,6 +1878,24 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
                 transformOrigin: 'top left',
               }}
             >
+              {/* Tap Navigation Zones - Scaled with content but below interactive elements */}
+              <div className="absolute inset-0 flex pointer-events-none" style={{ zIndex: 30 }}>
+                <div
+                  className="w-1/3 h-full cursor-pointer pointer-events-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToPrevSlide();
+                  }}
+                />
+                <div className="w-1/3 h-full pointer-events-auto" onClick={() => setIsPaused(!isPaused)} />
+                <div
+                  className="w-1/3 h-full cursor-pointer pointer-events-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToNextSlide();
+                  }}
+                />
+              </div>
               {/* Background media */}
               {currentSlide.background.type === 'image' && currentSlide.background.value && (
                 <>

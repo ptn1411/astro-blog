@@ -336,35 +336,77 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         );
       case 'image':
         return (
-          <img
-            src={element.content}
-            alt="element"
-            className="w-full h-full object-cover pointer-events-none"
-            style={{ borderRadius: element.style.borderRadius }}
-            draggable={false}
-          />
+          <div className="relative w-full h-full">
+            <img
+              src={element.content}
+              alt={element.type}
+              className="w-full h-full object-cover pointer-events-none"
+              style={{ borderRadius: element.style.borderRadius }}
+              draggable={false}
+            />
+            {element.link?.url && (
+              <div className="absolute bottom-2 right-2 bg-black/50 p-1 rounded backdrop-blur-sm z-10">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
         );
       case 'video':
         return (
-          <video
-            src={element.content}
-            className="w-full h-full object-cover pointer-events-none"
-            style={{ borderRadius: element.style.borderRadius }}
-            muted
-            loop
-          />
+          <div className="relative w-full h-full">
+            <video
+              src={element.content}
+              className="w-full h-full object-cover pointer-events-none"
+              style={{ borderRadius: element.style.borderRadius }}
+              muted
+              loop
+            />
+            {element.link?.url && (
+              <div className="absolute bottom-2 right-2 bg-black/50 p-1 rounded backdrop-blur-sm z-10">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
         );
       case 'shape':
         return renderShape();
       case 'sticker':
       case 'gif':
         return (
-          <img
-            src={element.content}
-            alt={element.type}
-            className="w-full h-full object-contain pointer-events-none"
-            draggable={false}
-          />
+          <div className="relative w-full h-full">
+            <img
+              src={element.content}
+              alt={element.type}
+              className="w-full h-full object-contain pointer-events-none"
+              draggable={false}
+            />
+            {element.link?.url && (
+              <div className="absolute bottom-2 right-2 bg-black/50 p-1 rounded backdrop-blur-sm z-10">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
         );
       case 'button':
         return (
