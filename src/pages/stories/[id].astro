@@ -73,8 +73,8 @@ export const getStaticPaths = (async () => {
         // Process elements
         if (slide.elements) {
           for (const element of slide.elements) {
-            // Process image elements (có thể dùng content hoặc src)
-            if (element.type === 'image') {
+            // Process image-related elements (có thể dùng content hoặc src)
+            if (['image', 'sticker', 'gif', 'avatar'].includes(element.type)) {
               if (element.content) {
                 element.content = await resolveAsset(element.content, images);
               }
@@ -100,6 +100,22 @@ export const getStaticPaths = (async () => {
               }
               if (element.src) {
                 element.src = await resolveAsset(element.src, audios);
+              }
+            }
+
+            // Process slider elements
+            if (element.type === 'slider' && element.slider?.images) {
+              for (const img of element.slider.images) {
+                if (img.src) {
+                  img.src = await resolveAsset(img.src, images);
+                }
+              }
+            }
+
+            // Process carousel elements
+            if (element.type === 'carousel' && element.carousel?.images) {
+              for (let i = 0; i < element.carousel.images.length; i++) {
+                element.carousel.images[i] = await resolveAsset(element.carousel.images[i], images);
               }
             }
           }
