@@ -1,5 +1,5 @@
 import { Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   animateTextByLetters,
   gsap,
@@ -81,8 +81,8 @@ const animationKeyframes = `
 }
 `;
 
-// Shape Renderer for preview
-const ShapeRenderer = ({ element }: { element: StoryElement }) => {
+// Shape Renderer for preview - memoized to prevent unnecessary re-renders
+const ShapeRenderer = memo(function ShapeRenderer({ element }: { element: StoryElement }) {
   const shapeType = element.shapeType || 'rectangle';
   const fillColor = element.style.backgroundColor || '#3b82f6';
   const borderColor = element.style.borderColor || fillColor;
@@ -399,9 +399,33 @@ const ShapeRenderer = ({ element }: { element: StoryElement }) => {
         />
       );
   }
-};
+});
 
-const PreviewElement = ({
+// Link wrapper component - defined outside to prevent recreation
+const LinkWrapper = memo(function LinkWrapper({
+  children,
+  link,
+}: {
+  children: React.ReactNode;
+  link?: { url: string; target?: string };
+}) {
+  if (link?.url) {
+    return (
+      <a
+        href={link.url}
+        target={link.target || '_blank'}
+        className="w-full h-full block"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </a>
+    );
+  }
+  return <>{children}</>;
+});
+
+// Preview element component - memoized with custom comparison
+const PreviewElement = memo(function PreviewElement({
   element,
   isAnimating,
   storyId,
@@ -413,7 +437,7 @@ const PreviewElement = ({
   storyId: string;
   slideId: string;
   pollSubmitUrl?: string;
-}) => {
+}) {
   const elementRef = useRef<HTMLDivElement>(null);
   const hasAnimatedRef = useRef(false);
   const [pollSelectedIndex, setPollSelectedIndex] = useState<number | null>(null);
@@ -692,24 +716,6 @@ const PreviewElement = ({
     return { backgroundColor: element.style.backgroundColor };
   };
 
-  const Wrapper = ({ children, link }: { children: React.ReactNode; link?: { url: string; target?: string } }) => {
-    if (link?.url) {
-      return (
-        <a
-          href={link.url}
-          target={link.target || '_blank'}
-          className="w-full h-full block"
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          {children}
-        </a>
-      );
-    }
-    return <>{children}</>;
-  };
-
   // Interactive elements need higher z-index to be clickable above navigation zones
   const isInteractive =
     element.type === 'button' ||
@@ -762,17 +768,17 @@ const PreviewElement = ({
         </div>
       )}
       {element.type === 'image' && (
-        <Wrapper link={element.link}>
+        <LinkWrapper link={element.link}>
           <img
             src={element.content}
             className="w-full h-full object-cover"
             alt={element.content}
             style={{ borderRadius: element.style.borderRadius || 0 }}
           />
-        </Wrapper>
+        </LinkWrapper>
       )}
       {element.type === 'video' && (
-        <Wrapper link={element.link}>
+        <LinkWrapper link={element.link}>
           <video
             src={element.content}
             className="w-full h-full object-cover"
@@ -782,17 +788,17 @@ const PreviewElement = ({
             loop
             style={{ borderRadius: element.style.borderRadius || 0 }}
           />
-        </Wrapper>
+        </LinkWrapper>
       )}
       {(element.type === 'sticker' || element.type === 'gif') && (
-        <Wrapper link={element.link}>
+        <LinkWrapper link={element.link}>
           <img
             src={element.content}
             className="w-full h-full object-contain"
             alt={element.type}
             style={{ borderRadius: element.style.borderRadius || 0 }}
           />
-        </Wrapper>
+        </LinkWrapper>
       )}
       {element.type === 'button' && (
         <a
@@ -1408,10 +1414,10 @@ const PreviewElement = ({
         })()}
     </div>
   );
-};
+});
 
-// Slide transition wrapper with GSAP support
-const SlideTransition = ({
+// Slide transition wrapper with GSAP support - memoized
+const SlideTransition = memo(function SlideTransition({
   children,
   type,
   duration,
@@ -1425,7 +1431,7 @@ const SlideTransition = ({
   isEntering: boolean;
   isExiting: boolean;
   useGSAP?: boolean;
-}) => {
+}) {
   const slideRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1528,7 +1534,7 @@ const SlideTransition = ({
       {children}
     </div>
   );
-};
+});
 
 export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, startSlideIndex = 0, pollSubmitUrl }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(startSlideIndex);
@@ -1624,13 +1630,25 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
     }, transitionDuration);
   }, [currentSlideIndex, currentSlide.transition?.duration]);
 
-  // Auto-advance logic
+  // Use ref to store latest goToNextSlide to avoid dependency issues in auto-advance effect
+  const goToNextSlideRef = useRef(goToNextSlide);
+  useEffect(() => {
+    goToNextSlideRef.current = goToNextSlide;
+  }, [goToNextSlide]);
+
+  // Auto-advance logic - uses ref to avoid re-running when callback changes
   useEffect(() => {
     if (isPaused || isTransitioning) return;
 
+    // Fallback to 5 seconds if duration is not set
+    const slideDuration = currentSlide.duration || 5;
+    const durationMs = slideDuration * 1000;
+
+    // Guard against invalid duration
+    if (durationMs <= 0) return;
+
     const startTime = Date.now();
     let animationFrameId: number;
-    const durationMs = currentSlide.duration * 1000;
 
     const tick = () => {
       const elapsed = Date.now() - startTime;
@@ -1640,14 +1658,14 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
       if (elapsed < durationMs) {
         animationFrameId = requestAnimationFrame(tick);
       } else {
-        goToNextSlide();
+        goToNextSlideRef.current();
       }
     };
 
     animationFrameId = requestAnimationFrame(tick);
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [currentSlideIndex, currentSlide.duration, isPaused, isTransitioning, goToNextSlide]);
+  }, [currentSlideIndex, currentSlide.duration, isPaused, isTransitioning]);
 
   // Helper to resolve asset paths
   const resolveAssetPath = (path: string): string => {

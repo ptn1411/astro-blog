@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { StoryPreviewV2 } from './StoryPreviewV2';
 import type { Story } from './types';
 
@@ -6,22 +6,27 @@ type Props = {
   story: Story;
 };
 
-export default function ClientPreviewStories({ story }: Props) {
+const ClientPreviewStories = memo(function ClientPreviewStories({ story }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // optional: side effects nếu cần
+    const container = containerRef.current;
+    if (!container) return;
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          // element is in the viewport
-          console.log('element is in the viewport');
+          // element is in the viewport - preload assets if needed
         }
       });
     });
-    observer.observe(containerRef.current!);
+    observer.observe(container);
     return () => observer.disconnect();
-  }, [containerRef]);
+  }, []); // Fixed: refs are stable, no need in dependency
+
+  const handleClose = useCallback(() => {
+    window.history.back();
+  }, []);
 
   return (
     <div
@@ -32,7 +37,9 @@ export default function ClientPreviewStories({ story }: Props) {
         height: '100vh',
       }}
     >
-      <StoryPreviewV2 story={story} onClose={() => window.history.back()} />
+      <StoryPreviewV2 story={story} onClose={handleClose} />
     </div>
   );
-}
+});
+
+export default ClientPreviewStories;
