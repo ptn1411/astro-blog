@@ -1,25 +1,33 @@
 ---
 import { Icon } from 'astro-icon/components';
-import Headline from '~/components/blog/Headline.astro';
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
   subtitle?: string;
   tagline?: string;
-  files?: Array<{
+  files?: {
     name: string;
     url: string;
     size?: string;
     format?: string;
     icon?: string;
-  }>;
-  id?: string;
-  isDark?: boolean;
-  classes?: Record<string, string>;
-  bg?: string;
+  }[];
 }
 
-const { title = '', subtitle = '', tagline = '', files = [], id, isDark = false, classes = {}, bg = '' } = Astro.props;
+const {
+  title = '',
+  subtitle = '',
+  tagline = '',
+  files = [],
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
 
 const formatIcons: Record<string, string> = {
   pdf: 'tabler:file-type-pdf',
@@ -32,42 +40,41 @@ const formatIcons: Record<string, string> = {
 };
 ---
 
-<section
-  class:list={['relative not-prose scroll-mt-[72px]', { dark: isDark }, classes?.container]}
-  {...id ? { id } : {}}>
-  <Fragment set:html={bg} />
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-4xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <Headline title={title} subtitle={subtitle} tagline={tagline} />
 
-  <div class="relative px-4 py-16 md:py-20 lg:py-24 max-w-4xl mx-auto">
-    <Headline title={title} subtitle={subtitle} tagline={tagline} />
-
-    <div class="space-y-4">
-      {
-        files.map((file) => {
-          const iconName = file.icon || formatIcons[file.format?.toLowerCase() || ''] || formatIcons.default;
-          return (
-            <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg shadow border dark:border-slate-700">
-              <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded flex items-center justify-center text-blue-600 dark:text-blue-400">
-                  <Icon name={iconName} class="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 class="font-semibold dark:text-white">{file.name}</h4>
-                  <p class="text-sm text-gray-500 dark:text-slate-400">
-                    {[file.size, file.format?.toUpperCase()].filter(Boolean).join(' • ')}
-                  </p>
-                </div>
+  <div class="space-y-4 px-4">
+    {
+      files.map((file) => {
+        const iconName = file.icon || formatIcons[file.format?.toLowerCase() || ''] || formatIcons.default;
+        return (
+          <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg shadow border dark:border-slate-700">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded flex items-center justify-center text-blue-600 dark:text-blue-400">
+                <Icon name={iconName} class="w-6 h-6" />
               </div>
-              <a
-                href={file.url}
-                download
-                class="btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors flex items-center gap-2">
-                <Icon name="tabler:download" class="w-4 h-4" />
-                Download
-              </a>
+              <div>
+                <h4 class="font-semibold dark:text-white">{file.name}</h4>
+                <p class="text-sm text-gray-500 dark:text-slate-400">
+                  {[file.size, file.format?.toUpperCase()].filter(Boolean).join(' • ')}
+                </p>
+              </div>
             </div>
-          );
-        })
-      }
-    </div>
+            <a
+              href={file.url}
+              download
+              class="btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors flex items-center gap-2">
+              <Icon name="tabler:download" class="w-4 h-4" />
+              Download
+            </a>
+          </div>
+        );
+      })
+    }
   </div>
-</section>
+</WidgetWrapper>

@@ -1,42 +1,60 @@
 ---
-import Headline from '~/components/blog/Headline.astro';
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
   subtitle?: string;
   tagline?: string;
-  items?: Array<{ title: string; description: string }>;
-  id?: string;
-  isDark?: boolean;
-  classes?: Record<string, string>;
-  bg?: string;
+  items?: { title: string; description: string }[];
 }
 
-const { title = '', subtitle = '', tagline = '', items = [], id, isDark = false, classes = {}, bg = '' } = Astro.props;
+const {
+  title = '',
+  subtitle = '',
+  tagline = '',
+  items = [],
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
 ---
 
-<section
-  class:list={['relative not-prose scroll-mt-[72px]', { dark: isDark }, classes?.container]}
-  {...id ? { id } : {}}>
-  <Fragment set:html={bg} />
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-4xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <Headline title={title} subtitle={subtitle} tagline={tagline} />
 
-  <div class="relative px-4 py-16 md:py-20 lg:py-24 max-w-4xl mx-auto">
-    <Headline title={title} subtitle={subtitle} tagline={tagline} />
-
-    <div class="space-y-4">
-      {
-        items.map((item) => (
-          <details class="group border border-gray-200 dark:border-slate-700 rounded-lg">
-            <summary class="w-full px-6 py-4 text-left font-semibold flex justify-between items-center cursor-pointer list-none">
-              {item.title}
-              <span class="text-gray-400 group-open:rotate-45 transition-transform">+</span>
-            </summary>
-            <div class="px-6 pb-4 text-gray-600 dark:text-slate-400">
-              <Fragment set:html={item.description} />
-            </div>
-          </details>
-        ))
-      }
-    </div>
+  <div class="space-y-4 px-4">
+    {
+      items.map((item) => (
+        <details class="group bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden transition-all">
+          <summary class="flex justify-between items-center p-4 cursor-pointer font-bold dark:text-white hover:bg-gray-50 dark:hover:bg-slate-800">
+            {item.title}
+            <span class="transition group-open:rotate-180">
+              <svg
+                fill="none"
+                height="24"
+                shape-rendering="geometricPrecision"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                width="24">
+                <path d="6 9l6 6 6-6" />
+              </svg>
+            </span>
+          </summary>
+          <div class="px-4 pb-4 text-gray-600 dark:text-slate-400" set:html={item.description} />
+        </details>
+      ))
+    }
   </div>
-</section>
+</WidgetWrapper>

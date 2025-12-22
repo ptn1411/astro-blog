@@ -1,15 +1,13 @@
 ---
 import Headline from '~/components/ui/Headline.astro';
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
   subtitle?: string;
   tagline?: string;
   images?: { src: string; alt: string }[];
-  id?: string;
-  isDark?: boolean;
-  bg?: string;
   autoplay?: boolean;
   interval?: number;
 }
@@ -24,10 +22,11 @@ const {
   bg,
   autoplay = true,
   interval = 3000,
+  ...rest
 } = Astro.props;
 ---
 
-<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-6xl">
+<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-6xl" {...rest}>
   <Headline title={title} subtitle={subtitle} tagline={tagline} />
 
   <div class="relative group" data-slider data-autoplay={autoplay} data-interval={interval}>

@@ -118,14 +118,19 @@ export interface Widget {
   id?: string;
   isDark?: boolean;
   bg?: string;
-  classes?: Record<string, string | Record<string, string>>;
+  classes?: Record<string, any>;
+  animationEngine?: 'gsap' | 'anime' | 'css';
+  animationType?: string;
+  animationDuration?: number;
+  animationDelay?: number;
+  loopAnimation?: string;
 }
 
 export interface Headline {
   title?: string;
   subtitle?: string;
   tagline?: string;
-  classes?: Record<string, string>;
+  classes?: Record<string, any>;
 }
 
 interface TeamMember {
@@ -231,7 +236,7 @@ export interface Form {
 }
 
 // WIDGETS
-export interface Hero extends Omit<Headline, 'classes'>, Omit<Widget, 'isDark' | 'classes'> {
+export interface Hero extends Omit<Headline, 'classes'>, Widget {
   content?: string;
   actions?: string | CallToAction[];
   image?: string | unknown;
@@ -298,7 +303,7 @@ export interface Content extends Omit<Headline, 'classes'>, Widget {
 
 export interface Contact extends Omit<Headline, 'classes'>, Form, Widget {}
 
-export type Banner = {
+export interface Banner extends Widget {
   title?: string;
   subtitle?: string;
   image?: {
@@ -311,9 +316,4 @@ export type Banner = {
     type?: 'primary' | 'secondary';
   }>;
   variant?: 'default' | 'gradient' | 'dark';
-  id?: string;
-  classes?: {
-    container?: string;
-  };
-  bg?: string;
-};
+}

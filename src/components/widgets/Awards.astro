@@ -1,51 +1,59 @@
 ---
-import Headline from '~/components/blog/Headline.astro';
 import Image from '~/components/common/Image.astro';
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
   subtitle?: string;
   tagline?: string;
-  awards?: Array<{
+  awards?: {
     title: string;
-    organization?: string;
-    year?: string;
-    image?: { src: string; alt?: string };
-  }>;
-  id?: string;
-  isDark?: boolean;
-  classes?: Record<string, string>;
-  bg?: string;
+    organization: string;
+    year: string;
+    icon?: { src: string; alt?: string };
+  }[];
 }
 
-const { title = '', subtitle = '', tagline = '', awards = [], id, isDark = false, classes = {}, bg = '' } = Astro.props;
+const {
+  title = '',
+  subtitle = '',
+  tagline = '',
+  awards = [],
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
 ---
 
-<section
-  class:list={['relative not-prose scroll-mt-[72px]', { dark: isDark }, classes?.container]}
-  {...id ? { id } : {}}>
-  <Fragment set:html={bg} />
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-7xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <Headline title={title} subtitle={subtitle} tagline={tagline} />
 
-  <div class="relative px-4 py-16 md:py-20 lg:py-24 max-w-6xl mx-auto">
-    <Headline title={title} subtitle={subtitle} tagline={tagline} />
-
-    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {
-        awards.map((award) => (
-          <div class="text-center p-6 bg-gradient-to-b from-yellow-50 to-white dark:from-slate-800 dark:to-slate-900 rounded-xl shadow-sm">
-            {award.image ? (
-              <Image class="w-16 h-16 mx-auto mb-4 object-contain" width={64} height={64} {...award.image} />
-            ) : (
-              <div class="w-16 h-16 mx-auto mb-4 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center text-3xl">
-                🏆
-              </div>
-            )}
-            <h4 class="font-bold mb-1 dark:text-white">{award.title}</h4>
-            {award.organization && <p class="text-sm text-gray-500 dark:text-slate-400">{award.organization}</p>}
-            {award.year && <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">{award.year}</p>}
-          </div>
-        ))
-      }
-    </div>
+  <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4 px-4">
+    {
+      awards.map((award) => (
+        <div class="flex flex-col items-center text-center p-6 bg-white dark:bg-slate-900 rounded-xl shadow border border-gray-100 dark:border-slate-800">
+          {award.icon && (
+            <Image
+              class="w-16 h-16 mb-4 grayscale hover:grayscale-0 transition-all"
+              width={64}
+              height={64}
+              {...award.icon}
+            />
+          )}
+          <h4 class="font-bold text-lg dark:text-white leading-tight mb-1">{award.title}</h4>
+          <p class="text-sm text-gray-500 dark:text-slate-400">{award.organization}</p>
+          <p class="mt-2 text-blue-600 dark:text-blue-400 font-bold">{award.year}</p>
+        </div>
+      ))
+    }
   </div>
-</section>
+</WidgetWrapper>

@@ -1,48 +1,52 @@
 ---
-export interface Props {
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
+
+export interface Props extends Widget {
   title?: string;
-  address?: string;
-  embedUrl?: string;
-  height?: string;
-  id?: string;
-  isDark?: boolean;
-  classes?: Record<string, string>;
-  bg?: string;
+  subtitle?: string;
+  location?: string;
+  zoom?: number;
+  markers?: { lat: number; lng: number; label?: string }[];
 }
 
 const {
   title = '',
-  address = '',
-  embedUrl = '',
-  height = '400px',
+  subtitle = '',
+  location = '',
+  zoom = 12,
+  markers = [],
   id,
   isDark = false,
   classes = {},
-  bg = '',
+  bg = await Astro.slots.render('bg'),
+  ...rest
 } = Astro.props;
 ---
 
-<section class:list={['relative not-prose', { dark: isDark }, classes?.container]} {...id ? { id } : {}}>
-  <Fragment set:html={bg} />
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-7xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <div class="px-4">
+    {title && <h2 class="text-3xl font-bold text-center mb-4 dark:text-white">{title}</h2>}
+    {subtitle && <p class="text-center text-muted mb-8 dark:text-slate-400">{subtitle}</p>}
 
-  <div class="max-w-7xl mx-auto">
-    {title && <h3 class="text-2xl font-bold text-center py-8 dark:text-white" set:html={title} />}
-    {address && <p class="text-center text-gray-600 dark:text-slate-400 mb-4">{address}</p>}
-
-    <div class="bg-gray-200 dark:bg-slate-800 flex items-center justify-center" style={`height: ${height}`}>
-      {
-        embedUrl ? (
-          <iframe
-            src={embedUrl}
-            class="w-full h-full border-0"
-            allowfullscreen
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-          />
-        ) : (
-          <span class="text-gray-500 dark:text-slate-500">Map - Add embedUrl to display</span>
-        )
-      }
+    <div
+      class="aspect-video w-full bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden shadow-inner flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700">
+      <div class="text-center">
+        <p class="text-slate-500 dark:text-slate-400 font-medium">Interactive Map Placeholder</p>
+        <p class="text-xs text-slate-400 mt-1">
+          {location || 'Coordinate: ' + markers[0]?.lat + ', ' + markers[0]?.lng}
+        </p>
+        <div
+          class="mt-4 inline-flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-full text-sm shadow-sm border border-slate-200 dark:border-slate-800">
+          <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+          Marker Active: {zoom}x Zoom
+        </div>
+      </div>
     </div>
   </div>
-</section>
+</WidgetWrapper>

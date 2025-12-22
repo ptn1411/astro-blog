@@ -1,12 +1,11 @@
 ---
 import { APP_BLOG } from 'astrowind:config';
-
 import Grid from '~/components/blog/Grid.astro';
-
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import type { Widget } from '~/types';
 import { findPostsByIds } from '~/utils/blog';
 import { getBlogPermalink } from '~/utils/permalinks';
+import Button from '../ui/Button.astro';
 
 export interface Props extends Widget {
   title?: string;
@@ -27,6 +26,7 @@ const {
   isDark = false,
   classes = {},
   bg = await Astro.slots.render('bg'),
+  ...rest
 } = Astro.props;
 
 const posts = APP_BLOG.isEnabled ? await findPostsByIds(postIds) : [];
@@ -34,20 +34,18 @@ const posts = APP_BLOG.isEnabled ? await findPostsByIds(postIds) : [];
 
 {
   APP_BLOG.isEnabled ? (
-    <WidgetWrapper id={id} isDark={isDark} containerClass={classes?.container as string} bg={bg}>
-      <div class="flex flex-col lg:justify-between lg:flex-row mb-8">
+    <WidgetWrapper id={id} isDark={isDark} containerClass={classes?.container as string} bg={bg} {...rest}>
+      <div class="flex flex-col lg:justify-between lg:flex-row mb-8 px-4">
         {title && (
           <div class="md:max-w-sm">
             <h2
-              class="text-3xl font-bold tracking-tight sm:text-4xl sm:leading-none group font-heading mb-2 break-words"
+              class="text-3xl font-bold tracking-tight sm:text-4xl sm:leading-none group font-heading mb-2"
               set:html={title}
             />
-            {APP_BLOG.list.isEnabled && linkText && linkUrl && (
-              <a
-                class="text-muted dark:text-slate-400 hover:text-primary transition ease-in duration-200 block mb-6 lg:mb-0"
-                href={linkUrl}>
+            {linkText && linkUrl && (
+              <Button variant="link" href={linkUrl}>
                 {linkText} »
-              </a>
+              </Button>
             )}
           </div>
         )}

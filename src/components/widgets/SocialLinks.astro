@@ -1,21 +1,28 @@
 ---
 import { Icon } from 'astro-icon/components';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
-  links?: Array<{
+  links?: {
     href: string;
     label: string;
     icon?: string;
-  }>;
+  }[];
   variant?: 'default' | 'rounded' | 'outline';
-  id?: string;
-  isDark?: boolean;
-  classes?: Record<string, string>;
-  bg?: string;
 }
 
-const { title = '', links = [], variant = 'default', id, isDark = false, classes = {}, bg = '' } = Astro.props;
+const {
+  title = '',
+  links = [],
+  variant = 'default',
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
 
 const iconMap: Record<string, string> = {
   facebook: 'tabler:brand-facebook',
@@ -30,10 +37,8 @@ const iconMap: Record<string, string> = {
 };
 ---
 
-<section class:list={['relative not-prose py-12', { dark: isDark }, classes?.container]} {...id ? { id } : {}}>
-  <Fragment set:html={bg} />
-
-  <div class="max-w-xl mx-auto text-center">
+<WidgetWrapper id={id} isDark={isDark} containerClass={`py-12 ${classes?.container ?? ''}`} bg={bg} {...rest}>
+  <div class="max-w-xl mx-auto text-center px-4">
     {title && <h3 class="text-xl font-bold mb-6 dark:text-white" set:html={title} />}
 
     <div class="flex justify-center gap-4">
@@ -62,4 +67,4 @@ const iconMap: Record<string, string> = {
       }
     </div>
   </div>
-</section>
+</WidgetWrapper>

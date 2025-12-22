@@ -1,0 +1,54 @@
+---
+
+---
+
+<script>
+  import { playAnimeAnimation, playGSAPAnimation, playLoopAnimation } from '~/components/admin/story/animations';
+
+  document.addEventListener('astro:page-load', () => {
+    // Select all elements with animation engine data attribute
+    const animatedElements = document.querySelectorAll(
+      '[data-animation-engine="gsap"], [data-animation-engine="anime"]'
+    );
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const element = entry.target as HTMLElement;
+          const engine = element.dataset.animationEngine as 'gsap' | 'anime';
+          const type = element.dataset.animationType;
+          const duration = parseInt(element.dataset.animationDuration || '1000', 10);
+          const delay = parseInt(element.dataset.animationDelay || '0', 10);
+          const loop = element.dataset.loopAnimation;
+
+          if (type) {
+            // Play entrance animation
+            if (engine === 'gsap') {
+              playGSAPAnimation(element, type, { duration: duration / 1000, delay: delay / 1000 }); // GSAP uses seconds
+            } else if (engine === 'anime') {
+              playAnimeAnimation(element, type, { duration, delay }); // Anime uses milliseconds
+            }
+          }
+
+          if (loop) {
+            // Wait for entrance animation to finish (roughly) or start immediately if no entrance
+            const loopDelay = type ? duration + delay : 0;
+            setTimeout(() => {
+              playLoopAnimation(element, loop, engine);
+            }, loopDelay);
+          }
+
+          // Unobserve after playing (unless we want to replay on re-entry, but standard behavior is usually play once)
+          // For now, let's keep it simple: play once.
+          observer.unobserve(element);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.2, // Trigger when 20% visible
+    });
+
+    animatedElements.forEach((el) => observer.observe(el));
+  });
+</script>

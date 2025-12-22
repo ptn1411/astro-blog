@@ -31,6 +31,7 @@ import {
   Quote,
   Share2,
   ShoppingBag,
+  Sparkles,
   Table,
   Trophy,
   Users,
@@ -63,6 +64,7 @@ export type WidgetType =
   | 'Spacer'
   | 'Quote'
   | 'Video'
+  | 'EffectsWidget'
   | 'Gallery'
   | 'ImageSlider'
   | 'Team'
@@ -82,6 +84,7 @@ export type WidgetType =
   | 'Awards'
   | 'Partners'
   | 'Downloads'
+  | 'EffectsWidget'
   | 'Events';
 
 export type WidgetCategory = 'hero' | 'features' | 'content' | 'social' | 'blog' | 'misc';
@@ -104,13 +107,15 @@ export interface WidgetSchema {
   fields: {
     name: string;
     label: string;
-    type: 'text' | 'textarea' | 'number' | 'boolean' | 'json' | 'image' | 'icon' | 'array';
+    type: 'text' | 'textarea' | 'number' | 'boolean' | 'json' | 'image' | 'icon' | 'array' | 'select';
     placeholder?: string;
+    options?: { label: string; value: string }[];
     arraySchema?: {
       key: string;
       label: string;
-      type: 'text' | 'textarea' | 'image' | 'icon' | 'boolean' | 'number';
+      type: 'text' | 'textarea' | 'image' | 'icon' | 'boolean' | 'number' | 'select';
       placeholder?: string;
+      options?: { label: string; value: string }[];
     }[];
   }[];
 }
@@ -130,6 +135,93 @@ const COMMON_FIELDS = [
     label: 'Container Classes',
     type: 'text' as const,
     placeholder: 'vd: max-w-5xl mx-auto px-4',
+  },
+];
+
+// Common Animation Options
+const ANIMATION_ENTRANCE_OPTIONS = [
+  // GSAP
+  { label: 'Fade In', value: 'fadeIn' },
+  { label: 'Fade In Up', value: 'fadeInUp' },
+  { label: 'Fade In Down', value: 'fadeInDown' },
+  { label: 'Fade In Left', value: 'fadeInLeft' },
+  { label: 'Fade In Right', value: 'fadeInRight' },
+  { label: 'Zoom In', value: 'zoomIn' },
+  { label: 'Rotate In', value: 'rotateIn' },
+  // Anime.js
+  { label: 'Scale In', value: 'scaleIn' },
+  { label: 'Bounce In', value: 'bounceIn' },
+  { label: 'Elastic In', value: 'elasticIn' },
+  { label: 'Slide In X', value: 'slideInX' },
+  { label: 'Slide In Y', value: 'slideInY' },
+];
+
+const ANIMATION_LOOP_OPTIONS = [
+  { label: 'None', value: '' },
+  { label: 'Pulse', value: 'pulse' },
+  { label: 'Float', value: 'float' },
+  { label: 'Spin', value: 'spin' },
+  { label: 'Wiggle', value: 'wiggle' },
+  { label: 'Swing', value: 'swing' },
+  { label: 'Tada', value: 'tada' },
+  { label: 'Bounce', value: 'bounce' },
+];
+
+const ANIMATION_FIELDS = [
+  {
+    name: 'animationEngine',
+    label: 'Animation Engine',
+    type: 'select' as const,
+    options: [
+      { label: 'GSAP', value: 'gsap' },
+      { label: 'Anime.js', value: 'anime' },
+    ],
+  },
+  {
+    name: 'animationType',
+    label: 'Entrance Animation',
+    type: 'select' as const,
+    options: [{ label: 'None', value: '' }, ...ANIMATION_ENTRANCE_OPTIONS],
+  },
+  {
+    name: 'loopAnimation',
+    label: 'Loop Animation',
+    type: 'select' as const,
+    options: ANIMATION_LOOP_OPTIONS,
+  },
+  {
+    name: 'animationDuration',
+    label: 'Duration (ms)',
+    type: 'number' as const,
+    placeholder: '1000',
+  },
+  {
+    name: 'animationDelay',
+    label: 'Delay (ms)',
+    type: 'number' as const,
+    placeholder: '0',
+  },
+];
+
+// Helper to create animation fields for a specific prefix
+const createAnimationFields = (prefix: string, label: string) => [
+  {
+    name: `${prefix}AnimationType`,
+    label: `${label} Animation`,
+    type: 'select' as const,
+    options: [{ label: 'None', value: '' }, ...ANIMATION_ENTRANCE_OPTIONS],
+  },
+  {
+    name: `${prefix}AnimationDuration`,
+    label: `${label} Duration (ms)`,
+    type: 'number' as const,
+    placeholder: '1000',
+  },
+  {
+    name: `${prefix}AnimationDelay`,
+    label: `${label} Delay (ms)`,
+    type: 'number' as const,
+    placeholder: '0',
   },
 ];
 
@@ -161,6 +253,8 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
           { key: 'variant', label: 'Variant (primary/secondary)', type: 'text' },
         ],
       },
+      ...createAnimationFields('title', 'Title'),
+      ...createAnimationFields('image', 'Image'),
       ...COMMON_FIELDS,
     ],
   },
@@ -234,8 +328,18 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
       { name: 'tagline', label: 'Tagline', type: 'text' },
-      { name: 'items', label: 'Items (JSON)', type: 'json' },
+      {
+        name: 'items',
+        label: 'Items',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ],
+      },
       { name: 'columns', label: 'Columns', type: 'number' },
+      ...createAnimationFields('item', 'Item'),
       ...COMMON_FIELDS,
     ],
   },
@@ -257,7 +361,16 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
       { name: 'tagline', label: 'Tagline', type: 'text' },
-      { name: 'items', label: 'Items (JSON)', type: 'json' },
+      {
+        name: 'items',
+        label: 'Items',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ],
+      },
       { name: 'columns', label: 'Columns', type: 'number' },
       ...COMMON_FIELDS,
     ],
@@ -277,7 +390,16 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
-      { name: 'items', label: 'Items (JSON)', type: 'json' },
+      {
+        name: 'items',
+        label: 'Items',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ],
+      },
       { name: 'columns', label: 'Columns', type: 'number' },
       { name: 'isBeforeContent', label: 'Before Content', type: 'boolean' },
       { name: 'isAfterContent', label: 'After Content', type: 'boolean' },
@@ -309,7 +431,15 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       { name: 'image.alt', label: 'Image Alt', type: 'text' },
       { name: 'callToAction.text', label: 'CTA Text', type: 'text' },
       { name: 'callToAction.href', label: 'CTA Link', type: 'text' },
-      { name: 'items', label: 'Items (JSON)', type: 'json' },
+      {
+        name: 'items',
+        label: 'Items',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+        ],
+      },
       ...COMMON_FIELDS,
     ],
   },
@@ -332,7 +462,16 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
-      { name: 'items', label: 'Items (JSON)', type: 'json' },
+      {
+        name: 'items',
+        label: 'Items',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ],
+      },
       { name: 'isReversed', label: 'Reverse Layout', type: 'boolean' },
       { name: 'image.src', label: 'Image', type: 'image' },
       { name: 'image.alt', label: 'Image Alt', type: 'text' },
@@ -355,7 +494,15 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
-      { name: 'items', label: 'Items (JSON)', type: 'json' },
+      {
+        name: 'items',
+        label: 'Items',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+        ],
+      },
       ...COMMON_FIELDS,
     ],
   },
@@ -417,7 +564,16 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
-      { name: 'stats', label: 'Stats (JSON)', type: 'json' },
+      {
+        name: 'stats',
+        label: 'Stats',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'amount', label: 'Amount', type: 'text' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ],
+      },
       ...COMMON_FIELDS,
     ],
   },
@@ -433,7 +589,15 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
-      { name: 'items', label: 'Items (JSON)', type: 'json' },
+      {
+        name: 'items',
+        label: 'Items',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Question', type: 'text' },
+          { key: 'description', label: 'Answer', type: 'textarea' },
+        ],
+      },
       { name: 'columns', label: 'Columns', type: 'number' },
       ...COMMON_FIELDS,
     ],
@@ -531,7 +695,26 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
-      { name: 'inputs', label: 'Inputs (JSON)', type: 'json' },
+      {
+        name: 'inputs',
+        label: 'Inputs',
+        type: 'array',
+        arraySchema: [
+          { key: 'label', label: 'Label', type: 'text' },
+          { key: 'name', label: 'Name (unique)', type: 'text' },
+          {
+            key: 'type',
+            label: 'Type',
+            type: 'select',
+            options: [
+              { label: 'Text', value: 'text' },
+              { label: 'Email', value: 'email' },
+              { label: 'Tel', value: 'tel' },
+              { label: 'Number', value: 'number' },
+            ],
+          },
+        ],
+      },
       { name: 'textarea', label: 'Textarea (JSON)', type: 'json' },
       { name: 'button', label: 'Button Text', type: 'text' },
       ...COMMON_FIELDS,
@@ -549,7 +732,16 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'subtitle', label: 'Subtitle', type: 'text' },
-      { name: 'actions', label: 'Actions (JSON)', type: 'json' },
+      {
+        name: 'actions',
+        label: 'Actions',
+        type: 'array',
+        arraySchema: [
+          { key: 'text', label: 'Button Text', type: 'text' },
+          { key: 'href', label: 'Link URL', type: 'text' },
+          { key: 'variant', label: 'Variant', type: 'text', placeholder: 'primary, secondary' },
+        ],
+      },
       ...COMMON_FIELDS,
     ],
   },
@@ -632,6 +824,64 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       { name: 'style', label: 'Style (solid/dashed/dotted)', type: 'text' },
       { name: 'color', label: 'Color', type: 'text' },
       { name: 'spacing', label: 'Spacing (sm/md/lg)', type: 'text' },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'EffectsWidget',
+    category: 'misc',
+    icon: Sparkles,
+    label: 'Effects Playground',
+    defaultProps: {
+      title: 'Animation Effects',
+      subtitle: 'Demonstrating GSAP and Anime.js',
+      items: [
+        { title: 'Fade In', animation: 'fadeIn', engine: 'gsap' },
+        { title: 'Bounce', animation: 'bounceIn', engine: 'anime' },
+        { title: 'Rotate', animation: 'rotateIn', engine: 'gsap' },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Title', type: 'text' },
+      { name: 'subtitle', label: 'Subtitle', type: 'text' },
+      {
+        name: 'items',
+        label: 'Items',
+        type: 'array',
+        arraySchema: [
+          { key: 'title', label: 'Title', type: 'text' },
+          {
+            key: 'engine',
+            label: 'Engine',
+            type: 'select',
+            options: [
+              { label: 'GSAP', value: 'gsap' },
+              { label: 'Anime.js', value: 'anime' },
+            ],
+          },
+          {
+            key: 'animation',
+            label: 'Animation',
+            type: 'select',
+            options: [
+              // GSAP
+              { label: 'Fade In', value: 'fadeIn' },
+              { label: 'Fade In Up', value: 'fadeInUp' },
+              { label: 'Fade In Down', value: 'fadeInDown' },
+              { label: 'Fade In Left', value: 'fadeInLeft' },
+              { label: 'Fade In Right', value: 'fadeInRight' },
+              { label: 'Zoom In', value: 'zoomIn' },
+              { label: 'Rotate In', value: 'rotateIn' },
+              // Anime.js
+              { label: 'Scale In', value: 'scaleIn' },
+              { label: 'Bounce In', value: 'bounceIn' },
+              { label: 'Elastic In', value: 'elasticIn' },
+              { label: 'Slide In X', value: 'slideInX' },
+              { label: 'Slide In Y', value: 'slideInY' },
+            ],
+          },
+        ],
+      },
       ...COMMON_FIELDS,
     ],
   },

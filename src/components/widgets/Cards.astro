@@ -1,22 +1,20 @@
 ---
-import Headline from '~/components/blog/Headline.astro';
 import Image from '~/components/common/Image.astro';
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
   subtitle?: string;
   tagline?: string;
-  cards?: Array<{
+  cards?: {
     title: string;
     description?: string;
     image?: { src: string; alt?: string };
     link?: { href: string; text: string };
-  }>;
+  }[];
   columns?: number;
-  id?: string;
-  isDark?: boolean;
-  classes?: Record<string, string>;
-  bg?: string;
 }
 
 const {
@@ -28,7 +26,8 @@ const {
   id,
   isDark = false,
   classes = {},
-  bg = '',
+  bg = await Astro.slots.render('bg'),
+  ...rest
 } = Astro.props;
 
 const colsClass =
@@ -40,38 +39,30 @@ const colsClass =
   }[columns] || 'lg:grid-cols-3';
 ---
 
-<section
-  class:list={['relative not-prose scroll-mt-[72px]', { dark: isDark }, classes?.container]}
-  {...id ? { id } : {}}>
-  <Fragment set:html={bg} />
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-7xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <Headline title={title} subtitle={subtitle} tagline={tagline} />
 
-  <div class="relative px-4 py-16 md:py-20 lg:py-24 max-w-7xl mx-auto">
-    <Headline title={title} subtitle={subtitle} tagline={tagline} />
-
-    <div class:list={['grid gap-6 grid-cols-1 md:grid-cols-2', colsClass]}>
-      {
-        cards.map((card) => (
-          <div class="bg-white dark:bg-slate-900 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-            {card.image && (
-              <Image
-                class="w-full h-48 object-cover"
-                widths={[400, 768]}
-                sizes="(max-width: 768px) 100vw, 400px"
-                {...card.image}
-              />
+  <div class:list={['grid gap-8', colsClass]}>
+    {
+      cards.map((card) => (
+        <div class="flex flex-col bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+          {card.image && <Image class="w-full h-48 object-cover" width={400} height={200} {...card.image} />}
+          <div class="p-6 flex flex-grow flex-col">
+            <h3 class="text-xl font-bold mb-2 dark:text-white">{card.title}</h3>
+            {card.description && <p class="text-gray-600 dark:text-slate-400 mb-4 flex-grow">{card.description}</p>}
+            {card.link && (
+              <a href={card.link.href} class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">
+                {card.link.text} →
+              </a>
             )}
-            <div class="p-6">
-              <h3 class="font-bold text-xl mb-2 dark:text-white">{card.title}</h3>
-              {card.description && <p class="text-gray-600 dark:text-slate-400 mb-4" set:html={card.description} />}
-              {card.link && (
-                <a href={card.link.href} class="text-blue-600 hover:underline dark:text-blue-400">
-                  {card.link.text} →
-                </a>
-              )}
-            </div>
           </div>
-        ))
-      }
-    </div>
+        </div>
+      ))
+    }
   </div>
-</section>
+</WidgetWrapper>

@@ -12,7 +12,7 @@ export interface Props {
   bg?: string;
 }
 
-const { title, subtitle, videoUrl, aspectRatio = '16:9', id, isDark = false, bg } = Astro.props;
+const { title, subtitle, videoUrl, aspectRatio = '16:9', id, isDark = false, bg, ...rest } = Astro.props;
 
 const aspectMap = {
   '16:9': 'aspect-video',
@@ -21,7 +21,7 @@ const aspectMap = {
 };
 ---
 
-<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-5xl">
+<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-5xl" {...rest}>
   {(title || subtitle) && <Headline title={title} subtitle={subtitle} classes={{ container: 'mb-8' }} />}
   <div class={`relative w-full ${aspectMap[aspectRatio]} rounded-lg overflow-hidden shadow-lg`}>
     <iframe

@@ -1,15 +1,25 @@
 ---
-export interface Props {
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
+
+export interface Props extends Widget {
   title?: string;
   message?: string;
   type?: 'info' | 'success' | 'warning' | 'error';
   dismissible?: boolean;
-  id?: string;
-  isDark?: boolean;
-  classes?: Record<string, string>;
 }
 
-const { title = '', message = '', type = 'info', dismissible = false, id, isDark = false, classes = {} } = Astro.props;
+const {
+  title = '',
+  message = '',
+  type = 'info',
+  dismissible = false,
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
 
 const colors = {
   info: 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-700 dark:text-blue-300',
@@ -26,28 +36,27 @@ const icons = {
 };
 ---
 
-<div
-  class:list={['border-l-4 p-4 my-4 rounded-r-lg', colors[type], { dark: isDark }, classes?.container]}
-  {...id ? { id } : {}}
-  role="alert">
-  <div class="flex justify-between items-start">
-    <div class="flex gap-3">
-      <span class="text-lg flex-shrink-0">{icons[type]}</span>
-      <div>
-        {title && <p class="font-bold mb-1">{title}</p>}
-        {message && <p set:html={message} />}
+<WidgetWrapper id={id} isDark={isDark} containerClass={`my-4 ${classes?.container ?? ''}`} bg={bg} {...rest}>
+  <div class:list={['border-l-4 p-4 rounded-r-lg', colors[type]]} role="alert">
+    <div class="flex justify-between items-start">
+      <div class="flex gap-3">
+        <span class="text-lg flex-shrink-0">{icons[type]}</span>
+        <div>
+          {title && <p class="font-bold mb-1">{title}</p>}
+          {message && <p set:html={message} />}
+        </div>
       </div>
+      {
+        dismissible && (
+          <button
+            type="button"
+            class="text-xl font-bold opacity-50 hover:opacity-100 transition-opacity"
+            onclick="this.parentElement.parentElement.remove()"
+            aria-label="Dismiss">
+            ×
+          </button>
+        )
+      }
     </div>
-    {
-      dismissible && (
-        <button
-          type="button"
-          class="text-xl font-bold opacity-50 hover:opacity-100 transition-opacity"
-          onclick="this.parentElement.parentElement.remove()"
-          aria-label="Dismiss">
-          ×
-        </button>
-      )
-    }
   </div>
-</div>
+</WidgetWrapper>

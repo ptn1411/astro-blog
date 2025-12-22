@@ -11,10 +11,10 @@ export interface Props {
   bg?: string;
 }
 
-const { quote, author, role, image, id, isDark = false, bg } = Astro.props;
+const { quote, author, role, image, id, isDark = false, bg, ...rest } = Astro.props;
 ---
 
-<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-4xl">
+<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-4xl" {...rest}>
   <figure class="mx-auto text-center">
     <blockquote class="relative">
       <svg

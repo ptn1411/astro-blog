@@ -132,6 +132,23 @@ export function PropsEditor({
                 placeholder={field.placeholder}
               />
             )}
+
+            {field.type === 'select' && (
+              <select
+                className={`w-full p-2 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
+                }`}
+                value={(currentValue as string) || ''}
+                onChange={(e) => handleUpdate(e.target.value)}
+              >
+                <option value="">Select...</option>
+                {field.options?.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         );
       })}

@@ -6,7 +6,9 @@ import { ImagePicker } from './ImagePicker';
 export interface ArrayItemField {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'image' | 'icon' | 'boolean' | 'number';
+  type: 'text' | 'textarea' | 'image' | 'icon' | 'boolean' | 'number' | 'select';
+  placeholder?: string;
+  options?: { label: string; value: string }[];
 }
 
 interface ArrayEditorProps {
@@ -155,6 +157,21 @@ export function ArrayEditor({ value = [], onChange, isDarkMode, itemSchema = DEF
             value={val || ''}
             onChange={(e) => updateItem(index, field.key, parseInt(e.target.value) || 0)}
           />
+        );
+      case 'select':
+        return (
+          <select
+            className={inputClass}
+            value={val || ''}
+            onChange={(e) => updateItem(index, field.key, e.target.value)}
+          >
+            <option value="">Select...</option>
+            {field.options?.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         );
       case 'text':
       default:

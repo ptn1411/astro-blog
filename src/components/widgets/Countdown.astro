@@ -1,109 +1,74 @@
 ---
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
-import Headline from '~/components/ui/Headline.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
   subtitle?: string;
-  targetDate: string;
-  showDays?: boolean;
-  showHours?: boolean;
-  showMinutes?: boolean;
-  showSeconds?: boolean;
-  id?: string;
-  isDark?: boolean;
-  bg?: string;
+  date: string;
 }
 
 const {
-  title,
-  subtitle,
-  targetDate,
-  showDays = true,
-  showHours = true,
-  showMinutes = true,
-  showSeconds = true,
+  title = '',
+  subtitle = '',
+  date,
   id,
   isDark = false,
-  bg,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
 } = Astro.props;
-
-const countdownId = `countdown-${Math.random().toString(36).substr(2, 9)}`;
 ---
 
-<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-3xl">
-  {(title || subtitle) && <Headline title={title} subtitle={subtitle} classes={{ container: 'mb-8 text-center' }} />}
-  <div id={countdownId} class="flex justify-center gap-4 md:gap-8" data-target={targetDate}>
-    {
-      showDays && (
-        <div class="flex flex-col items-center">
-          <div class="text-4xl md:text-6xl font-bold text-primary countdown-days">00</div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wide">Days</div>
-        </div>
-      )
-    }
-    {
-      showHours && (
-        <div class="flex flex-col items-center">
-          <div class="text-4xl md:text-6xl font-bold text-primary countdown-hours">00</div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wide">Hours</div>
-        </div>
-      )
-    }
-    {
-      showMinutes && (
-        <div class="flex flex-col items-center">
-          <div class="text-4xl md:text-6xl font-bold text-primary countdown-minutes">00</div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wide">Minutes</div>
-        </div>
-      )
-    }
-    {
-      showSeconds && (
-        <div class="flex flex-col items-center">
-          <div class="text-4xl md:text-6xl font-bold text-primary countdown-seconds">00</div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wide">Seconds</div>
-        </div>
-      )
-    }
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-4xl mx-auto text-center ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <div class="px-4">
+    {title && <h2 class="text-3xl md:text-4xl font-bold mb-4 dark:text-white" set:html={title} />}
+    {subtitle && <p class="text-xl text-muted mb-10 dark:text-slate-400" set:html={subtitle} />}
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" data-countdown={date}>
+      {
+        ['days', 'hours', 'minutes', 'seconds'].map((label) => (
+          <div class="bg-white dark:bg-slate-900 rounded-lg shadow-md p-4 border border-gray-100 dark:border-slate-800">
+            <div class="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-1" id={`countdown-${label}`}>
+              00
+            </div>
+            <div class="text-xs uppercase tracking-widest text-gray-500 dark:text-slate-500 font-semibold">{label}</div>
+          </div>
+        ))
+      }
+    </div>
   </div>
-</WidgetWrapper>
 
-<script define:vars={{ countdownId, targetDate }}>
-  function initCountdown() {
-    const container = document.getElementById(countdownId);
-    if (!container) return;
+  <script is:inline>
+    function updateCountdown() {
+      const el = document.querySelector('[data-countdown]');
+      if (!el) return;
 
-    const target = new Date(targetDate).getTime();
-
-    function update() {
+      const targetDate = new Date(el.dataset.countdown).getTime();
       const now = new Date().getTime();
-      const diff = target - now;
+      const distance = targetDate - now;
 
-      if (diff <= 0) {
-        container.innerHTML = '<p class="text-2xl font-bold text-primary">🎉 Event Started!</p>';
+      if (distance < 0) {
         return;
       }
 
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-      const daysEl = container.querySelector('.countdown-days');
-      const hoursEl = container.querySelector('.countdown-hours');
-      const minutesEl = container.querySelector('.countdown-minutes');
-      const secondsEl = container.querySelector('.countdown-seconds');
-
-      if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
-      if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
-      if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
-      if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+      document.getElementById('countdown-days').innerText = String(days).padStart(2, '0');
+      document.getElementById('countdown-hours').innerText = String(hours).padStart(2, '0');
+      document.getElementById('countdown-minutes').innerText = String(minutes).padStart(2, '0');
+      document.getElementById('countdown-seconds').innerText = String(seconds).padStart(2, '0');
     }
 
-    update();
-    setInterval(update, 1000);
-  }
-
-  initCountdown();
-</script>
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+  </script>
+</WidgetWrapper>

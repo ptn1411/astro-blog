@@ -1,26 +1,34 @@
 ---
-import Headline from '~/components/blog/Headline.astro';
 import Button from '~/components/ui/Button.astro';
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
   subtitle?: string;
   tagline?: string;
-  events?: Array<{
+  events?: {
     title: string;
     description?: string;
     date: string;
     time?: string;
     location?: string;
     link?: { text?: string; href: string };
-  }>;
-  id?: string;
-  isDark?: boolean;
-  classes?: Record<string, string>;
-  bg?: string;
+  }[];
 }
 
-const { title = '', subtitle = '', tagline = '', events = [], id, isDark = false, classes = {}, bg = '' } = Astro.props;
+const {
+  title = '',
+  subtitle = '',
+  tagline = '',
+  events = [],
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -32,43 +40,42 @@ function formatDate(dateStr: string) {
 }
 ---
 
-<section
-  class:list={['relative not-prose scroll-mt-[72px]', { dark: isDark }, classes?.container]}
-  {...id ? { id } : {}}>
-  <Fragment set:html={bg} />
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-4xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <Headline title={title} subtitle={subtitle} tagline={tagline} />
 
-  <div class="relative px-4 py-16 md:py-20 lg:py-24 max-w-6xl mx-auto">
-    <Headline title={title} subtitle={subtitle} tagline={tagline} />
-
-    <div class="space-y-6">
-      {
-        events.map((event) => {
-          const { day, month } = formatDate(event.date);
-          return (
-            <div class="flex gap-6 p-6 bg-white dark:bg-slate-900 rounded-xl shadow-lg">
-              <div class="flex-shrink-0 w-20 text-center">
-                <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{day}</div>
-                <div class="text-sm text-gray-500 dark:text-slate-400 uppercase">{month}</div>
+  <div class="space-y-6 px-4">
+    {
+      events.map((event) => {
+        const { day, month, year } = formatDate(event.date);
+        return (
+          <div class="flex gap-6 p-6 bg-white dark:bg-slate-900 rounded-lg shadow-md border border-gray-100 dark:border-slate-800">
+            <div class="flex-shrink-0 text-center w-20">
+              <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{day}</div>
+              <div class="text-sm font-semibold uppercase text-gray-500 dark:text-slate-400">
+                {month} {year}
               </div>
-              <div class="flex-1">
-                <h3 class="font-bold text-xl mb-2 dark:text-white">{event.title}</h3>
-                {event.description && <p class="text-gray-600 dark:text-slate-400 mb-2" set:html={event.description} />}
-                <div class="flex gap-4 text-sm text-gray-500 dark:text-slate-400">
-                  {event.location && <span>📍 {event.location}</span>}
-                  {event.time && <span>🕐 {event.time}</span>}
-                </div>
-              </div>
-              {event.link && (
-                <div class="self-center">
-                  <Button href={event.link.href} variant="primary">
-                    {event.link.text || 'Register'}
-                  </Button>
+            </div>
+            <div class="flex-grow">
+              <h4 class="text-xl font-bold mb-2 dark:text-white">{event.title}</h4>
+              {[event.time, event.location].filter(Boolean).length > 0 && (
+                <div class="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-slate-400 mb-3">
+                  {event.time && <div class="flex items-center gap-1">🕒 {event.time}</div>}
+                  {event.location && <div class="flex items-center gap-1">📍 {event.location}</div>}
                 </div>
               )}
+              {event.description && <p class="text-gray-600 dark:text-slate-400 mb-4">{event.description}</p>}
+              {event.link && (
+                <Button {...event.link} variant="link" class="text-blue-600 dark:text-blue-400 p-0 h-auto" />
+              )}
             </div>
-          );
-        })
-      }
-    </div>
+          </div>
+        );
+      })
+    }
   </div>
-</section>
+</WidgetWrapper>

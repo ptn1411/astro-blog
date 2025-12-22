@@ -1,61 +1,79 @@
 ---
-import Headline from '~/components/blog/Headline.astro';
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
   subtitle?: string;
   tagline?: string;
-  plans?: Array<{
+  plans?: {
     name: string;
-    features: Array<{ name: string; included: boolean }>;
-  }>;
-  id?: string;
-  isDark?: boolean;
-  classes?: Record<string, string>;
-  bg?: string;
+    features: { name: string; included: boolean }[];
+  }[];
 }
 
-const { title = '', subtitle = '', tagline = '', plans = [], id, isDark = false, classes = {}, bg = '' } = Astro.props;
+const {
+  title = '',
+  subtitle = '',
+  tagline = '',
+  plans = [],
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
 
 // Get all unique feature names from the first plan
 const featureNames = plans[0]?.features?.map((f) => f.name) || [];
 ---
 
-<section
-  class:list={['relative not-prose scroll-mt-[72px]', { dark: isDark }, classes?.container]}
-  {...id ? { id } : {}}>
-  <Fragment set:html={bg} />
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-7xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <Headline title={title} subtitle={subtitle} tagline={tagline} />
 
-  <div class="relative px-4 py-16 md:py-20 lg:py-24 max-w-6xl mx-auto">
-    <Headline title={title} subtitle={subtitle} tagline={tagline} />
-
-    <div class="overflow-x-auto">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="bg-gray-100 dark:bg-slate-800">
-            <th class="p-4 text-left dark:text-white">Feature</th>
-            {plans.map((plan) => <th class="p-4 text-center font-bold dark:text-white">{plan.name}</th>)}
-          </tr>
-        </thead>
-        <tbody>
+  <div class="overflow-x-auto px-4">
+    <table class="w-full border-collapse">
+      <thead>
+        <tr>
+          <th class="p-4 text-left bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 dark:text-white"
+            >Feature</th
+          >
           {
-            featureNames.map((featureName, fi) => (
-              <tr class="border-b dark:border-slate-700">
-                <td class="p-4 dark:text-slate-300">{featureName}</td>
-                {plans.map((plan) => (
-                  <td class="p-4 text-center">
-                    {plan.features[fi]?.included ? (
-                      <span class="text-green-600 dark:text-green-400 text-xl">✓</span>
-                    ) : (
-                      <span class="text-gray-300 dark:text-slate-600 text-xl">−</span>
-                    )}
-                  </td>
-                ))}
-              </tr>
+            plans.map((plan) => (
+              <th class="p-4 text-center bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 dark:text-white">
+                {plan.name}
+              </th>
             ))
           }
-        </tbody>
-      </table>
-    </div>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          featureNames.map((name) => (
+            <tr>
+              <td class="p-4 border dark:border-slate-700 dark:text-slate-300">{name}</td>
+              {plans.map((plan) => {
+                const feature = plan.features.find((f) => f.name === name);
+                return (
+                  <td class="p-4 text-center border dark:border-slate-700">
+                    {feature?.included ? (
+                      <span class="text-green-500 text-xl font-bold">✓</span>
+                    ) : (
+                      <span class="text-red-500 text-xl font-bold">✕</span>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
   </div>
-</section>
+</WidgetWrapper>

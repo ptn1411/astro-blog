@@ -1,47 +1,51 @@
 ---
-import Headline from '~/components/blog/Headline.astro';
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
   subtitle?: string;
   tagline?: string;
-  items?: Array<{ title: string; description: string; date?: string }>;
-  id?: string;
-  isDark?: boolean;
-  classes?: Record<string, string>;
-  bg?: string;
+  items?: { title: string; subtitle?: string; description?: string }[];
 }
 
-const { title = '', subtitle = '', tagline = '', items = [], id, isDark = false, classes = {}, bg = '' } = Astro.props;
+const {
+  title = '',
+  subtitle = '',
+  tagline = '',
+  items = [],
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
 ---
 
-<section
-  class:list={['relative not-prose scroll-mt-[72px]', { dark: isDark }, classes?.container]}
-  {...id ? { id } : {}}>
-  <Fragment set:html={bg} />
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-4xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <Headline title={title} subtitle={subtitle} tagline={tagline} />
 
-  <div class="relative px-4 py-16 md:py-20 lg:py-24 max-w-4xl mx-auto">
-    <Headline title={title} subtitle={subtitle} tagline={tagline} />
-
-    <div class="relative">
-      <div class="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-blue-200 dark:bg-slate-700"></div>
-
-      {
-        items.map((item, index) => (
-          <div class:list={['relative flex items-start mb-8', index % 2 === 0 ? 'md:flex-row-reverse' : '']}>
-            <div class="absolute left-4 md:left-1/2 w-4 h-4 bg-blue-600 rounded-full transform -translate-x-1/2" />
-            <div
-              class:list={[
-                'ml-12 md:ml-0 md:w-1/2 p-4 bg-white dark:bg-slate-900 rounded-lg shadow',
-                index % 2 === 0 ? 'md:mr-8' : 'md:ml-8',
-              ]}>
-              {item.date && <div class="text-sm text-blue-600 dark:text-blue-400 mb-1">{item.date}</div>}
-              <h3 class="font-bold text-lg mb-2 dark:text-white">{item.title}</h3>
-              <p class="text-gray-600 dark:text-slate-400" set:html={item.description} />
-            </div>
+  <div
+    class="relative space-y-8 px-4 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent dark:before:via-slate-700">
+    {
+      items.map((item, index) => (
+        <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+          <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-700 text-slate-500 group-[.is-active]:bg-blue-600 group-[.is-active]:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+            <span class="text-sm font-bold">{index + 1}</span>
           </div>
-        ))
-      }
-    </div>
+          <div class="w-[calc(100%-4rem)] md:w-[45%] p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+            <h4 class="font-bold dark:text-white">{item.title}</h4>
+            {item.subtitle && <p class="text-sm text-blue-600 dark:text-blue-400 font-medium">{item.subtitle}</p>}
+            {item.description && <p class="text-gray-600 dark:text-slate-400 mt-2 text-sm">{item.description}</p>}
+          </div>
+        </div>
+      ))
+    }
   </div>
-</section>
+</WidgetWrapper>

@@ -1,9 +1,21 @@
 ---
 import Image from '~/components/common/Image.astro';
 import Button from '~/components/ui/Button.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import type { Banner as Props } from '~/types';
 
-const { title = '', subtitle = '', image, actions = [], variant = 'default', id, classes = {}, bg = '' } = Astro.props;
+const {
+  title = '',
+  subtitle = '',
+  image,
+  actions = [],
+  variant = 'default',
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
 
 const bgClass =
   variant === 'gradient'
@@ -13,9 +25,12 @@ const bgClass =
       : 'bg-blue-600';
 ---
 
-<section class:list={['relative not-prose py-20 text-white', bgClass, classes?.container]} {...id ? { id } : {}}>
-  <Fragment set:html={bg} />
-
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`relative py-20 text-white ${bgClass} ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
   {
     image && (
       <div class="absolute inset-0 z-0">
@@ -46,4 +61,4 @@ const bgClass =
       })
     }
   </div>
-</section>
+</WidgetWrapper>

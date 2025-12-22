@@ -15,10 +15,16 @@ const {
   isDark = false,
   classes = {},
   bg = await Astro.slots.render('bg'),
+  ...rest
 } = Astro.props;
 ---
 
-<WidgetWrapper id={id} isDark={isDark} containerClass={`max-w-7xl mx-auto ${classes?.container ?? ''}`} bg={bg}>
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-7xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
   <Headline title={title} subtitle={subtitle} tagline={tagline} />
   <ItemGrid
     items={items}

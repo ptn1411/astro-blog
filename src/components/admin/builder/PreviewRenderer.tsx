@@ -1,5 +1,7 @@
 import * as TablerIcons from '@tabler/icons-react';
 import React from 'react';
+import { playAnimeAnimation, playGSAPAnimation } from '../story/animations';
+import { WidgetWrapper } from './components/WidgetWrapper';
 import { WIDGET_REGISTRY, type WidgetType } from './registry';
 function tablerNameToComponent(name: string) {
   return (
@@ -18,13 +20,32 @@ interface PreviewRendererProps {
 // Helper to simplify class names
 const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(' ');
 
-export const PreviewRenderer: React.FC<PreviewRendererProps> = ({ type, props }) => {
+export const PreviewRenderer: React.FC<PreviewRendererProps> = (props) => {
+  const { type, props: widgetProps } = props;
   const widgetDef = WIDGET_REGISTRY.find((w) => w.type === type);
 
   if (!widgetDef) {
     return <div className="p-4 bg-red-100 text-red-700">Unknown Widget: {type}</div>;
   }
 
+  return (
+    <WidgetWrapper
+      animationEngine={widgetProps.animationEngine as any}
+      animationType={widgetProps.animationType as string}
+      loopAnimation={widgetProps.loopAnimation as string}
+      animationDuration={widgetProps.animationDuration as number}
+      animationDelay={widgetProps.animationDelay as number}
+    >
+      <InnerPreviewRenderer type={type} props={widgetProps} widgetDef={widgetDef} />
+    </WidgetWrapper>
+  );
+};
+
+const InnerPreviewRenderer: React.FC<{
+  type: WidgetType;
+  props: Record<string, unknown>;
+  widgetDef: any;
+}> = ({ type, props, widgetDef }) => {
   // --- Specific Overrides for Complex Widgets ---
   // You can extend this switch for widgets that need special layout
   switch (type) {
@@ -113,6 +134,8 @@ export const PreviewRenderer: React.FC<PreviewRendererProps> = ({ type, props })
       return <DownloadsRenderer {...props} />;
     case 'Events':
       return <EventsRenderer {...props} />;
+    case 'EffectsWidget':
+      return <EffectsWidgetRenderer {...props} />;
     default:
       return <GenericRenderer type={type} props={props} />;
   }
@@ -167,7 +190,21 @@ const WidgetHeader = ({ title, subtitle, tagline, position = 'center' }: any) =>
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const HeroRenderer = (props: any) => {
-  const { title, subtitle, tagline, content, image, actions } = props;
+  const {
+    title,
+    subtitle,
+    tagline,
+    content,
+    image,
+    actions,
+    // Internal animation props
+    titleAnimationType,
+    titleAnimationDuration,
+    titleAnimationDelay,
+    imageAnimationType,
+    imageAnimationDuration,
+    imageAnimationDelay,
+  } = props;
 
   return (
     <section className="relative md:-mt-[76px] not-prose">
@@ -183,10 +220,16 @@ const HeroRenderer = (props: any) => {
               />
             )}
             {title && (
-              <h1
-                className="text-5xl md:text-6xl font-bold leading-tighter tracking-tighter mb-4 font-heading dark:text-gray-200"
-                dangerouslySetInnerHTML={{ __html: title }}
-              />
+              <WidgetWrapper
+                animationType={titleAnimationType}
+                animationDuration={titleAnimationDuration}
+                animationDelay={titleAnimationDelay}
+              >
+                <h1
+                  className="text-5xl md:text-6xl font-bold leading-tighter tracking-tighter mb-4 font-heading dark:text-gray-200"
+                  dangerouslySetInnerHTML={{ __html: title }}
+                />
+              </WidgetWrapper>
             )}
             <div
               className="max-w-3xl mx-auto lg:max-w-none text-xl text-muted mb-6 dark:text-slate-300"
@@ -209,7 +252,13 @@ const HeroRenderer = (props: any) => {
           </div>
           {image && (
             <div className="basis-1/2">
-              <img src={image.src} alt={image.alt} className="mx-auto rounded-md w-full" />
+              <WidgetWrapper
+                animationType={imageAnimationType}
+                animationDuration={imageAnimationDuration}
+                animationDelay={imageAnimationDelay}
+              >
+                <img src={image.src} alt={image.alt} className="mx-auto rounded-md w-full" />
+              </WidgetWrapper>
             </div>
           )}
         </div>
@@ -220,7 +269,17 @@ const HeroRenderer = (props: any) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const FeaturesRenderer = (props: any) => {
-  const { title, subtitle, tagline, items, columns = 2 } = props;
+  const {
+    title,
+    subtitle,
+    tagline,
+    items,
+    columns = 2,
+    // Item animation props
+    itemAnimationType,
+    itemAnimationDuration = 1000,
+    itemAnimationDelay = 0,
+  } = props;
 
   return (
     <section className="scroll-mt-16 relative not-prose">
@@ -238,19 +297,25 @@ const FeaturesRenderer = (props: any) => {
         >
           {items &&
             items.map((item: any, i: number) => (
-              <div
+              <WidgetWrapper
                 key={i}
-                className="relative flex flex-col p-6 bg-white dark:bg-slate-900 rounded shadow-lg hover:shadow-md transition-shadow border border-transparent dark:border-slate-800"
+                animationType={itemAnimationType}
+                animationDuration={itemAnimationDuration}
+                animationDelay={itemAnimationDelay + i * 150} // Stagger effect
               >
-                <div className="flex items-center mb-4">
-                  {/* Icon placeholder since we don't have the icon resolver here */}
-                  <div className="w-10 h-10 rounded bg-primary text-white flex items-center justify-center mr-4">★</div>
-                  <div className="text-xl font-bold">{item.title}</div>
+                <div className="relative flex flex-col p-6 bg-white dark:bg-slate-900 rounded shadow-lg hover:shadow-md transition-shadow border border-transparent dark:border-slate-800 h-full">
+                  <div className="flex items-center mb-4">
+                    {/* Icon placeholder since we don't have the icon resolver here */}
+                    <div className="w-10 h-10 rounded bg-primary text-white flex items-center justify-center mr-4">
+                      ★
+                    </div>
+                    <div className="text-xl font-bold">{item.title}</div>
+                  </div>
+                  {item.description && (
+                    <p className="text-muted text-md mt-2" dangerouslySetInnerHTML={{ __html: item.description }} />
+                  )}
                 </div>
-                {item.description && (
-                  <p className="text-muted text-md mt-2" dangerouslySetInnerHTML={{ __html: item.description }} />
-                )}
-              </div>
+              </WidgetWrapper>
             ))}
         </div>
       </div>
@@ -809,6 +874,61 @@ const CountdownRenderer = (props: any) => {
       </div>
       <p className="mt-4 text-xs text-gray-400">Target: {new Date(targetDate).toLocaleDateString()}</p>
     </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const EffectsWidgetRenderer = (props: any) => {
+  const { title, subtitle, items } = props;
+
+  return (
+    <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-7xl mx-auto">
+      <WidgetHeader title={title} subtitle={subtitle} />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {items?.map((item: any, idx: number) => (
+          <EffectItem key={idx} item={item} />
+        ))}
+      </div>
+    </section>
+  );
+};
+
+const EffectItem = ({ item }: { item: any }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isHovered && ref.current) {
+      // Re-trigger animation on hover for demo purposes
+      if (item.engine === 'gsap') {
+        playGSAPAnimation(ref.current, item.animation, { duration: 1 });
+      } else if (item.engine === 'anime') {
+        playAnimeAnimation(ref.current, item.animation, { duration: 1000 });
+      }
+    }
+  }, [isHovered, item]);
+
+  return (
+    <div
+      className="p-6 bg-white dark:bg-slate-900 shadow-lg rounded-xl flex flex-col items-center justify-center min-h-[200px] cursor-pointer border border-transparent hover:border-blue-500 transition-colors"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div ref={ref} className="text-4xl mb-4 bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
+        ✨
+      </div>
+      <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+      <div className="text-sm text-gray-500 dark:text-gray-400">
+        Engine:{' '}
+        <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">{item.engine}</span>
+      </div>
+      <div className="text-sm text-gray-500 dark:text-gray-400">
+        Effect:{' '}
+        <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">{item.animation}</span>
+      </div>
+      <p className="mt-4 text-xs text-center text-gray-400">Hover to replay</p>
+    </div>
   );
 };
 

@@ -16,13 +16,13 @@ interface Link {
 }
 
 interface MenuLink extends Link {
-  links?: Array<MenuLink>;
+  links?: MenuLink[];
 }
 
 export interface Props {
   id?: string;
-  links?: Array<MenuLink>;
-  actions?: Array<CallToAction>;
+  links?: MenuLink[];
+  actions?: CallToAction[];
   isSticky?: boolean;
   isDark?: boolean;
   isFullWidth?: boolean;

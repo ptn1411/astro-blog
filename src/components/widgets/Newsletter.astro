@@ -1,16 +1,14 @@
 ---
 import Headline from '~/components/ui/Headline.astro';
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   title?: string;
   subtitle?: string;
   placeholder?: string;
   buttonText?: string;
   disclaimer?: string;
-  id?: string;
-  isDark?: boolean;
-  bg?: string;
 }
 
 const {
@@ -22,10 +20,11 @@ const {
   id,
   isDark = false,
   bg,
+  ...rest
 } = Astro.props;
 ---
 
-<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-xl">
+<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-xl" {...rest}>
   {(title || subtitle) && <Headline title={title} subtitle={subtitle} classes={{ container: 'mb-6 text-center' }} />}
   <form class="flex flex-col sm:flex-row gap-3">
     <input

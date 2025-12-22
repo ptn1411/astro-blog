@@ -12,7 +12,7 @@ export interface Props {
   bg?: string;
 }
 
-const { title, subtitle, columns = 3, images = [], id, isDark = false, bg } = Astro.props;
+const { title, subtitle, columns = 3, images = [], id, isDark = false, bg, ...rest } = Astro.props;
 
 const gridCols = {
   2: 'grid-cols-2',
@@ -21,7 +21,7 @@ const gridCols = {
 };
 ---
 
-<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-6xl">
+<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-6xl" {...rest}>
   {(title || subtitle) && <Headline title={title} subtitle={subtitle} classes={{ container: 'mb-8' }} />}
   <div class={`grid ${gridCols[columns] || gridCols[3]} gap-4`}>
     {

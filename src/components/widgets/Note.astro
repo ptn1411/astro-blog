@@ -1,7 +1,9 @@
 ---
 import { Icon } from 'astro-icon/components';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Widget } from '~/types';
 
-export interface Props {
+export interface Props extends Widget {
   icon?: string;
   title?: string;
   description?: string;
@@ -11,13 +13,23 @@ const {
   icon = 'tabler:info-square',
   title = await Astro.slots.render('title'),
   description = await Astro.slots.render('description'),
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
 } = Astro.props;
 ---
 
-<section class="bg-blue-50 dark:bg-slate-800 not-prose">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 text-md text-center font-medium">
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`bg-blue-50 dark:bg-slate-800 py-4 ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 text-md text-center font-medium">
     <Icon name={icon} class="w-5 h-5 inline-block align-text-bottom font-bold" />
     <span class="font-bold" set:html={title} />
     <Fragment set:html={description} />
   </div>
-</section>
+</WidgetWrapper>

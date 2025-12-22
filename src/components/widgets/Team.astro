@@ -1,48 +1,61 @@
 ---
+import { Icon } from 'astro-icon/components';
+import Image from '~/components/common/Image.astro';
 import Headline from '~/components/ui/Headline.astro';
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import type { Team as Props } from '~/types';
 
-export interface Props {
-  title?: string;
-  subtitle?: string;
-  members: {
-    name: string;
-    role: string;
-    image?: string;
-    bio?: string;
-    socials?: { icon: string; href: string }[];
-  }[];
-  id?: string;
-  isDark?: boolean;
-  bg?: string;
-}
-
-const { title, subtitle, members = [], id, isDark = false, bg } = Astro.props;
+const {
+  title = await Astro.slots.render('title'),
+  subtitle = await Astro.slots.render('subtitle'),
+  tagline = await Astro.slots.render('tagline'),
+  team = [],
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
 ---
 
-<WidgetWrapper id={id} isDark={isDark} bg={bg} containerClass="max-w-6xl">
-  {(title || subtitle) && <Headline title={title} subtitle={subtitle} classes={{ container: 'mb-12' }} />}
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-7xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  <Headline title={title} subtitle={subtitle} tagline={tagline} />
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4">
     {
-      members.map((member) => (
-        <div class="text-center group">
-          <div class="relative mb-4 mx-auto w-40 h-40 rounded-full overflow-hidden ring-4 ring-gray-100 dark:ring-gray-700">
-            {member.image ? (
-              <img
-                src={member.image}
-                alt={member.name}
-                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                loading="lazy"
+      team.map(({ name, job, image, socials }) => (
+        <div class="flex flex-col items-center text-center">
+          {image && (
+            <div class="relative w-48 h-48 mb-4 overflow-hidden rounded-full shadow-lg">
+              <Image
+                class="w-full h-full object-cover"
+                width={192}
+                height={192}
+                widths={[400, 768]}
+                sizes="192px"
+                {...image}
               />
-            ) : (
-              <div class="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                <span class="text-4xl text-white font-bold">{member.name.charAt(0)}</span>
-              </div>
-            )}
-          </div>
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{member.name}</h3>
-          <p class="text-primary font-medium mb-2">{member.role}</p>
-          {member.bio && <p class="text-sm text-gray-600 dark:text-gray-400 max-w-xs mx-auto">{member.bio}</p>}
+            </div>
+          )}
+          <h4 class="text-xl font-bold dark:text-white">{name}</h4>
+          {job && <p class="text-muted dark:text-slate-400 font-medium">{job}</p>}
+          {socials && (
+            <div class="flex gap-3 mt-4">
+              {socials.map((social) => (
+                <a
+                  href={social.href}
+                  class="text-gray-400 hover:text-primary dark:hover:text-blue-400"
+                  target="_blank"
+                  rel="noopener noreferrer">
+                  <Icon name={social.icon} class="w-5 h-5" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       ))
     }
