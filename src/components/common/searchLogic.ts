@@ -120,24 +120,21 @@ export function initializeSearch() {
       openBtn.addEventListener('click', openModal);
       openBtn.disabled = false;
       closeBtn.addEventListener('click', closeModal);
-      document.addEventListener('astro:after-swap', closeModal);
 
-      window.addEventListener('keydown', (event: KeyboardEvent) => {
-        if (event.key === '/' && !dialog.open) {
-          const activeElement = document.activeElement;
-          const isTyping =
-            activeElement instanceof HTMLInputElement ||
-            activeElement instanceof HTMLTextAreaElement ||
-            (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+      // Clean up on navigate
+      document.addEventListener('astro:before-swap', closeModal, { once: true });
+    }
 
-          if (!isTyping) {
-            openModal();
-            event.preventDefault();
-          }
-        }
-      });
+    connectedCallback() {
+      // Custom element is now in the DOM
+    }
+
+    disconnectedCallback() {
+      // Cleanup if necessary
     }
   }
 
-  customElements.define('site-search', SiteSearch);
+  if (!customElements.get('site-search')) {
+    customElements.define('site-search', SiteSearch);
+  }
 }

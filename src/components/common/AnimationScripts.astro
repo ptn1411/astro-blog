@@ -2,47 +2,71 @@
 
 ---
 
-<script is:inline>
+<script>
+  // Added check to prevent script execution if not in browser
+  if (typeof document === 'undefined') return;
+
   import { playAnimeAnimation, playGSAPAnimation, playLoopAnimation } from '~/components/admin/story/animations';
 
   const initAnimations = () => {
-    const animatedElements = document.querySelectorAll(
+    console.log('[Animations] Checking for elements...');
+    const animatedElements = document.querySelectorAll<HTMLElement>(
       '[data-animation-engine="gsap"], [data-animation-engine="anime"]'
     );
+
+    if (animatedElements.length === 0) {
+      console.log('[Animations] No animated elements found.');
+      return;
+    }
+
+    console.log(`[Animations] Found ${animatedElements.length} elements.`);
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement;
+            if (el.dataset.animated === 'true') return;
+            el.dataset.animated = 'true';
 
-          const el = entry.target;
-          const engine = el.dataset.animationEngine;
-          const type = el.dataset.animationType;
-          const duration = Number(el.dataset.animationDuration || 1000);
-          const delay = Number(el.dataset.animationDelay || 0);
-          const loop = el.dataset.loopAnimation;
+            const engine = el.dataset.animationEngine;
+            const type = el.dataset.animationType;
+            const duration = Number(el.dataset.animationDuration || 1000);
+            const delay = Number(el.dataset.animationDelay || 0);
+            const loop = el.dataset.loopAnimation;
 
-          if (type) {
-            if (engine === 'gsap') {
-              playGSAPAnimation(el, type, { duration: duration / 1000, delay: delay / 1000 });
-            } else {
-              playAnimeAnimation(el, type, { duration, delay });
+            console.log(`[Animations] Triggering: ${type} (${engine}) for el:`, el);
+
+            if (type) {
+              if (engine === 'gsap') {
+                playGSAPAnimation(el, type, { duration: duration / 1000, delay: delay / 1000 });
+              } else if (engine === 'anime') {
+                playAnimeAnimation(el, type, { duration, delay });
+              }
             }
-          }
 
-          if (loop) {
-            setTimeout(() => playLoopAnimation(el, loop, engine), duration + delay);
-          }
+            if (loop && (engine === 'gsap' || engine === 'anime')) {
+              setTimeout(() => playLoopAnimation(el, loop, engine), duration + delay);
+            }
 
-          observer.unobserve(el);
+            observer.unobserve(el);
+          }
         });
       },
-      { threshold: 0.2 }
+      {
+        threshold: 0.1,
+        rootMargin: '50px', // Start slightly before it enters view
+      }
     );
 
-    animatedElements.forEach((el) => observer.observe(el));
+    animatedElements.forEach((el) => {
+      // Reset state for re-animation if needed (useful for view transitions)
+      el.removeAttribute('data-animated');
+      observer.observe(el);
+    });
   };
 
-  document.addEventListener('DOMContentLoaded', initAnimations);
+  // Run on every view transition
   document.addEventListener('astro:page-load', initAnimations);
+  document.addEventListener('astro:after-swap', initAnimations);
 </script>

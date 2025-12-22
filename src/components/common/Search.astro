@@ -40,9 +40,8 @@ import SearchIcon from '~/components/icons/SearchIcon.astro';
 <script>
   let searchInitialized = false;
 
-  // Lazy load search logic when button is clicked
   const loadSearchLogic = async () => {
-    if (searchInitialized) return Promise.resolve();
+    if (searchInitialized) return;
     searchInitialized = true;
 
     try {
@@ -50,50 +49,73 @@ import SearchIcon from '~/components/icons/SearchIcon.astro';
       initializeSearch();
     } catch (error) {
       console.error('Failed to load search logic:', error);
+      searchInitialized = false; // Allow retry if failed
     }
   };
 
-  // Setup click handler for search button
-  const searchElement = document.querySelector('site-search');
-  const openBtn = searchElement?.querySelector<HTMLButtonElement>('button[data-open-modal]');
+  const initSearchButton = () => {
+    // If search is already initialized, the custom element's constructor
+    // will handle the listeners for any new 'site-search' elements.
+    if (searchInitialized) return;
 
-  if (openBtn) {
-    openBtn.disabled = false;
+    const searchElement = document.querySelector('site-search');
+    const openBtn = searchElement?.querySelector<HTMLButtonElement>('button[data-open-modal]');
 
-    // Load script and trigger click after loaded
-    openBtn.addEventListener(
-      'click',
-      async (event) => {
+    if (openBtn) {
+      openBtn.disabled = false;
+
+      // Handle the initial click to lazy-load
+      const handleFirstClick = async (event: MouseEvent) => {
         event.preventDefault();
         await loadSearchLogic();
-        // Trigger click again after script is loaded
+        // After loading, the custom element's constructor will run for all 'site-search' elements
+        // and attach the 'real' click listeners. We re-trigger click to open it now.
         if (searchInitialized) {
           openBtn.click();
         }
-      },
-      { once: true }
-    );
-  }
+      };
 
-  // Setup keyboard shortcut
-  window.addEventListener('keydown', async (event: KeyboardEvent) => {
-    if (event.key === '/') {
-      const activeElement = document.activeElement;
-      const isTyping =
-        activeElement instanceof HTMLInputElement ||
-        activeElement instanceof HTMLTextAreaElement ||
-        (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+      openBtn.addEventListener('click', handleFirstClick, { once: true });
+    }
+  };
 
-      if (!isTyping) {
-        event.preventDefault();
-        await loadSearchLogic();
-        // Trigger the button click to open modal
-        if (searchInitialized && openBtn) {
-          openBtn.click();
+  // Initial setup
+  initSearchButton();
+
+  // Setup keyboard shortcut (globally, only once)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (!(window as any).searchShortcutAttached) {
+    window.addEventListener('keydown', async (event: KeyboardEvent) => {
+      if (event.key === '/') {
+        const activeElement = document.activeElement;
+        const isTyping =
+          activeElement instanceof HTMLInputElement ||
+          activeElement instanceof HTMLTextAreaElement ||
+          (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+
+        if (!isTyping) {
+          event.preventDefault();
+          await loadSearchLogic();
+          const openBtn = document.querySelector('site-search button[data-open-modal]') as HTMLButtonElement;
+          if (openBtn) {
+            openBtn.click();
+          }
         }
       }
-    }
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).searchShortcutAttached = true;
+  }
+
+  // Support for View Transitions
+  document.addEventListener('astro:page-load', () => {
+    initSearchButton();
   });
+</script>
+
+<script is:inline>
+  // Global flag for keyboard shortcut to avoid duplicates across page bundles
+  window.searchShortcutAttached = window.searchShortcutAttached || false;
 </script>
 
 <style is:global>
