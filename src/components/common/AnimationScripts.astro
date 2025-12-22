@@ -3,23 +3,19 @@
 ---
 
 <script>
-  // Added check to prevent script execution if not in browser
-  if (typeof document === 'undefined') return;
+  const initAnimations = async () => {
+    // Dynamically import animations only when this runs in the browser
+    const { playAnimeAnimation, playGSAPAnimation, playLoopAnimation } = await import(
+      '~/components/admin/story/animations'
+    );
 
-  import { playAnimeAnimation, playGSAPAnimation, playLoopAnimation } from '~/components/admin/story/animations';
-
-  const initAnimations = () => {
-    console.log('[Animations] Checking for elements...');
     const animatedElements = document.querySelectorAll<HTMLElement>(
       '[data-animation-engine="gsap"], [data-animation-engine="anime"]'
     );
 
     if (animatedElements.length === 0) {
-      console.log('[Animations] No animated elements found.');
       return;
     }
-
-    console.log(`[Animations] Found ${animatedElements.length} elements.`);
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -34,8 +30,6 @@
             const duration = Number(el.dataset.animationDuration || 1000);
             const delay = Number(el.dataset.animationDelay || 0);
             const loop = el.dataset.loopAnimation;
-
-            console.log(`[Animations] Triggering: ${type} (${engine}) for el:`, el);
 
             if (type) {
               if (engine === 'gsap') {
@@ -66,7 +60,11 @@
     });
   };
 
-  // Run on every view transition
-  document.addEventListener('astro:page-load', initAnimations);
-  document.addEventListener('astro:after-swap', initAnimations);
+  // Support for View Transitions and initial load
+  document.addEventListener('astro:page-load', () => {
+    initAnimations();
+  });
+  document.addEventListener('astro:after-swap', () => {
+    initAnimations();
+  });
 </script>
