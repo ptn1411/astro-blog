@@ -124,6 +124,13 @@ export interface Widget {
   animationDuration?: number;
   animationDelay?: number;
   loopAnimation?: string;
+  animation?: {
+    engine?: 'gsap' | 'anime' | 'css';
+    type?: string;
+    duration?: number;
+    delay?: number;
+    loop?: string;
+  };
 }
 
 export interface Headline {
@@ -214,7 +221,11 @@ export interface ItemGrid {
   items?: Array<Item>;
   columns?: number;
   defaultIcon?: string;
-  classes?: Record<string, string>;
+  classes?: Record<string, any>;
+  animationEngine?: 'gsap' | 'anime' | 'css';
+  animationType?: string;
+  animationDuration?: number;
+  animationDelay?: number;
 }
 
 export interface Collapse {
@@ -240,6 +251,12 @@ export interface Hero extends Omit<Headline, 'classes'>, Widget {
   content?: string;
   actions?: string | CallToAction[];
   image?: string | unknown;
+  titleAnimationType?: string;
+  titleAnimationDuration?: number;
+  titleAnimationDelay?: number;
+  imageAnimationType?: string;
+  imageAnimationDuration?: number;
+  imageAnimationDelay?: number;
 }
 
 export interface Team extends Omit<Headline, 'classes'>, Widget {
@@ -275,6 +292,9 @@ export interface Features extends Omit<Headline, 'classes'>, Widget {
   isReversed?: boolean;
   isBeforeContent?: boolean;
   isAfterContent?: boolean;
+  itemAnimationType?: string;
+  itemAnimationDuration?: number;
+  itemAnimationDelay?: number;
 }
 
 export interface Faqs extends Omit<Headline, 'classes'>, Widget {
@@ -299,6 +319,9 @@ export interface Content extends Omit<Headline, 'classes'>, Widget {
   isReversed?: boolean;
   isAfterContent?: boolean;
   callToAction?: CallToAction;
+  imageAnimationType?: string;
+  imageAnimationDuration?: number;
+  imageAnimationDelay?: number;
 }
 
 export interface Contact extends Omit<Headline, 'classes'>, Form, Widget {}

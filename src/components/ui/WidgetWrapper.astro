@@ -7,11 +7,6 @@ import Background from './Background.astro';
 export interface Props extends Widget {
   containerClass?: string;
   ['as']?: HTMLTag;
-  animationEngine?: 'gsap' | 'anime' | 'css';
-  animationType?: string;
-  animationDuration?: number;
-  animationDelay?: number;
-  loopAnimation?: string;
 }
 
 const {
@@ -20,20 +15,28 @@ const {
   containerClass = '',
   bg,
   as = 'section',
-  animationEngine,
-  animationType,
-  animationDuration,
-  animationDelay,
-  loopAnimation,
+  animation,
+  animationEngine: propEngine,
+  animationType: propType,
+  animationDuration: propDuration,
+  animationDelay: propDelay,
+  loopAnimation: propLoop,
+  ...rest
 } = Astro.props;
+
+const engine = animation?.engine || propEngine || 'gsap';
+const type = animation?.type || propType;
+const duration = animation?.duration || propDuration || 1000;
+const delay = animation?.delay || propDelay || 0;
+const loop = animation?.loop || propLoop;
 
 const WrapperTag = as;
 
 // Determine if we should use the new animation system
-const hasAnimation = animationEngine === 'gsap' || animationEngine === 'anime';
+const hasAnimation = !!type;
 ---
 
-<WrapperTag class="relative not-prose scroll-mt-[72px]" {...id ? { id } : {}}>
+<WrapperTag class="relative not-prose scroll-mt-[72px]" {...id ? { id } : {}} {...rest}>
   <div class="absolute inset-0 pointer-events-none -z-[1]" aria-hidden="true">
     <slot name="bg">
       {bg ? <Fragment set:html={bg} /> : <Background isDark={isDark} />}
@@ -52,11 +55,11 @@ const hasAnimation = animationEngine === 'gsap' || animationEngine === 'anime';
     ]}
     {...hasAnimation
       ? {
-          'data-animation-engine': animationEngine,
-          'data-animation-type': animationType,
-          'data-animation-duration': animationDuration,
-          'data-animation-delay': animationDelay,
-          'data-loop-animation': loopAnimation,
+          'data-animation-engine': engine,
+          'data-animation-type': type,
+          'data-animation-duration': duration,
+          'data-animation-delay': delay,
+          'data-loop-animation': loop,
         }
       : {}}>
     <slot />

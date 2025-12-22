@@ -64,6 +64,9 @@ const IMPORTS: Record<WidgetType, string> = {
   Partners: '~/components/widgets/Partners.astro',
   Downloads: '~/components/widgets/Downloads.astro',
   Events: '~/components/widgets/Events.astro',
+  EffectsWidget: '~/components/widgets/EffectsWidget.astro',
+  ImageSlider: '~/components/widgets/ImageSlider.astro',
+  
 };
 
 export type ElementMetadata = {

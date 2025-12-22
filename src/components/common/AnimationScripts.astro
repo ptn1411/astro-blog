@@ -2,53 +2,47 @@
 
 ---
 
-<script>
+<script is:inline>
   import { playAnimeAnimation, playGSAPAnimation, playLoopAnimation } from '~/components/admin/story/animations';
 
-  document.addEventListener('astro:page-load', () => {
-    // Select all elements with animation engine data attribute
+  const initAnimations = () => {
     const animatedElements = document.querySelectorAll(
       '[data-animation-engine="gsap"], [data-animation-engine="anime"]'
     );
 
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const element = entry.target as HTMLElement;
-          const engine = element.dataset.animationEngine as 'gsap' | 'anime';
-          const type = element.dataset.animationType;
-          const duration = parseInt(element.dataset.animationDuration || '1000', 10);
-          const delay = parseInt(element.dataset.animationDelay || '0', 10);
-          const loop = element.dataset.loopAnimation;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+
+          const el = entry.target;
+          const engine = el.dataset.animationEngine;
+          const type = el.dataset.animationType;
+          const duration = Number(el.dataset.animationDuration || 1000);
+          const delay = Number(el.dataset.animationDelay || 0);
+          const loop = el.dataset.loopAnimation;
 
           if (type) {
-            // Play entrance animation
             if (engine === 'gsap') {
-              playGSAPAnimation(element, type, { duration: duration / 1000, delay: delay / 1000 }); // GSAP uses seconds
-            } else if (engine === 'anime') {
-              playAnimeAnimation(element, type, { duration, delay }); // Anime uses milliseconds
+              playGSAPAnimation(el, type, { duration: duration / 1000, delay: delay / 1000 });
+            } else {
+              playAnimeAnimation(el, type, { duration, delay });
             }
           }
 
           if (loop) {
-            // Wait for entrance animation to finish (roughly) or start immediately if no entrance
-            const loopDelay = type ? duration + delay : 0;
-            setTimeout(() => {
-              playLoopAnimation(element, loop, engine);
-            }, loopDelay);
+            setTimeout(() => playLoopAnimation(el, loop, engine), duration + delay);
           }
 
-          // Unobserve after playing (unless we want to replay on re-entry, but standard behavior is usually play once)
-          // For now, let's keep it simple: play once.
-          observer.unobserve(element);
-        }
-      });
-    };
-
-    const observer = new IntersectionObserver(observerCallback, {
-      threshold: 0.2, // Trigger when 20% visible
-    });
+          observer.unobserve(el);
+        });
+      },
+      { threshold: 0.2 }
+    );
 
     animatedElements.forEach((el) => observer.observe(el));
-  });
+  };
+
+  document.addEventListener('DOMContentLoaded', initAnimations);
+  document.addEventListener('astro:page-load', initAnimations);
 </script>

@@ -15,8 +15,16 @@ const {
   isDark = false,
   classes = {},
   bg = await Astro.slots.render('bg'),
+  titleAnimationType,
+  titleAnimationDuration,
+  titleAnimationDelay,
+  imageAnimationType,
+  imageAnimationDuration,
+  imageAnimationDelay,
   ...rest
 } = Astro.props;
+
+const engine = rest.animationEngine || 'gsap';
 ---
 
 <WidgetWrapper
@@ -37,6 +45,14 @@ const {
         title && (
           <h1
             class="text-5xl md:text-6xl font-bold leading-tighter tracking-tighter mb-4 font-heading dark:text-gray-200"
+            {...(titleAnimationType
+              ? {
+                  'data-animation-engine': engine,
+                  'data-animation-type': titleAnimationType,
+                  'data-animation-duration': titleAnimationDuration,
+                  'data-animation-delay': titleAnimationDelay,
+                }
+              : {})}
             set:html={title}
           />
         )
@@ -65,7 +81,16 @@ const {
     <div class="basis-1/2">
       {
         image && (
-          <div class="relative m-auto max-w-5xl">
+          <div
+            class="relative m-auto max-w-5xl"
+            {...(imageAnimationType
+              ? {
+                  'data-animation-engine': engine,
+                  'data-animation-type': imageAnimationType,
+                  'data-animation-duration': imageAnimationDuration,
+                  'data-animation-delay': imageAnimationDelay,
+                }
+              : {})}>
             {typeof image === 'string' ? (
               <Fragment set:html={image} />
             ) : (
