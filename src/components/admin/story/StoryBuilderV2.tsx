@@ -21,10 +21,17 @@ import {
 } from 'lucide-react';
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useHistory } from '~/hooks/useHistory';
 import { getPendingMedia, uploadAllPendingMedia } from '~/utils/media';
 import { AudioPanel } from './AudioPanel';
 import { CanvasElement } from './CanvasElementV2';
+import {
+  DEFAULT_EXPORT_SETTINGS,
+  ExportSettingsModal,
+  RESOLUTION_MAP,
+  type ExportSettings,
+} from './ExportSettingsModal';
 import { LayersPanel } from './LayersPanel';
 import { PropertiesPanelV2 } from './PropertiesPanelV2';
 import { ResourcePanelV2 } from './ResourcePanelV2';
@@ -110,6 +117,8 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
   const [previewStartIndex, setPreviewStartIndex] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportSettings, setExportSettings] = useState<ExportSettings>(DEFAULT_EXPORT_SETTINGS);
   const [leftPanelTab, setLeftPanelTab] = useState<'resources' | 'layers' | 'audio'>('resources');
   const [animationTrigger, setAnimationTrigger] = useState(0); // For triggering animation preview
 
@@ -654,10 +663,8 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
   );
 
   // Render High Quality Video with WebCodecs API (FASTEST)
-  const handleRenderHighQuality = async () => {
+  const handleRenderHighQuality = async (settings: ExportSettings = exportSettings) => {
     try {
-      if (!currentSlide) return;
-
       // Check browser support
       if (!('VideoEncoder' in window)) {
         alert(
@@ -665,15 +672,8 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
             'Please use Chrome 94+, Edge 94+, or Opera 80+.\n\n' +
             'Falling back to compatibility mode...'
         );
-        return handleRenderHighQualityFallback();
+        return handleRenderHighQualityFallback(settings);
       }
-
-      const confirmed = window.confirm(
-        '🚀 Ultra-Fast Rendering Mode\n\n' +
-          'Using WebCodecs API & mp4-muxer for instant export.\n' +
-          'Please do not switch tabs during rendering.'
-      );
-      if (!confirmed) return;
 
       setIsRendering(true);
       setRenderProgress(0);
@@ -681,13 +681,22 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
 
       await new Promise((r) => setTimeout(r, 300));
 
-      const fps = 30;
-      const duration = currentSlide.duration || 5;
-      const totalFrames = Math.ceil(duration * fps);
-      const width = 1080;
-      const height = 1920;
+      // Use settings from export modal
+      const { fps, bitrate, resolution, exportAllSlides } = settings;
+      const { width, height } = RESOLUTION_MAP[resolution];
 
-      console.log(`WebCodecs Render: ${totalFrames} frames @ ${fps}fps`);
+      // Determine which slides to export
+      const slidesToExport = exportAllSlides ? story.slides : [currentSlide].filter(Boolean);
+      if (slidesToExport.length === 0) {
+        throw new Error('No slides to export');
+      }
+
+      // Calculate total frames across all slides
+      const totalDuration = slidesToExport.reduce((sum, slide) => sum + (slide.duration || 5), 0);
+      const totalFrames = Math.ceil(totalDuration * fps);
+
+      console.log(`WebCodecs Render: ${totalFrames} frames @ ${fps}fps, ${width}x${height}, ${bitrate / 1_000_000}Mbps`);
+      console.log(`Exporting ${slidesToExport.length} slide(s)`);
 
       // Get render container
       const element = document.getElementById('render-container');
@@ -706,7 +715,6 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
       if (!ctx) throw new Error('Failed to create canvas context');
 
       // Initialize mp4-muxer
-
       const muxer = new Muxer({
         target: new ArrayBufferTarget(),
         video: {
@@ -719,6 +727,7 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
       });
 
       let frameCount = 0;
+      let globalFrameIndex = 0;
 
       // Configure VideoEncoder
       const encoder = new VideoEncoder({
@@ -736,7 +745,7 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
         codec: 'avc1.640028', // H.264 Baseline Level 4
         width,
         height,
-        bitrate: 4_000_000, // 4 Mbps - high quality
+        bitrate,
         framerate: fps,
         hardwareAcceleration: 'prefer-hardware',
         latencyMode: 'quality',
@@ -744,47 +753,73 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
 
       setLoadingStatus('Capturing frames...');
 
-      // Render all frames
-      for (let i = 0; i < totalFrames; i++) {
-        // Update time
-        const time = (i / fps) * 1000;
-        setRenderTime(time);
+      // Render all slides
+      for (let slideIndex = 0; slideIndex < slidesToExport.length; slideIndex++) {
+        const slide = slidesToExport[slideIndex];
+        const slideDuration = slide.duration || 5;
+        const slideFrames = Math.ceil(slideDuration * fps);
 
-        // Wait for DOM update (much faster than html2canvas)
-        await new Promise((r) => {
-          requestAnimationFrame(() => requestAnimationFrame(r));
-        });
+        // Update current slide for rendering
+        if (exportAllSlides) {
+          setCurrentSlideId(slide.id);
+          // Wait for slide change to take effect
+          await new Promise((r) => setTimeout(r, 100));
+        }
 
-        // Capture frame using native canvas API (10-20x faster than html2canvas)
-        try {
-          // Draw DOM element to canvas using html2canvas (still needed for complex layouts)
-          const tempCanvas = await html2canvas(element, {
-            canvas: offscreenCanvas,
-            scale: 1,
-            width,
-            height,
-            backgroundColor: currentSlide.background.type === 'color' ? currentSlide.background.value : '#ffffff',
-            useCORS: true,
-            logging: false,
-            allowTaint: true,
+        // Render frames for this slide
+        for (let i = 0; i < slideFrames; i++) {
+          // Update time relative to slide start
+          const time = (i / fps) * 1000;
+          
+          // Use flushSync to ensure React updates the DOM immediately
+          flushSync(() => {
+            setRenderTime(time);
           });
 
-          // Create VideoFrame from canvas
-          const videoFrame = new VideoFrame(tempCanvas, {
-            timestamp: (i * 1_000_000) / fps, // microseconds
-            duration: 1_000_000 / fps,
+          // Wait for browser to paint the updated DOM
+          await new Promise((r) => {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                setTimeout(r, 16); // ~1 frame at 60fps
+              });
+            });
           });
 
-          // Encode frame
-          encoder.encode(videoFrame, { keyFrame: i % 30 === 0 }); // Keyframe every 1 second
-          videoFrame.close();
+          // Capture frame
+          try {
+            const tempCanvas = await html2canvas(element, {
+              canvas: offscreenCanvas,
+              scale: 1,
+              width,
+              height,
+              backgroundColor: slide.background.type === 'color' ? slide.background.value : '#ffffff',
+              useCORS: true,
+              logging: false,
+              allowTaint: true,
+            });
 
-          frameCount++;
-          setRenderProgress(Math.round(((i + 1) / totalFrames) * 100));
-          setLoadingStatus(`Encoding frame ${i + 1}/${totalFrames}`);
-        } catch (err) {
-          console.error(`Frame ${i} failed:`, err);
-          throw err;
+            // Create VideoFrame from canvas
+            const videoFrame = new VideoFrame(tempCanvas, {
+              timestamp: (globalFrameIndex * 1_000_000) / fps, // microseconds
+              duration: 1_000_000 / fps,
+            });
+
+            // Encode frame (keyframe every 1 second)
+            encoder.encode(videoFrame, { keyFrame: globalFrameIndex % fps === 0 });
+            videoFrame.close();
+
+            frameCount++;
+            globalFrameIndex++;
+            setRenderProgress(Math.round((globalFrameIndex / totalFrames) * 100));
+            setLoadingStatus(
+              exportAllSlides
+                ? `Slide ${slideIndex + 1}/${slidesToExport.length} - Frame ${i + 1}/${slideFrames}`
+                : `Encoding frame ${i + 1}/${slideFrames}`
+            );
+          } catch (err) {
+            console.error(`Frame ${globalFrameIndex} failed:`, err);
+            throw err;
+          }
         }
       }
 
@@ -797,14 +832,132 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
       muxer.finalize();
       const { buffer } = muxer.target;
 
+      // Check if we need to add audio (only if includeAudio setting is true)
+      const hasAudio = story.audio?.src || slidesToExport.some((slide) => slide.audio?.src);
+      const audioSrc = story.audio?.src || slidesToExport.find((s) => s.audio?.src)?.audio?.src;
+
+      console.log('[Audio Debug]', {
+        includeAudio: settings.includeAudio,
+        hasAudio,
+        audioSrc,
+        storyAudio: story.audio,
+      });
+
+      if (settings.includeAudio && hasAudio && audioSrc) {
+        setLoadingStatus('Adding audio track...');
+        console.log('[Audio] Starting audio processing...');
+
+        try {
+          // Use FFmpeg to mux audio with video
+          const ffmpeg = ffmpegRef.current;
+
+          // Load FFmpeg with timeout
+          if (!ffmpeg.loaded) {
+            setLoadingStatus('Loading audio encoder...');
+            console.log('[Audio] Loading FFmpeg from CDN...');
+            
+            try {
+              // Use CDN URLs for better compatibility
+              const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+              
+              const loadPromise = ffmpeg.load({
+                coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+              });
+
+              // Timeout after 120 seconds for CDN
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('FFmpeg load timeout')), 120000)
+              );
+
+              await Promise.race([loadPromise, timeoutPromise]);
+              console.log('[Audio] FFmpeg loaded successfully');
+            } catch (loadErr) {
+              console.error('[Audio] FFmpeg load failed:', loadErr);
+              throw loadErr;
+            }
+          }
+
+          setLoadingStatus('Processing audio...');
+
+          // Write video to FFmpeg
+          await ffmpeg.writeFile('video.mp4', new Uint8Array(buffer));
+
+          // Fetch audio file with timeout
+          const controller = new AbortController();
+          const fetchTimeout = setTimeout(() => controller.abort(), 15000);
+
+          const audioResponse = await fetch(audioSrc, { signal: controller.signal });
+          clearTimeout(fetchTimeout);
+
+          const audioBlob = await audioResponse.blob();
+          const audioBuffer = await audioBlob.arrayBuffer();
+          const audioExt = audioSrc.split('.').pop()?.split('?')[0] || 'mp3';
+          await ffmpeg.writeFile(`audio.${audioExt}`, new Uint8Array(audioBuffer));
+
+          setLoadingStatus('Muxing audio and video...');
+
+          // Mux video and audio with timeout
+          const execPromise = ffmpeg.exec([
+            '-i',
+            'video.mp4',
+            '-i',
+            `audio.${audioExt}`,
+            '-c:v',
+            'copy',
+            '-c:a',
+            'aac',
+            '-b:a',
+            '128k',
+            '-shortest',
+            '-y',
+            'output.mp4',
+          ]);
+
+          const execTimeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('FFmpeg exec timeout')), 60000)
+          );
+
+          await Promise.race([execPromise, execTimeout]);
+
+          // Read the output
+          const outputData = await ffmpeg.readFile('output.mp4');
+          const outputBlob = new Blob([outputData as unknown as BlobPart], { type: 'video/mp4' });
+
+          // Download
+          setLoadingStatus('Downloading...');
+          const url = URL.createObjectURL(outputBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${story.title.replace(/\s+/g, '-').toLowerCase()}_${resolution}.mp4`;
+          a.click();
+          URL.revokeObjectURL(url);
+
+          // Cleanup
+          try {
+            await ffmpeg.deleteFile('video.mp4');
+            await ffmpeg.deleteFile(`audio.${audioExt}`);
+            await ffmpeg.deleteFile('output.mp4');
+          } catch {
+            // Ignore cleanup errors
+          }
+
+          console.log(`✅ Rendered ${frameCount} frames with audio successfully`);
+          return;
+        } catch (audioErr) {
+          console.error('Failed to add audio, downloading video without audio:', audioErr);
+          // Fall through to download video without audio
+        }
+      }
+
       setLoadingStatus('Downloading...');
 
-      // Download
+      // Download video without audio
       const mp4Blob = new Blob([buffer], { type: 'video/mp4' });
       const url = URL.createObjectURL(mp4Blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${story.title.replace(/\s+/g, '-').toLowerCase()}_webcodecs.mp4`;
+      a.download = `${story.title.replace(/\s+/g, '-').toLowerCase()}_${resolution}.mp4`;
       a.click();
       URL.revokeObjectURL(url);
 
@@ -819,10 +972,8 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
   };
 
   // Fallback rendering method (original optimized version)
-  const handleRenderHighQualityFallback = async () => {
+  const handleRenderHighQualityFallback = async (settings: ExportSettings = exportSettings) => {
     try {
-      if (!currentSlide) return;
-
       setIsRendering(true);
       setRenderProgress(0);
       setLoadingStatus('Initializing video engine (FFmpeg)...');
@@ -837,76 +988,177 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
         });
       }
 
-      const fps = 30;
-      const duration = currentSlide.duration || 5;
-      const totalFrames = Math.ceil(duration * fps);
-      const width = 1080;
-      const height = 1920;
+      // Use settings from export modal
+      const { fps, resolution, exportAllSlides } = settings;
+      const { width, height } = RESOLUTION_MAP[resolution];
+
+      // Determine which slides to export
+      const slidesToExport = exportAllSlides ? story.slides : [currentSlide].filter(Boolean);
+      if (slidesToExport.length === 0) {
+        throw new Error('No slides to export');
+      }
+
+      // Calculate total frames across all slides
+      const totalDuration = slidesToExport.reduce((sum, slide) => sum + (slide.duration || 5), 0);
+      const totalFrames = Math.ceil(totalDuration * fps);
 
       const element = document.getElementById('render-container');
       if (!element) throw new Error('Render container missing');
 
-      const canvasConfig = {
-        scale: 1,
-        width,
-        height,
-        backgroundColor: currentSlide.background.type === 'color' ? currentSlide.background.value : '#ffffff',
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-      };
+      let globalFrameIndex = 0;
 
-      for (let i = 0; i < totalFrames; i++) {
-        setLoadingStatus(`Rendering frame ${i + 1}/${totalFrames}`);
-        const time = (i / fps) * 1000;
-        setRenderTime(time);
+      // Render all slides
+      for (let slideIndex = 0; slideIndex < slidesToExport.length; slideIndex++) {
+        const slide = slidesToExport[slideIndex];
+        const slideDuration = slide.duration || 5;
+        const slideFrames = Math.ceil(slideDuration * fps);
 
-        await new Promise((r) => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => setTimeout(r, 50));
+        // Update current slide for rendering
+        if (exportAllSlides) {
+          setCurrentSlideId(slide.id);
+          await new Promise((r) => setTimeout(r, 100));
+        }
+
+        const canvasConfig = {
+          scale: 1,
+          width,
+          height,
+          backgroundColor: slide.background.type === 'color' ? slide.background.value : '#ffffff',
+          useCORS: true,
+          logging: false,
+          allowTaint: true,
+        };
+
+        for (let i = 0; i < slideFrames; i++) {
+          setLoadingStatus(
+            exportAllSlides
+              ? `Slide ${slideIndex + 1}/${slidesToExport.length} - Frame ${i + 1}/${slideFrames}`
+              : `Rendering frame ${i + 1}/${slideFrames}`
+          );
+          const time = (i / fps) * 1000;
+          
+          // Use flushSync to ensure React updates the DOM immediately
+          flushSync(() => {
+            setRenderTime(time);
           });
-        });
 
-        const canvas = await html2canvas(element, canvasConfig);
-        const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.95));
+          // Wait for browser to paint the updated DOM
+          await new Promise((r) => {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(r);
+            });
+          });
 
-        if (!blob) continue;
+          const canvas = await html2canvas(element, canvasConfig);
+          const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.95));
 
-        const fileName = `frame-${String(i).padStart(4, '0')}.jpg`;
-        await ffmpeg.writeFile(fileName, await fetchFile(blob));
-        setRenderProgress(Math.round(((i + 1) / totalFrames) * 100));
+          if (!blob) continue;
+
+          const fileName = `frame-${String(globalFrameIndex).padStart(4, '0')}.jpg`;
+          await ffmpeg.writeFile(fileName, await fetchFile(blob));
+          globalFrameIndex++;
+          setRenderProgress(Math.round((globalFrameIndex / totalFrames) * 100));
+        }
       }
 
       setLoadingStatus('Encoding video...');
-      await ffmpeg.exec([
-        '-framerate',
-        '30',
-        '-i',
-        'frame-%04d.jpg',
-        '-c:v',
-        'libx264',
-        '-preset',
-        'veryfast',
-        '-crf',
-        '23',
-        '-pix_fmt',
-        'yuv420p',
-        '-vf',
-        'scale=trunc(iw/2)*2:trunc(ih/2)*2',
-        'output.mp4',
-      ]);
+
+      // Check if we need to add audio (only if includeAudio setting is true)
+      const hasAudio = story.audio?.src || slidesToExport.some((slide) => slide.audio?.src);
+      const audioSrc = story.audio?.src || slidesToExport.find((s) => s.audio?.src)?.audio?.src;
+
+      if (settings.includeAudio && hasAudio && audioSrc) {
+        try {
+          // Fetch audio file with timeout
+          const controller = new AbortController();
+          const fetchTimeout = setTimeout(() => controller.abort(), 15000);
+          const audioResponse = await fetch(audioSrc, { signal: controller.signal });
+          clearTimeout(fetchTimeout);
+
+          const audioBlob = await audioResponse.blob();
+          const audioBuffer = await audioBlob.arrayBuffer();
+          const audioExt = audioSrc.split('.').pop()?.split('?')[0] || 'mp3';
+          await ffmpeg.writeFile(`audio.${audioExt}`, new Uint8Array(audioBuffer));
+
+          // Encode video with audio
+          await ffmpeg.exec([
+            '-framerate',
+            String(fps),
+            '-i',
+            'frame-%04d.jpg',
+            '-i',
+            `audio.${audioExt}`,
+            '-c:v',
+            'libx264',
+            '-preset',
+            'veryfast',
+            '-crf',
+            '23',
+            '-pix_fmt',
+            'yuv420p',
+            '-c:a',
+            'aac',
+            '-shortest',
+            '-vf',
+            'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+            'output.mp4',
+          ]);
+
+          // Cleanup audio file
+          await ffmpeg.deleteFile(`audio.${audioExt}`);
+        } catch (audioErr) {
+          console.error('Failed to add audio, encoding video only:', audioErr);
+          // Fall back to video-only encoding
+          await ffmpeg.exec([
+            '-framerate',
+            String(fps),
+            '-i',
+            'frame-%04d.jpg',
+            '-c:v',
+            'libx264',
+            '-preset',
+            'veryfast',
+            '-crf',
+            '23',
+            '-pix_fmt',
+            'yuv420p',
+            '-vf',
+            'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+            'output.mp4',
+          ]);
+        }
+      } else {
+        // Encode video without audio
+        await ffmpeg.exec([
+          '-framerate',
+          String(fps),
+          '-i',
+          'frame-%04d.jpg',
+          '-c:v',
+          'libx264',
+          '-preset',
+          'veryfast',
+          '-crf',
+          '23',
+          '-pix_fmt',
+          'yuv420p',
+          '-vf',
+          'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+          'output.mp4',
+        ]);
+      }
 
       const data = await ffmpeg.readFile('output.mp4');
       const mp4Blob = new Blob([data as unknown as BlobPart], { type: 'video/mp4' });
       const url = URL.createObjectURL(mp4Blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${story.title.replace(/\s+/g, '-').toLowerCase()}_fallback.mp4`;
+      a.download = `${story.title.replace(/\s+/g, '-').toLowerCase()}_${resolution}.mp4`;
       a.click();
       URL.revokeObjectURL(url);
 
       // Cleanup
-      for (let i = 0; i < totalFrames; i++) {
+      for (let i = 0; i < globalFrameIndex; i++) {
         try {
           await ffmpeg.deleteFile(`frame-${String(i).padStart(4, '0')}.jpg`);
         } catch {
@@ -1078,16 +1330,26 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
       {isRendering && currentSlide && (
         <div
           style={{
-            position: 'absolute',
-            left: '-9999px',
+            position: 'fixed',
+            left: 0,
             top: 0,
-            width: '1080px',
-            height: '1920px',
+            width: `${RESOLUTION_MAP[exportSettings.resolution].width}px`,
+            height: `${RESOLUTION_MAP[exportSettings.resolution].height}px`,
             overflow: 'hidden',
             backgroundColor: '#ffffff',
           }}
         >
-          <div id="render-container" className="relative w-full h-full bg-white">
+          {/* Scale container to match resolution */}
+          <div
+            id="render-container"
+            className="relative bg-white"
+            style={{
+              width: '360px',
+              height: '640px',
+              transform: `scale(${RESOLUTION_MAP[exportSettings.resolution].width / 360})`,
+              transformOrigin: 'top left',
+            }}
+          >
             {/* Background */}
             {currentSlide.background.type === 'color' && (
               <div
@@ -1114,10 +1376,10 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
               />
             )}
 
-            {/* Elements */}
+            {/* Elements - render with animation state based on renderTime */}
             {currentSlide.elements.map((el) => (
               <CanvasElement
-                key={el.id}
+                key={`${el.id}-${renderTime}`}
                 element={el}
                 isSelected={false}
                 onSelect={() => {}}
@@ -1291,7 +1553,7 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
               <Download size={16} />
             </button>
             <button
-              onClick={handleRenderHighQuality}
+              onClick={() => setShowExportModal(true)}
               className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
               title="Export Story as Video"
             >
@@ -1678,6 +1940,18 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
           </div>
         </div>
       )}
+
+      {/* Export Settings Modal */}
+      <ExportSettingsModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        onExport={(settings) => {
+          setExportSettings(settings);
+          handleRenderHighQuality(settings);
+        }}
+        slideCount={story.slides.length}
+        currentSlideIndex={currentSlideIndex}
+      />
 
       {/* AI JSON Modal */}
       {showAiModal && (

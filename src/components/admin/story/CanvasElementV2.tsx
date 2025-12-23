@@ -1,6 +1,7 @@
 import { Copy, Lock, Trash2, Unlock } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ElementStyle, StoryElement } from './types';
+import { computeRenderAnimationState } from './animationUtils';
 
 interface CanvasElementProps {
   element: StoryElement;
@@ -84,6 +85,10 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   }, [isSelected]);
 
   const getAnimationClass = () => {
+    // In renderMode, don't use CSS animation classes - use computed inline styles instead
+    // This prevents CSS animations from interfering with html2canvas frame capture
+    if (renderMode) return '';
+
     const isSeeking = currentTime !== undefined;
     // Show animation if:
     // 1. Actively animating (Preview)
@@ -120,10 +125,15 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
   // Get animation style
   const getAnimationStyle = (): React.CSSProperties => {
+    // In renderMode, animation is handled directly in the style prop
+    if (renderMode) {
+      return {};
+    }
+
     // 1. Timeline State (Seeking)
-    // Show if: Current time exists, Animation exists, (Available in Render OR Not Selected), AND Not actively animating (Preview overrides)
+    // Show if: Current time exists, Animation exists, Not Selected, AND Not actively animating (Preview overrides)
     const showTimelineState =
-      currentTime !== undefined && element.animation?.enter && (renderMode || !isSelected) && !isAnimating;
+      currentTime !== undefined && element.animation?.enter && !isSelected && !isAnimating;
 
     if (showTimelineState) {
       const startTime = element.timings?.start || 0;
@@ -1371,14 +1381,98 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             : 'hover:ring-1 hover:ring-blue-400'
         } ${activeAction ? 'z-50' : ''} ${getAnimationClass()}`}
         style={{
-          left: element.style.x,
-          top: element.style.y,
-          width: element.style.width,
-          height: element.style.height,
-          transform: `rotate(${element.style.rotation}deg)`,
-          zIndex: element.style.zIndex,
-          opacity: opacity, // Use dynamic opacity
-          pointerEvents: pointerEvents as any,
+          // Base position and size
+          ...(() => {
+            if (renderMode && currentTime !== undefined && element.animation?.enter) {
+              // In render mode, compute animation state and apply directly to position/size
+              const animState = computeRenderAnimationState({
+                currentTime,
+                animation: element.animation.enter,
+                timings: element.timings,
+              });
+
+              // Calculate actual position with offsets
+              let actualX = element.style.x;
+              let actualY = element.style.y;
+              let actualWidth = element.style.width;
+              let actualHeight = element.style.height;
+
+              // Apply X offset
+              if (animState.offsetX !== 0) {
+                if (animState.offsetXUnit === '%') {
+                  actualX += (element.style.width * animState.offsetX) / 100;
+                } else {
+                  actualX += animState.offsetX;
+                }
+              }
+
+              // Apply Y offset
+              if (animState.offsetY !== 0) {
+                if (animState.offsetYUnit === '%') {
+                  actualY += (element.style.height * animState.offsetY) / 100;
+                } else {
+                  actualY += animState.offsetY;
+                }
+              }
+
+              // Apply scale (scale from center)
+              if (animState.scale !== 1) {
+                const scaledWidth = element.style.width * animState.scale;
+                const scaledHeight = element.style.height * animState.scale;
+                // Adjust position to scale from center
+                actualX += (element.style.width - scaledWidth) / 2;
+                actualY += (element.style.height - scaledHeight) / 2;
+                actualWidth = scaledWidth;
+                actualHeight = scaledHeight;
+              }
+
+              // Combine element rotation with animation rotation
+              const totalRotation = element.style.rotation + animState.rotation;
+
+              return {
+                left: actualX,
+                top: actualY,
+                width: actualWidth,
+                height: actualHeight,
+                opacity: animState.opacity,
+                visibility: animState.visibility,
+                transform: `rotate(${totalRotation}deg)`,
+                zIndex: element.style.zIndex,
+                pointerEvents: 'none' as const,
+              };
+            }
+
+            // Render mode without animation - just show element based on visibility
+            if (renderMode && currentTime !== undefined) {
+              // Check if element should be visible at current time
+              const elementVisible = !element.timings || 
+                (currentTime >= element.timings.start && currentTime <= element.timings.start + element.timings.duration);
+              
+              return {
+                left: element.style.x,
+                top: element.style.y,
+                width: element.style.width,
+                height: element.style.height,
+                transform: `rotate(${element.style.rotation}deg)`,
+                zIndex: element.style.zIndex,
+                opacity: elementVisible ? (element.style.opacity ?? 1) : 0,
+                visibility: elementVisible ? 'visible' as const : 'hidden' as const,
+                pointerEvents: 'none' as const,
+              };
+            }
+
+            // Normal mode (not rendering)
+            return {
+              left: element.style.x,
+              top: element.style.y,
+              width: element.style.width,
+              height: element.style.height,
+              transform: `rotate(${element.style.rotation}deg)`,
+              zIndex: element.style.zIndex,
+              opacity: opacity,
+              pointerEvents: pointerEvents as any,
+            };
+          })(),
           ...getBackgroundStyle(),
           ...getAnimationStyle(),
         }}

@@ -21,7 +21,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     description: 'Hero + Content + Team',
     blocks: [
       block('Hero', { title: 'About Us', subtitle: 'Our story and mission', tagline: 'About' }),
-      block('Content', { title: 'Our Story', content: '<p>We started with a simple idea...</p>' }),
+      block('Content1', { title: 'Our Story', content: '<p>We started with a simple idea...</p>' }),
       block('Steps2', { title: 'Our Journey', items: [] }),
     ],
   },
@@ -150,7 +150,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
     description: 'HeroText + Content + FAQ',
     blocks: [
       block('HeroText', { title: 'Documentation', subtitle: 'Everything you need to get started', tagline: 'Docs' }),
-      block('Content', {
+      block('Content1', {
         title: 'Getting Started',
         content:
           '<p>Welcome to our documentation. Here you will find everything you need to get up and running quickly.</p><h3>Installation</h3><p>Run npm install to get started.</p>',
