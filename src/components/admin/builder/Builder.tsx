@@ -41,7 +41,7 @@ import {
   Upload,
   X,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { toMDX } from '~/utils/serializer';
 
 import { getPendingImages, uploadAllPendingImages } from './ImagePicker';
@@ -71,6 +71,10 @@ import {
   type BuilderBlock,
   type PageMetadata,
 } from './index';
+
+// Import responsive hook and mobile layout
+import { useBuilderResponsive } from './hooks/useBuilderResponsive';
+import { MobileBuilderLayout, MobilePagesManager, type PageInfo } from './mobile';
 export type BuilderMode = 'create' | 'edit';
 // --- Main Builder Component ---
 export default function BuilderApp() {
@@ -113,6 +117,10 @@ export default function BuilderApp() {
   const { lastSaved, loadFromStorage, clearStorage } = useAutoSave(blocks, metadata, true);
   // Only sync preview when in builder view
   usePreviewSync(currentView === 'builder' ? blocks : [], metadata, iframeRef);
+  
+  // --- Responsive Layout Hook (Requirements: 1.1, 1.2, 1.3) ---
+  const { layoutMode } = useBuilderResponsive();
+  const showMobileLayout = layoutMode === 'mobile';
 
   // --- Persist Dark Mode ---
   useEffect(() => {
@@ -572,6 +580,127 @@ Hãy tạo JSON hoàn chỉnh cho trang web theo mô tả trên.`;
   const selectedBlock = blocks.find((b) => b.id === selectedId);
   const selectedDef = selectedBlock ? WIDGET_REGISTRY.find((w) => w.type === selectedBlock.type) : null;
 
+  // --- Mobile-specific callbacks (memoized for performance - Requirement 10.4) ---
+  const handleMobileUndo = useCallback(() => {
+    const result = undo();
+    if (result) setBlocks(result);
+  }, [undo]);
+
+  const handleMobileRedo = useCallback(() => {
+    const result = redo();
+    if (result) setBlocks(result);
+  }, [redo]);
+
+  const handleMobilePasteJSON = useCallback((json: string) => {
+    const result = parseImportedJSON(json);
+    if (result.success && result.blocks) {
+      setBlocks(result.blocks);
+      if (result.metadata) setMetadata(result.metadata);
+      alert('Imported successfully!');
+    } else {
+      alert(result.error || 'Import failed');
+    }
+  }, []);
+
+  const handleMobileImportJSON = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  // Check if there are unsaved changes (for mobile layout)
+  const hasUnsavedChanges = useMemo(() => {
+    return blocks.length > 0 || metadata.title !== 'Untitled Page';
+  }, [blocks, metadata.title]);
+
+  // --- Render Mobile Layout when on mobile viewport (Requirements: 1.1, 1.2, 1.3) ---
+  if (showMobileLayout) {
+    return (
+      <div className={`h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        {/* Hidden file input for import */}
+        <input type="file" ref={fileInputRef} onChange={handleImportJSON} accept=".json" className="hidden" />
+        
+        {currentView === 'pages' ? (
+          <MobilePagesManager
+            pages={[]} // Pages will be fetched by the component
+            isLoading={false}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onEditPage={(page: PageInfo) => {
+              // Trigger edit flow - this will be handled by fetching page content
+              handleEditPage({
+                blocks: [],
+                metadata: { title: page.title, description: page.description },
+                path: page.path,
+              });
+            }}
+            onDeletePage={() => {}}
+            onPreviewPage={(page: PageInfo) => {
+              const previewPath = page.path
+                .replace(/^src\/content\/page\//, '/')
+                .replace(/^src\/content\//, '/')
+                .replace(/\.mdx?$/, '');
+              window.open(previewPath, '_blank');
+            }}
+            onCreateNew={handleCreateNew}
+            onRefresh={() => {}}
+            isDarkMode={isDarkMode}
+          />
+        ) : (
+          <MobileBuilderLayout
+            blocks={blocks}
+            selectedId={selectedId}
+            metadata={metadata}
+            onBlocksChange={setBlocks}
+            onSelectBlock={setSelectedId}
+            onMetadataChange={setMetadata}
+            onSave={() => setIsSaveModalOpen(true)}
+            onBack={() => setCurrentView('pages')}
+            isDarkMode={isDarkMode}
+            currentView={currentView}
+            onViewChange={setCurrentView}
+            hasUnsavedChanges={hasUnsavedChanges}
+            isSaving={isSaving}
+            editingPath={editingPath}
+            onUndo={handleMobileUndo}
+            onRedo={handleMobileRedo}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onExportJSON={handleExportJSON}
+            onExportMDX={handleExportMDX}
+            onImportJSON={handleMobileImportJSON}
+            onPasteJSON={handleMobilePasteJSON}
+            onClearPage={clearPage}
+            onOpenTemplates={() => setIsTemplateModalOpen(true)}
+            previewUrl="/admin/preview"
+            saveMode={builderMode}
+            onSaveWithPath={handleSave}
+            aiPromptDescription={websiteDescription}
+            onAIPromptDescriptionChange={setWebsiteDescription}
+            generateAIPrompt={generateAIPrompt}
+          />
+        )}
+        
+        {/* Desktop modals still needed for mobile */}
+        <SaveModal
+          editingPath={editingPath}
+          isOpen={isSaveModalOpen}
+          onClose={() => setIsSaveModalOpen(false)}
+          onSave={handleSave}
+          isSaving={isSaving}
+          mode={builderMode}
+        />
+        <TemplateModal
+          isOpen={isTemplateModalOpen}
+          onClose={() => setIsTemplateModalOpen(false)}
+          onApply={applyTemplate}
+          onClear={clearPage}
+          isDarkMode={isDarkMode}
+        />
+      </div>
+    );
+  }
+
+  // --- Desktop Layout (original) ---
+
   return (
     <div
       className={`flex flex-col h-screen overflow-hidden transition-colors ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-slate-800'}`}
@@ -902,50 +1031,58 @@ Hãy tạo JSON hoàn chỉnh cho trang web theo mô tả trên.`;
                   onClick={() => setIsDownloadMenuOpen(!isDownloadMenuOpen)}
                   className={`flex items-center gap-1 px-3 py-2 text-sm rounded transition-colors ${isDarkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
                 >
-                  <Download size={18} /> Export
+                  <Download size={18} /> More
                 </button>
                 {isDownloadMenuOpen && (
-                  <div
-                    className={`absolute right-0 mt-1 w-40 rounded-md shadow-lg z-20 ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}
-                  >
-                    <button
-                      onClick={handleExportJSON}
-                      className={`block w-full px-4 py-2 text-sm text-left ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
+                  <>
+                    {/* Overlay to close menu when clicking outside */}
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setIsDownloadMenuOpen(false)}
+                    />
+                    <div
+                      className={`absolute right-0 top-full mt-1 w-48 rounded-lg shadow-xl z-20 py-1 ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}
                     >
-                      <Code size={14} className="inline mr-2" /> Export JSON
-                    </button>
-                    <button
-                      onClick={handleExportMDX}
-                      className={`block w-full px-4 py-2 text-sm text-left ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
-                    >
-                      <FileText size={14} className="inline mr-2" /> Export MDX
-                    </button>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`block w-full px-4 py-2 text-sm text-left ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
-                    >
-                      <Upload size={14} className="inline mr-2" /> Import File
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsDownloadMenuOpen(false);
-                        setIsPasteModalOpen(true);
-                      }}
-                      className={`block w-full px-4 py-2 text-sm text-left ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
-                    >
-                      <Clipboard size={14} className="inline mr-2" /> Paste JSON
-                    </button>
-                    <hr className={`my-1 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`} />
-                    <button
-                      onClick={() => {
-                        setIsDownloadMenuOpen(false);
-                        setIsAIPromptModalOpen(true);
-                      }}
-                      className={`block w-full px-4 py-2 text-sm text-left ${isDarkMode ? 'hover:bg-gray-700 text-purple-400' : 'hover:bg-gray-50 text-purple-600'}`}
-                    >
-                      <Sparkles size={14} className="inline mr-2" /> AI Prompt
-                    </button>
-                  </div>
+                      <button
+                        onClick={handleExportJSON}
+                        className={`flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left transition-colors ${isDarkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-50 text-gray-700'}`}
+                      >
+                        <Code size={16} /> Export JSON
+                      </button>
+                      <button
+                        onClick={handleExportMDX}
+                        className={`flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left transition-colors ${isDarkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-50 text-gray-700'}`}
+                      >
+                        <FileText size={16} /> Export MDX
+                      </button>
+                      <hr className={`my-1 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`} />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left transition-colors ${isDarkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-50 text-gray-700'}`}
+                      >
+                        <Upload size={16} /> Import File
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsDownloadMenuOpen(false);
+                          setIsPasteModalOpen(true);
+                        }}
+                        className={`flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left transition-colors ${isDarkMode ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-50 text-gray-700'}`}
+                      >
+                        <Clipboard size={16} /> Paste JSON
+                      </button>
+                      <hr className={`my-1 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`} />
+                      <button
+                        onClick={() => {
+                          setIsDownloadMenuOpen(false);
+                          setIsAIPromptModalOpen(true);
+                        }}
+                        className={`flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left transition-colors ${isDarkMode ? 'hover:bg-gray-700 text-purple-400' : 'hover:bg-gray-50 text-purple-600'}`}
+                      >
+                        <Sparkles size={16} /> AI Prompt
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
 

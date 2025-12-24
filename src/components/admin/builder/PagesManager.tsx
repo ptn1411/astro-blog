@@ -1,8 +1,10 @@
 import { Edit, Eye, FolderOpen, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { GITHUB_BRANCH, GITHUB_CONFIG, getGitHubApiUrl, getGitHubContentUrl } from '../config';
 import { getGitHubToken, isLocalEnvironment, type BuilderBlock, type PageMetadata } from './index';
+import { useBuilderResponsive } from './hooks/useBuilderResponsive';
+import { MobilePagesManager } from './mobile';
 
 export interface PageInfo {
   path: string;
@@ -165,6 +167,10 @@ export default function PagesManager({ onEditPage, onCreateNew, isDarkMode: prop
   const [isDeleting, setIsDeleting] = useState(false);
   const [loadingPage, setLoadingPage] = useState<string | null>(null);
 
+  // --- Responsive Layout Hook (Requirement: 4.1) ---
+  const { layoutMode } = useBuilderResponsive();
+  const showMobileLayout = layoutMode === 'mobile';
+
   // Fetch pages list
   const fetchPages = async () => {
     setIsLoading(true);
@@ -320,6 +326,40 @@ export default function PagesManager({ onEditPage, onCreateNew, isDarkMode: prop
       page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       page.path.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // --- Mobile-specific callbacks (memoized for performance) ---
+  const handleMobileEditPage = useCallback((page: PageInfo) => {
+    handleEdit(page);
+  }, []);
+
+  const handleMobileDeletePage = useCallback((page: PageInfo) => {
+    handleDelete(page);
+  }, []);
+
+  const handleMobilePreviewPage = useCallback((page: PageInfo) => {
+    handlePreview(page);
+  }, []);
+
+  // --- Render Mobile Layout when on mobile viewport (Requirement: 4.1) ---
+  if (showMobileLayout) {
+    return (
+      <MobilePagesManager
+        pages={filteredPages}
+        isLoading={isLoading}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onEditPage={handleMobileEditPage}
+        onDeletePage={handleMobileDeletePage}
+        onPreviewPage={handleMobilePreviewPage}
+        onCreateNew={onCreateNew || (() => (window.location.href = '/admin/builder'))}
+        onRefresh={fetchPages}
+        isDarkMode={isDarkMode}
+        loadingPage={loadingPage}
+      />
+    );
+  }
+
+  // --- Desktop Layout (original) ---
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
