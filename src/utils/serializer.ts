@@ -85,7 +85,7 @@ interface WidgetTemplate {
 
 interface TemplateElement {
   type: string;
-  field: string;
+  field?: string; // Optional - not needed for layout grids with nested elements
   className?: string;
   imageSize?: string;
   imageShape?: string;
@@ -220,10 +220,15 @@ function renderCustomWidgetToHTML(type: string, props: Record<string, any>, temp
 
 // Render a single template element to HTML
 function renderTemplateElement(element: TemplateElement, props: Record<string, any>): string {
-  const value = getNestedValue(props, element.field);
-  if (value === undefined || value === null) return '';
-
+  const value = element.field ? getNestedValue(props, element.field) : undefined;
   const className = element.className || '';
+  
+  // For grid/carousel with nested elements, don't require value
+  if ((element.type === 'grid' || element.type === 'carousel') && element.elements && element.elements.length > 0) {
+    // Continue to switch statement
+  } else if (value === undefined || value === null) {
+    return '';
+  }
 
   switch (element.type) {
     case 'title':
