@@ -1,0 +1,1588 @@
+{
+  "widgets": [
+    {
+      "type": "ProfileCard",
+      "label": "Profile Card",
+      "category": "social",
+      "icon": null,
+      "template": {
+        "layout": "card",
+        "containerClass": "text-center",
+        "elements": [
+          {
+            "type": "image",
+            "field": "avatar",
+            "imageSize": "lg",
+            "imageShape": "circle",
+            "className": "mx-auto mb-6 border-4 border-blue-100 dark:border-blue-900"
+          },
+          {
+            "type": "title",
+            "field": "name",
+            "className": "text-2xl mb-1"
+          },
+          {
+            "type": "subtitle",
+            "field": "title",
+            "className": "text-blue-600 dark:text-blue-400 font-medium mb-4"
+          },
+          {
+            "type": "text",
+            "field": "bio",
+            "className": "max-w-md mx-auto mb-6"
+          },
+          {
+            "type": "tags",
+            "field": "skills",
+            "className": "justify-center mb-6"
+          },
+          {
+            "type": "social",
+            "field": "socialLinks",
+            "className": "justify-center"
+          }
+        ]
+      },
+      "defaultProps": {
+        "name": "Phạm Thành Nam",
+        "title": "Full-stack Developer",
+        "bio": "Passionate about building great products with modern technologies.",
+        "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300",
+        "email": "contact@example.com",
+        "location": "Ho Chi Minh City, Vietnam",
+        "skills": [
+          "React",
+          "TypeScript",
+          "Node.js",
+          "Astro"
+        ],
+        "socialLinks": [
+          {
+            "platform": "github",
+            "url": "https://github.com",
+            "icon": "tabler:brand-github"
+          },
+          {
+            "platform": "linkedin",
+            "url": "https://linkedin.com",
+            "icon": "tabler:brand-linkedin"
+          }
+        ],
+        "showEmail": true,
+        "showLocation": true
+      },
+      "fields": [
+        {
+          "name": "name",
+          "label": "Full Name",
+          "type": "text"
+        },
+        {
+          "name": "title",
+          "label": "Job Title",
+          "type": "text"
+        },
+        {
+          "name": "bio",
+          "label": "Bio",
+          "type": "textarea"
+        },
+        {
+          "name": "avatar",
+          "label": "Avatar Image",
+          "type": "image"
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "type": "text"
+        },
+        {
+          "name": "location",
+          "label": "Location",
+          "type": "text"
+        },
+        {
+          "name": "skills",
+          "label": "Skills (JSON array)",
+          "type": "json"
+        },
+        {
+          "name": "socialLinks",
+          "label": "Social Links",
+          "type": "array",
+          "arraySchema": [
+            {
+              "key": "platform",
+              "label": "Platform",
+              "type": "text"
+            },
+            {
+              "key": "url",
+              "label": "URL",
+              "type": "text"
+            },
+            {
+              "key": "icon",
+              "label": "Icon",
+              "type": "icon"
+            }
+          ]
+        },
+        {
+          "name": "showEmail",
+          "label": "Show Email",
+          "type": "boolean"
+        },
+        {
+          "name": "showLocation",
+          "label": "Show Location",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "type": "SkillsChart",
+      "label": "Skills Chart",
+      "category": "content",
+      "icon": null,
+      "template": {
+        "layout": "section",
+        "showHeader": true,
+        "headerPosition": "center",
+        "containerClass": "max-w-3xl",
+        "elements": [
+          {
+            "type": "progress",
+            "field": "skills"
+          }
+        ]
+      },
+      "defaultProps": {
+        "title": "My Skills",
+        "subtitle": "Technologies I work with",
+        "skills": [
+          {
+            "name": "JavaScript",
+            "level": 90,
+            "color": "#f7df1e"
+          },
+          {
+            "name": "TypeScript",
+            "level": 85,
+            "color": "#3178c6"
+          },
+          {
+            "name": "React",
+            "level": 88,
+            "color": "#61dafb"
+          },
+          {
+            "name": "Node.js",
+            "level": 80,
+            "color": "#339933"
+          },
+          {
+            "name": "Python",
+            "level": 70,
+            "color": "#3776ab"
+          }
+        ],
+        "showPercentage": true,
+        "animated": true
+      },
+      "fields": [
+        {
+          "name": "title",
+          "label": "Title",
+          "type": "text"
+        },
+        {
+          "name": "subtitle",
+          "label": "Subtitle",
+          "type": "text"
+        },
+        {
+          "name": "skills",
+          "label": "Skills",
+          "type": "array",
+          "arraySchema": [
+            {
+              "key": "name",
+              "label": "Skill Name",
+              "type": "text"
+            },
+            {
+              "key": "level",
+              "label": "Level (0-100)",
+              "type": "number"
+            },
+            {
+              "key": "color",
+              "label": "Color (hex)",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "name": "showPercentage",
+          "label": "Show Percentage",
+          "type": "boolean"
+        },
+        {
+          "name": "animated",
+          "label": "Animated Bars",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "type": "ServiceCard",
+      "label": "Service Card",
+      "category": "features",
+      "icon": null,
+      "template": {
+        "layout": "card",
+        "containerClass": "text-center max-w-md",
+        "elements": [
+          {
+            "type": "icon",
+            "field": "icon",
+            "className": "w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-2xl flex items-center justify-center mx-auto mb-6 text-blue-600"
+          },
+          {
+            "type": "title",
+            "field": "title",
+            "className": "text-xl mb-2"
+          },
+          {
+            "type": "text",
+            "field": "description",
+            "className": "mb-4"
+          },
+          {
+            "type": "title",
+            "field": "price",
+            "className": "text-3xl text-blue-600 dark:text-blue-400 mb-6"
+          },
+          {
+            "type": "list",
+            "field": "features",
+            "listStyle": "check",
+            "className": "text-left mb-6"
+          },
+          {
+            "type": "button",
+            "field": "callToAction",
+            "buttonVariant": "primary"
+          }
+        ]
+      },
+      "defaultProps": {
+        "title": "Web Development",
+        "description": "Build modern, responsive websites using the latest technologies.",
+        "icon": "tabler:code",
+        "price": "From $500",
+        "features": [
+          "Responsive Design",
+          "SEO Optimized",
+          "Fast Loading",
+          "Modern UI/UX"
+        ],
+        "callToAction": {
+          "text": "Get Started",
+          "href": "#contact"
+        },
+        "highlighted": false
+      },
+      "fields": [
+        {
+          "name": "title",
+          "label": "Service Title",
+          "type": "text"
+        },
+        {
+          "name": "description",
+          "label": "Description",
+          "type": "textarea"
+        },
+        {
+          "name": "icon",
+          "label": "Icon",
+          "type": "icon"
+        },
+        {
+          "name": "price",
+          "label": "Price",
+          "type": "text"
+        },
+        {
+          "name": "features",
+          "label": "Features (JSON array)",
+          "type": "json"
+        },
+        {
+          "name": "callToAction.text",
+          "label": "CTA Text",
+          "type": "text"
+        },
+        {
+          "name": "callToAction.href",
+          "label": "CTA Link",
+          "type": "text"
+        },
+        {
+          "name": "highlighted",
+          "label": "Highlighted",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "type": "TestimonialCard",
+      "label": "Testimonial Card",
+      "category": "social",
+      "icon": null,
+      "template": {
+        "layout": "card",
+        "containerClass": "max-w-lg",
+        "elements": [
+          {
+            "type": "custom",
+            "field": "quote",
+            "className": "text-xl italic text-gray-700 dark:text-gray-300 mb-6"
+          },
+          {
+            "type": "divider",
+            "field": ""
+          },
+          {
+            "type": "image",
+            "field": "avatar",
+            "imageSize": "sm",
+            "imageShape": "circle",
+            "className": "inline-block mr-4"
+          },
+          {
+            "type": "title",
+            "field": "name",
+            "className": "text-lg inline-block align-middle"
+          },
+          {
+            "type": "subtitle",
+            "field": "role",
+            "className": "text-sm text-gray-500"
+          }
+        ]
+      },
+      "defaultProps": {
+        "quote": "This product has completely transformed how we work. Highly recommended!",
+        "name": "John Doe",
+        "role": "CEO at TechCorp",
+        "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100",
+        "rating": 5
+      },
+      "fields": [
+        {
+          "name": "quote",
+          "label": "Quote",
+          "type": "textarea"
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "text"
+        },
+        {
+          "name": "role",
+          "label": "Role/Company",
+          "type": "text"
+        },
+        {
+          "name": "avatar",
+          "label": "Avatar",
+          "type": "image"
+        },
+        {
+          "name": "rating",
+          "label": "Rating (1-5)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "type": "ImageList",
+      "label": "Image List",
+      "category": "content",
+      "icon": null,
+      "template": {
+        "layout": "section",
+        "showHeader": true,
+        "headerPosition": "center",
+        "containerClass": "max-w-6xl",
+        "elements": [
+          {
+            "type": "grid",
+            "field": "images",
+            "gridCols": 3,
+            "className": "gap-6"
+          }
+        ]
+      },
+      "defaultProps": {
+        "title": "Our Gallery",
+        "subtitle": "A collection of beautiful images",
+        "columns": 3,
+        "imageShape": "rounded",
+        "showCaptions": true,
+        "images": [
+          {
+            "src": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600",
+            "alt": "Team working together",
+            "caption": "Collaboration"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600",
+            "alt": "Coding on laptop",
+            "caption": "Development"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=600",
+            "alt": "Creative workspace",
+            "caption": "Creativity"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600",
+            "alt": "Analytics dashboard",
+            "caption": "Analytics"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1551434678-e076c223a692?w=600",
+            "alt": "Team meeting",
+            "caption": "Meetings"
+          },
+          {
+            "src": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600",
+            "alt": "Startup office",
+            "caption": "Our Office"
+          }
+        ]
+      },
+      "fields": [
+        {
+          "name": "title",
+          "label": "Title",
+          "type": "text"
+        },
+        {
+          "name": "subtitle",
+          "label": "Subtitle",
+          "type": "text"
+        },
+        {
+          "name": "columns",
+          "label": "Columns",
+          "type": "select",
+          "options": [
+            {
+              "label": "2 Columns",
+              "value": 2
+            },
+            {
+              "label": "3 Columns",
+              "value": 3
+            },
+            {
+              "label": "4 Columns",
+              "value": 4
+            }
+          ]
+        },
+        {
+          "name": "imageShape",
+          "label": "Image Shape",
+          "type": "select",
+          "options": [
+            {
+              "label": "Square",
+              "value": "square"
+            },
+            {
+              "label": "Rounded",
+              "value": "rounded"
+            },
+            {
+              "label": "Circle",
+              "value": "circle"
+            }
+          ]
+        },
+        {
+          "name": "showCaptions",
+          "label": "Show Captions",
+          "type": "boolean"
+        },
+        {
+          "name": "images",
+          "label": "Images",
+          "type": "array",
+          "arraySchema": [
+            {
+              "key": "src",
+              "label": "Image",
+              "type": "image"
+            },
+            {
+              "key": "alt",
+              "label": "Alt Text",
+              "type": "text"
+            },
+            {
+              "key": "caption",
+              "label": "Caption",
+              "type": "text"
+            },
+            {
+              "key": "link",
+              "label": "Link URL (optional)",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ProductCard",
+      "label": "Product Card",
+      "category": "content",
+      "icon": null,
+      "template": {
+        "layout": "card",
+        "containerClass": "relative overflow-hidden group hover:shadow-xl transition-shadow duration-300",
+        "showHeader": false,
+        "elements": [
+          {
+            "type": "tags",
+            "field": "badge",
+            "className": "absolute top-3 left-3 z-10",
+            "condition": "showBadge"
+          },
+          {
+            "type": "image",
+            "field": "image",
+            "imageSize": "full",
+            "imageShape": "rounded",
+            "className": "w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-300"
+          },
+          {
+            "type": "title",
+            "field": "name",
+            "className": "text-lg font-semibold mt-4 mb-1 line-clamp-2"
+          },
+          {
+            "type": "text",
+            "field": "description",
+            "className": "text-sm text-muted-foreground mb-3 line-clamp-2"
+          },
+          {
+            "type": "custom",
+            "field": "priceHtml",
+            "className": "flex items-center gap-2 mb-4"
+          },
+          {
+            "type": "button",
+            "field": "buyButton",
+            "buttonVariant": "primary",
+            "className": "w-full"
+          }
+        ]
+      },
+      "defaultProps": {
+        "name": "Wireless Bluetooth Headphones",
+        "description": "Premium sound quality with active noise cancellation and 30-hour battery life.",
+        "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+        "price": 99.99,
+        "originalPrice": 149.99,
+        "currency": "$",
+        "showBadge": true,
+        "badge": [
+          "-33%"
+        ],
+        "priceHtml": "<span class=\"text-xl font-bold text-primary\">$99.99</span><span class=\"text-sm text-muted-foreground line-through\">$149.99</span>",
+        "buyButton": {
+          "text": "Add to Cart",
+          "href": "#",
+          "icon": "tabler:shopping-cart"
+        }
+      },
+      "fields": [
+        {
+          "name": "name",
+          "label": "Product Name",
+          "type": "text"
+        },
+        {
+          "name": "description",
+          "label": "Short Description",
+          "type": "textarea"
+        },
+        {
+          "name": "image",
+          "label": "Product Image",
+          "type": "image"
+        },
+        {
+          "name": "price",
+          "label": "Price",
+          "type": "number"
+        },
+        {
+          "name": "originalPrice",
+          "label": "Original Price (optional)",
+          "type": "number"
+        },
+        {
+          "name": "currency",
+          "label": "Currency Symbol",
+          "type": "text"
+        },
+        {
+          "name": "showBadge",
+          "label": "Show Discount Badge",
+          "type": "boolean"
+        },
+        {
+          "name": "badge",
+          "label": "Badge Text (JSON array)",
+          "type": "json"
+        },
+        {
+          "name": "priceHtml",
+          "label": "Price Display (HTML)",
+          "type": "textarea"
+        },
+        {
+          "name": "buyButton",
+          "label": "Buy Button",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "type": "ProductList",
+      "label": "Product List",
+      "category": "content",
+      "icon": null,
+      "template": {
+        "layout": "section",
+        "showHeader": true,
+        "headerPosition": "center",
+        "containerClass": "",
+        "elements": [
+          {
+            "type": "grid",
+            "field": "products",
+            "gridCols": 4,
+            "className": "gap-6",
+            "itemTemplate": {
+              "layout": "card",
+              "containerClass": "relative overflow-hidden group hover:shadow-xl transition-all duration-300",
+              "elements": [
+                {
+                  "type": "tags",
+                  "field": "badge",
+                  "className": "absolute top-3 left-3 z-10 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded",
+                  "condition": "badge"
+                },
+                {
+                  "type": "image",
+                  "field": "image",
+                  "imageSize": "full",
+                  "imageShape": "rounded",
+                  "className": "w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-300"
+                },
+                {
+                  "type": "title",
+                  "field": "name",
+                  "className": "text-base font-semibold mt-4 mb-1 line-clamp-2"
+                },
+                {
+                  "type": "text",
+                  "field": "description",
+                  "className": "text-sm text-muted-foreground mb-3 line-clamp-2"
+                },
+                {
+                  "type": "custom",
+                  "field": "priceHtml",
+                  "className": "flex items-center gap-2 mb-4"
+                },
+                {
+                  "type": "button",
+                  "field": "buyButton",
+                  "buttonVariant": "primary",
+                  "className": "w-full"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "defaultProps": {
+        "title": "Featured Products",
+        "subtitle": "Check out our best sellers",
+        "columns": 4,
+        "products": [
+          {
+            "name": "Wireless Headphones",
+            "description": "Premium sound with noise cancellation",
+            "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+            "price": 99.99,
+            "originalPrice": 149.99,
+            "badge": "-33%",
+            "priceHtml": "<span class=\"text-lg font-bold text-primary\">$99.99</span><span class=\"text-sm text-muted-foreground line-through\">$149.99</span>",
+            "buyButton": {
+              "text": "Add to Cart",
+              "href": "#",
+              "icon": "tabler:shopping-cart"
+            }
+          },
+          {
+            "name": "Smart Watch Pro",
+            "description": "Track your fitness and stay connected",
+            "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
+            "price": 199.99,
+            "originalPrice": null,
+            "badge": "",
+            "priceHtml": "<span class=\"text-lg font-bold text-primary\">$199.99</span>",
+            "buyButton": {
+              "text": "Add to Cart",
+              "href": "#",
+              "icon": "tabler:shopping-cart"
+            }
+          },
+          {
+            "name": "Portable Speaker",
+            "description": "Powerful bass in a compact design",
+            "image": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400",
+            "price": 79.99,
+            "originalPrice": 99.99,
+            "badge": "-20%",
+            "priceHtml": "<span class=\"text-lg font-bold text-primary\">$79.99</span><span class=\"text-sm text-muted-foreground line-through\">$99.99</span>",
+            "buyButton": {
+              "text": "Add to Cart",
+              "href": "#",
+              "icon": "tabler:shopping-cart"
+            }
+          },
+          {
+            "name": "Laptop Stand",
+            "description": "Ergonomic aluminum stand for your laptop",
+            "image": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400",
+            "price": 49.99,
+            "originalPrice": null,
+            "badge": "New",
+            "priceHtml": "<span class=\"text-lg font-bold text-primary\">$49.99</span>",
+            "buyButton": {
+              "text": "Add to Cart",
+              "href": "#",
+              "icon": "tabler:shopping-cart"
+            }
+          }
+        ]
+      },
+      "fields": [
+        {
+          "name": "title",
+          "label": "Section Title",
+          "type": "text"
+        },
+        {
+          "name": "subtitle",
+          "label": "Section Subtitle",
+          "type": "text"
+        },
+        {
+          "name": "columns",
+          "label": "Columns (2-6)",
+          "type": "number"
+        },
+        {
+          "name": "products",
+          "label": "Products",
+          "type": "array",
+          "arraySchema": [
+            {
+              "key": "name",
+              "label": "Product Name",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "label": "Description",
+              "type": "textarea"
+            },
+            {
+              "key": "image",
+              "label": "Image",
+              "type": "image"
+            },
+            {
+              "key": "price",
+              "label": "Price",
+              "type": "number"
+            },
+            {
+              "key": "originalPrice",
+              "label": "Original Price",
+              "type": "number"
+            },
+            {
+              "key": "badge",
+              "label": "Badge (e.g. -20%, New)",
+              "type": "text"
+            },
+            {
+              "key": "priceHtml",
+              "label": "Price HTML",
+              "type": "textarea"
+            },
+            {
+              "key": "buyButton.text",
+              "label": "Button Text",
+              "type": "text"
+            },
+            {
+              "key": "buyButton.href",
+              "label": "Button Link",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ProductCarousel",
+      "label": "Product Carousel",
+      "category": "features",
+      "icon": null,
+      "template": {
+        "layout": "section",
+        "showHeader": true,
+        "headerPosition": "center",
+        "containerClass": "py-12",
+        "elements": [
+          {
+            "type": "carousel",
+            "field": "products",
+            "autoplay": true,
+            "autoplayInterval": 3000,
+            "showArrows": true,
+            "showDots": true,
+            "slidesToShow": 4,
+            "className": "px-4",
+            "itemTemplate": {
+              "layout": "card",
+              "containerClass": "mx-2 group hover:shadow-xl transition-all duration-300",
+              "elements": [
+                {
+                  "type": "tags",
+                  "field": "badge",
+                  "condition": "badge",
+                  "className": "absolute top-2 left-2 z-10"
+                },
+                {
+                  "type": "image",
+                  "field": "image",
+                  "imageSize": "lg",
+                  "imageShape": "rounded",
+                  "className": "w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-300"
+                },
+                {
+                  "type": "title",
+                  "field": "name",
+                  "className": "text-lg font-semibold mt-4 mb-1 line-clamp-2"
+                },
+                {
+                  "type": "text",
+                  "field": "description",
+                  "className": "text-sm text-gray-500 mb-3 line-clamp-2"
+                },
+                {
+                  "type": "custom",
+                  "field": "priceHtml",
+                  "className": "flex items-center gap-2 mb-4"
+                },
+                {
+                  "type": "button",
+                  "field": "buyButton",
+                  "buttonVariant": "primary",
+                  "className": "w-full"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "defaultProps": {
+        "title": "Sản Phẩm Nổi Bật",
+        "subtitle": "Khám phá các sản phẩm được yêu thích nhất",
+        "autoplay": true,
+        "autoplaySpeed": 3000,
+        "pauseOnHover": true,
+        "showArrows": true,
+        "showDots": true,
+        "slidesToShow": 4,
+        "infinite": true,
+        "products": [
+          {
+            "name": "Áo Thun Premium",
+            "description": "Chất liệu cotton 100% cao cấp, thoáng mát",
+            "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
+            "price": 299000,
+            "originalPrice": 450000,
+            "badge": [
+              "Sale 35%"
+            ],
+            "priceHtml": "<span class='text-xl font-bold text-red-600'>299.000₫</span><span class='text-sm text-gray-400 line-through'>450.000₫</span>",
+            "buyButton": {
+              "text": "Thêm vào giỏ",
+              "url": "#",
+              "icon": "tabler:shopping-cart"
+            }
+          },
+          {
+            "name": "Giày Sneaker Classic",
+            "description": "Thiết kế hiện đại, đế êm ái",
+            "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400",
+            "price": 1290000,
+            "originalPrice": null,
+            "badge": [
+              "New"
+            ],
+            "priceHtml": "<span class='text-xl font-bold text-gray-900'>1.290.000₫</span>",
+            "buyButton": {
+              "text": "Thêm vào giỏ",
+              "url": "#",
+              "icon": "tabler:shopping-cart"
+            }
+          },
+          {
+            "name": "Túi Xách Da",
+            "description": "Da thật nhập khẩu, bền đẹp",
+            "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400",
+            "price": 850000,
+            "originalPrice": 1200000,
+            "badge": [
+              "Hot",
+              "Sale"
+            ],
+            "priceHtml": "<span class='text-xl font-bold text-red-600'>850.000₫</span><span class='text-sm text-gray-400 line-through'>1.200.000₫</span>",
+            "buyButton": {
+              "text": "Thêm vào giỏ",
+              "url": "#",
+              "icon": "tabler:shopping-cart"
+            }
+          },
+          {
+            "name": "Đồng Hồ Thông Minh",
+            "description": "Theo dõi sức khỏe, thông báo thông minh",
+            "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
+            "price": 2490000,
+            "originalPrice": null,
+            "badge": [],
+            "priceHtml": "<span class='text-xl font-bold text-gray-900'>2.490.000₫</span>",
+            "buyButton": {
+              "text": "Thêm vào giỏ",
+              "url": "#",
+              "icon": "tabler:shopping-cart"
+            }
+          },
+          {
+            "name": "Tai Nghe Bluetooth",
+            "description": "Âm thanh Hi-Fi, chống ồn chủ động",
+            "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+            "price": 1590000,
+            "originalPrice": 1990000,
+            "badge": [
+              "Sale 20%"
+            ],
+            "priceHtml": "<span class='text-xl font-bold text-red-600'>1.590.000₫</span><span class='text-sm text-gray-400 line-through'>1.990.000₫</span>",
+            "buyButton": {
+              "text": "Thêm vào giỏ",
+              "url": "#",
+              "icon": "tabler:shopping-cart"
+            }
+          }
+        ]
+      },
+      "fields": [
+        {
+          "name": "title",
+          "label": "Tiêu đề",
+          "type": "text"
+        },
+        {
+          "name": "subtitle",
+          "label": "Mô tả ngắn",
+          "type": "text"
+        },
+        {
+          "name": "autoplay",
+          "label": "Tự động chạy",
+          "type": "boolean"
+        },
+        {
+          "name": "autoplaySpeed",
+          "label": "Tốc độ (ms)",
+          "type": "number"
+        },
+        {
+          "name": "pauseOnHover",
+          "label": "Dừng khi hover",
+          "type": "boolean"
+        },
+        {
+          "name": "showArrows",
+          "label": "Hiển thị mũi tên",
+          "type": "boolean"
+        },
+        {
+          "name": "showDots",
+          "label": "Hiển thị dots",
+          "type": "boolean"
+        },
+        {
+          "name": "slidesToShow",
+          "label": "Số sản phẩm hiển thị",
+          "type": "number"
+        },
+        {
+          "name": "infinite",
+          "label": "Lặp vô hạn",
+          "type": "boolean"
+        },
+        {
+          "name": "products",
+          "label": "Danh sách sản phẩm",
+          "type": "array",
+          "arraySchema": [
+            {
+              "key": "name",
+              "label": "Tên sản phẩm",
+              "type": "text"
+            },
+            {
+              "key": "description",
+              "label": "Mô tả",
+              "type": "textarea"
+            },
+            {
+              "key": "image",
+              "label": "Hình ảnh",
+              "type": "image"
+            },
+            {
+              "key": "price",
+              "label": "Giá",
+              "type": "number"
+            },
+            {
+              "key": "originalPrice",
+              "label": "Giá gốc",
+              "type": "number"
+            },
+            {
+              "key": "badge",
+              "label": "Badge (JSON)",
+              "type": "json"
+            },
+            {
+              "key": "priceHtml",
+              "label": "HTML giá",
+              "type": "textarea"
+            },
+            {
+              "key": "buyButton",
+              "label": "Nút mua (JSON)",
+              "type": "json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ProductFilter",
+      "label": "Product Filter",
+      "category": "features",
+      "icon": null,
+      "template": {
+        "layout": "section",
+        "showHeader": true,
+        "headerPosition": "left",
+        "containerClass": "py-8",
+        "elements": [
+          {
+            "type": "grid",
+            "gridCols": 4,
+            "className": "gap-8",
+            "elements": [
+              {
+                "type": "custom",
+                "field": "filterSidebar",
+                "className": "col-span-1 space-y-6"
+              },
+              {
+                "type": "grid",
+                "field": "products",
+                "gridCols": 3,
+                "className": "col-span-3 gap-6",
+                "itemTemplate": {
+                  "layout": "card",
+                  "containerClass": "group hover:shadow-lg transition-all duration-300",
+                  "elements": [
+                    {
+                      "type": "tags",
+                      "field": "badge",
+                      "condition": "badge",
+                      "className": "absolute top-2 left-2 z-10"
+                    },
+                    {
+                      "type": "image",
+                      "field": "image",
+                      "imageSize": "lg",
+                      "imageShape": "rounded",
+                      "className": "w-full aspect-square object-cover"
+                    },
+                    {
+                      "type": "title",
+                      "field": "name",
+                      "className": "text-base font-medium mt-3 mb-1 line-clamp-2"
+                    },
+                    {
+                      "type": "custom",
+                      "field": "priceHtml",
+                      "className": "flex items-center gap-2"
+                    },
+                    {
+                      "type": "tags",
+                      "field": "colors",
+                      "className": "mt-2"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "defaultProps": {
+        "title": "Tất Cả Sản Phẩm",
+        "subtitle": "Tìm kiếm sản phẩm phù hợp với bạn",
+        "showResultCount": true,
+        "resultCount": 24,
+        "categories": [
+          {
+            "id": "all",
+            "name": "Tất cả",
+            "count": 120,
+            "active": true
+          },
+          {
+            "id": "ao",
+            "name": "Áo",
+            "count": 45,
+            "active": false
+          },
+          {
+            "id": "quan",
+            "name": "Quần",
+            "count": 32,
+            "active": false
+          },
+          {
+            "id": "giay",
+            "name": "Giày",
+            "count": 28,
+            "active": false
+          },
+          {
+            "id": "phu-kien",
+            "name": "Phụ kiện",
+            "count": 15,
+            "active": false
+          }
+        ],
+        "priceRanges": [
+          {
+            "id": "all",
+            "label": "Tất cả mức giá",
+            "min": 0,
+            "max": null,
+            "active": true
+          },
+          {
+            "id": "under-200",
+            "label": "Dưới 200.000₫",
+            "min": 0,
+            "max": 200000,
+            "active": false
+          },
+          {
+            "id": "200-500",
+            "label": "200.000₫ - 500.000₫",
+            "min": 200000,
+            "max": 500000,
+            "active": false
+          },
+          {
+            "id": "500-1m",
+            "label": "500.000₫ - 1.000.000₫",
+            "min": 500000,
+            "max": 1000000,
+            "active": false
+          },
+          {
+            "id": "over-1m",
+            "label": "Trên 1.000.000₫",
+            "min": 1000000,
+            "max": null,
+            "active": false
+          }
+        ],
+        "colors": [
+          {
+            "id": "white",
+            "name": "Trắng",
+            "hex": "#FFFFFF",
+            "active": false
+          },
+          {
+            "id": "black",
+            "name": "Đen",
+            "hex": "#000000",
+            "active": false
+          },
+          {
+            "id": "red",
+            "name": "Đỏ",
+            "hex": "#EF4444",
+            "active": false
+          },
+          {
+            "id": "blue",
+            "name": "Xanh dương",
+            "hex": "#3B82F6",
+            "active": false
+          },
+          {
+            "id": "green",
+            "name": "Xanh lá",
+            "hex": "#22C55E",
+            "active": false
+          },
+          {
+            "id": "yellow",
+            "name": "Vàng",
+            "hex": "#EAB308",
+            "active": false
+          },
+          {
+            "id": "pink",
+            "name": "Hồng",
+            "hex": "#EC4899",
+            "active": false
+          },
+          {
+            "id": "gray",
+            "name": "Xám",
+            "hex": "#6B7280",
+            "active": false
+          }
+        ],
+        "sortOptions": [
+          {
+            "id": "newest",
+            "label": "Mới nhất",
+            "active": true
+          },
+          {
+            "id": "price-asc",
+            "label": "Giá: Thấp đến cao",
+            "active": false
+          },
+          {
+            "id": "price-desc",
+            "label": "Giá: Cao đến thấp",
+            "active": false
+          },
+          {
+            "id": "popular",
+            "label": "Phổ biến nhất",
+            "active": false
+          },
+          {
+            "id": "rating",
+            "label": "Đánh giá cao",
+            "active": false
+          }
+        ],
+        "filterSidebar": "Danh mục{{categories}}Khoảng giá{{priceRanges}}Màu sắc{{colors}}Xóa bộ lọc",
+        "products": [
+          {
+            "name": "Áo Thun Oversize",
+            "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
+            "price": 299000,
+            "originalPrice": 450000,
+            "badge": [
+              "Sale"
+            ],
+            "priceHtml": "299.000₫450.000₫",
+            "colors": [
+              "Trắng",
+              "Đen"
+            ]
+          },
+          {
+            "name": "Quần Jeans Slim Fit",
+            "image": "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400",
+            "price": 650000,
+            "originalPrice": null,
+            "badge": [],
+            "priceHtml": "650.000₫",
+            "colors": [
+              "Xanh"
+            ]
+          },
+          {
+            "name": "Giày Sneaker Classic",
+            "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400",
+            "price": 1290000,
+            "originalPrice": null,
+            "badge": [
+              "New"
+            ],
+            "priceHtml": "1.290.000₫",
+            "colors": [
+              "Đỏ",
+              "Trắng"
+            ]
+          },
+          {
+            "name": "Túi Xách Da",
+            "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400",
+            "price": 850000,
+            "originalPrice": 1200000,
+            "badge": [
+              "Hot"
+            ],
+            "priceHtml": "850.000₫1.200.000₫",
+            "colors": [
+              "Nâu",
+              "Đen"
+            ]
+          },
+          {
+            "name": "Áo Khoác Denim",
+            "image": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400",
+            "price": 780000,
+            "originalPrice": null,
+            "badge": [],
+            "priceHtml": "780.000₫",
+            "colors": [
+              "Xanh"
+            ]
+          },
+          {
+            "name": "Mũ Lưỡi Trai",
+            "image": "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400",
+            "price": 180000,
+            "originalPrice": 250000,
+            "badge": [
+              "Sale"
+            ],
+            "priceHtml": "180.000₫250.000₫",
+            "colors": [
+              "Đen",
+              "Trắng",
+              "Xanh navy"
+            ]
+          }
+        ]
+      },
+      "fields": [
+        {
+          "name": "title",
+          "label": "Tiêu đề",
+          "type": "text"
+        },
+        {
+          "name": "subtitle",
+          "label": "Mô tả",
+          "type": "text"
+        },
+        {
+          "name": "showResultCount",
+          "label": "Hiện số kết quả",
+          "type": "boolean"
+        },
+        {
+          "name": "categories",
+          "label": "Danh mục",
+          "type": "array",
+          "arraySchema": [
+            {
+              "key": "id",
+              "label": "ID",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "label": "Tên danh mục",
+              "type": "text"
+            },
+            {
+              "key": "count",
+              "label": "Số lượng",
+              "type": "number"
+            },
+            {
+              "key": "active",
+              "label": "Đang chọn",
+              "type": "boolean"
+            }
+          ]
+        },
+        {
+          "name": "priceRanges",
+          "label": "Khoảng giá",
+          "type": "array",
+          "arraySchema": [
+            {
+              "key": "id",
+              "label": "ID",
+              "type": "text"
+            },
+            {
+              "key": "label",
+              "label": "Nhãn",
+              "type": "text"
+            },
+            {
+              "key": "min",
+              "label": "Giá tối thiểu",
+              "type": "number"
+            },
+            {
+              "key": "max",
+              "label": "Giá tối đa",
+              "type": "number"
+            },
+            {
+              "key": "active",
+              "label": "Đang chọn",
+              "type": "boolean"
+            }
+          ]
+        },
+        {
+          "name": "colors",
+          "label": "Màu sắc",
+          "type": "array",
+          "arraySchema": [
+            {
+              "key": "id",
+              "label": "ID",
+              "type": "text"
+            },
+            {
+              "key": "name",
+              "label": "Tên màu",
+              "type": "text"
+            },
+            {
+              "key": "hex",
+              "label": "Mã màu (hex)",
+              "type": "text"
+            },
+            {
+              "key": "active",
+              "label": "Đang chọn",
+              "type": "boolean"
+            }
+          ]
+        },
+        {
+          "name": "sortOptions",
+          "label": "Tùy chọn sắp xếp",
+          "type": "array",
+          "arraySchema": [
+            {
+              "key": "id",
+              "label": "ID",
+              "type": "text"
+            },
+            {
+              "key": "label",
+              "label": "Nhãn",
+              "type": "text"
+            },
+            {
+              "key": "active",
+              "label": "Đang chọn",
+              "type": "boolean"
+            }
+          ]
+        },
+        {
+          "name": "filterSidebar",
+          "label": "HTML Sidebar",
+          "type": "textarea"
+        },
+        {
+          "name": "products",
+          "label": "Sản phẩm",
+          "type": "array",
+          "arraySchema": [
+            {
+              "key": "name",
+              "label": "Tên",
+              "type": "text"
+            },
+            {
+              "key": "image",
+              "label": "Hình ảnh",
+              "type": "image"
+            },
+            {
+              "key": "price",
+              "label": "Giá",
+              "type": "number"
+            },
+            {
+              "key": "originalPrice",
+              "label": "Giá gốc",
+              "type": "number"
+            },
+            {
+              "key": "badge",
+              "label": "Badge (JSON)",
+              "type": "json"
+            },
+            {
+              "key": "priceHtml",
+              "label": "HTML giá",
+              "type": "textarea"
+            },
+            {
+              "key": "colors",
+              "label": "Màu (JSON)",
+              "type": "json"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "lastUpdated": "2025-12-24T15:16:48.592Z",
+  "version": "1.0.0"
+}

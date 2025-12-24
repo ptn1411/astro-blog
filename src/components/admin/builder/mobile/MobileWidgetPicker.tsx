@@ -21,7 +21,7 @@ export interface MobileWidgetPickerProps {
   /** Callback when picker should close */
   onClose: () => void;
   /** Callback when a widget is selected */
-  onSelectWidget: (type: WidgetType) => void;
+  onSelectWidget: (type: WidgetType | string) => void;
   /** Whether dark mode is enabled */
   isDarkMode?: boolean;
 }
@@ -276,7 +276,7 @@ export const MobileWidgetPicker: React.FC<MobileWidgetPickerProps> = ({
 interface WidgetCardProps {
   widget: typeof WIDGET_REGISTRY[number];
   isDarkMode: boolean;
-  onSelect: (type: WidgetType) => void;
+  onSelect: (type: WidgetType | string) => void;
 }
 
 const WidgetCard: React.FC<WidgetCardProps> = ({ widget, isDarkMode, onSelect }) => {

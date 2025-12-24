@@ -3,7 +3,7 @@ import type { WidgetType } from './registry';
 // --- Builder Block Type ---
 export interface BuilderBlock {
   id: string;
-  type: WidgetType;
+  type: WidgetType | string; // Allow custom widget types
   props: Record<string, unknown>;
 }
 

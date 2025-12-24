@@ -99,11 +99,12 @@ export const WIDGET_CATEGORIES: { id: WidgetCategory; label: string }[] = [
 ];
 
 export interface WidgetSchema {
-  type: WidgetType;
+  type: WidgetType | string; // Allow custom widget types
   category: WidgetCategory;
   icon: any;
   label: string;
   defaultProps: Record<string, any>;
+  template?: any; // Optional template for dynamic rendering
   fields: {
     name: string;
     label: string;

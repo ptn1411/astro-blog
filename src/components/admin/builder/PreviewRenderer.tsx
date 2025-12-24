@@ -3,6 +3,8 @@ import React from 'react';
 import { playAnimeAnimation, playGSAPAnimation } from '../story/animations';
 import { WidgetWrapper } from './components/WidgetWrapper';
 import { WIDGET_REGISTRY, type WidgetType } from './registry';
+import { DynamicWidgetRenderer, getDefaultTemplate } from './DynamicWidgetRenderer';
+
 function tablerNameToComponent(name: string) {
   return (
     'Icon' +
@@ -13,21 +15,19 @@ function tablerNameToComponent(name: string) {
   );
 }
 interface PreviewRendererProps {
-  type: WidgetType;
+  type: WidgetType | string; // Allow custom widget types
   props: Record<string, unknown>;
+  widgetDef?: any; // Optional widget definition for custom widgets
 }
 
 // Helper to simplify class names
 const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(' ');
 
-export const PreviewRenderer: React.FC<PreviewRendererProps> = (props) => {
-  const { type, props: widgetProps } = props;
-  const widgetDef = WIDGET_REGISTRY.find((w) => w.type === type);
+export const PreviewRenderer: React.FC<PreviewRendererProps> = (renderProps) => {
+  const { type, props: widgetProps, widgetDef: externalWidgetDef } = renderProps;
+  const widgetDef = externalWidgetDef || WIDGET_REGISTRY.find((w) => w.type === type);
 
-  if (!widgetDef) {
-    return <div className="p-4 bg-red-100 text-red-700">Unknown Widget: {type}</div>;
-  }
-
+  // Don't block rendering for custom widgets - just use GenericRenderer
   return (
     <WidgetWrapper
       animationEngine={widgetProps.animationEngine as any}
@@ -42,7 +42,7 @@ export const PreviewRenderer: React.FC<PreviewRendererProps> = (props) => {
 };
 
 const InnerPreviewRenderer: React.FC<{
-  type: WidgetType;
+  type: WidgetType | string;
   props: Record<string, unknown>;
   widgetDef: any;
 }> = ({ type, props, widgetDef }) => {
@@ -136,7 +136,18 @@ const InnerPreviewRenderer: React.FC<{
       return <EventsRenderer {...props} />;
     case 'EffectsWidget':
       return <EffectsWidgetRenderer {...props} />;
+    // Custom Widgets - Use Dynamic Renderer
     default:
+      // For custom widgets with template, use DynamicWidgetRenderer
+      if (widgetDef?.template) {
+        return <DynamicWidgetRenderer template={widgetDef.template} props={props} />;
+      }
+      // For unknown widgets without definition, auto-generate template
+      if (!widgetDef) {
+        const autoTemplate = getDefaultTemplate(props);
+        return <DynamicWidgetRenderer template={autoTemplate} props={props} />;
+      }
+      // Fallback to generic renderer
       return <GenericRenderer type={type} props={props} />;
   }
 };

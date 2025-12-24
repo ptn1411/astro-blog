@@ -34,6 +34,7 @@ import {
   Redo2,
   Save,
   Search,
+  Settings,
   Smartphone,
   Sparkles,
   Sun,
@@ -46,7 +47,7 @@ import { toMDX } from '~/utils/serializer';
 
 import { getPendingImages, uploadAllPendingImages } from './ImagePicker';
 import { PropsEditor } from './components/PropsEditor';
-import { WIDGET_CATEGORIES, WIDGET_REGISTRY, type WidgetType } from './registry';
+import { WIDGET_CATEGORIES, type WidgetType } from './registry';
 
 // Import from builder modules
 import PagesManager from './PagesManager';
@@ -68,6 +69,8 @@ import {
   useAutoSave,
   useBuilderHistory,
   usePreviewSync,
+  useWidgetRegistry,
+  WidgetManager,
   type BuilderBlock,
   type PageMetadata,
 } from './index';
@@ -97,6 +100,7 @@ export default function BuilderApp() {
   const [pasteJsonText, setPasteJsonText] = useState('');
   const [isAIPromptModalOpen, setIsAIPromptModalOpen] = useState(false);
   const [websiteDescription, setWebsiteDescription] = useState('');
+  const [isWidgetManagerOpen, setIsWidgetManagerOpen] = useState(false);
 
   // Refs
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -117,6 +121,9 @@ export default function BuilderApp() {
   const { lastSaved, loadFromStorage, clearStorage } = useAutoSave(blocks, metadata, true);
   // Only sync preview when in builder view
   usePreviewSync(currentView === 'builder' ? blocks : [], metadata, iframeRef);
+  
+  // --- Widget Registry Hook ---
+  const widgetRegistry = useWidgetRegistry();
   
   // --- Responsive Layout Hook (Requirements: 1.1, 1.2, 1.3) ---
   const { layoutMode } = useBuilderResponsive();
@@ -231,17 +238,20 @@ export default function BuilderApp() {
     }
   };
 
-  const addBlock = (type: WidgetType) => {
-    const def = WIDGET_REGISTRY.find((w) => w.type === type);
-    if (!def) return;
+  const addBlock = useCallback((type: WidgetType | string) => {
+    const def = widgetRegistry.getWidget(type);
+    if (!def) {
+      console.warn(`Widget definition not found for type: ${type}`);
+      return;
+    }
     const newBlock: BuilderBlock = {
       id: generateId(),
-      type,
+      type: type as WidgetType,
       props: deepClone(def.defaultProps),
     };
     setBlocks((prev) => [...prev, newBlock]);
     setSelectedId(newBlock.id);
-  };
+  }, [widgetRegistry]);
 
   const updateBlockProps = (id: string, newProps: Record<string, unknown>) => {
     setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, props: newProps } : b)));
@@ -361,7 +371,7 @@ export default function BuilderApp() {
   };
 
   const generateAIPrompt = () => {
-    const widgetDocs = WIDGET_REGISTRY.map((w) => {
+    const widgetDocs = widgetRegistry.widgets.map((w) => {
       const fieldsDoc = w.fields
         .map((f) => {
           let fieldInfo = `    - ${f.name} (${f.type}): ${f.label}`;
@@ -667,14 +677,14 @@ Hãy tạo JSON hoàn chỉnh cho trang web theo mô tả trên, nhớ thêm cá
     const handler = (e: CustomEvent) => addBlock(e.detail);
     window.addEventListener('add-widget' as keyof WindowEventMap, handler as EventListener);
     return () => window.removeEventListener('add-widget' as keyof WindowEventMap, handler as EventListener);
-  }, []);
+  }, [addBlock]);
 
   // --- Derived State ---
-  const filteredWidgets = WIDGET_REGISTRY.filter((widget) =>
+  const filteredWidgets = widgetRegistry.widgets.filter((widget) =>
     widget.label.toLowerCase().includes(searchQuery.toLowerCase())
   );
   const selectedBlock = blocks.find((b) => b.id === selectedId);
-  const selectedDef = selectedBlock ? WIDGET_REGISTRY.find((w) => w.type === selectedBlock.type) : null;
+  const selectedDef = selectedBlock ? widgetRegistry.getWidget(selectedBlock.type) : null;
 
   // --- Mobile-specific callbacks (memoized for performance - Requirement 10.4) ---
   const handleMobileUndo = useCallback(() => {
@@ -817,6 +827,15 @@ Hãy tạo JSON hoàn chỉnh cho trang web theo mô tả trên, nhớ thêm cá
         onClear={clearPage}
         isDarkMode={isDarkMode}
       />
+
+      {/* Widget Manager Modal */}
+      {isWidgetManagerOpen && (
+        <WidgetManager
+          registry={widgetRegistry}
+          isDarkMode={isDarkMode}
+          onClose={() => setIsWidgetManagerOpen(false)}
+        />
+      )}
 
       {/* Paste JSON Modal */}
       {isPasteModalOpen && (
@@ -1053,6 +1072,15 @@ Hãy tạo JSON hoàn chỉnh cho trang web theo mô tả trên, nhớ thêm cá
                 title="Page Templates"
               >
                 <Layers size={20} />
+              </button>
+
+              {/* Widget Manager Button */}
+              <button
+                onClick={() => setIsWidgetManagerOpen(true)}
+                className={`p-2 rounded transition-colors ${isDarkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+                title="Manage Custom Widgets"
+              >
+                <Settings size={20} />
               </button>
 
               {/* Preview Mode Toggle */}

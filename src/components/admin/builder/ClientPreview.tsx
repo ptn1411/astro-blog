@@ -1,12 +1,31 @@
 import { useEffect, useState } from 'react';
 import { PreviewRenderer } from './PreviewRenderer';
+import { WIDGET_REGISTRY, type WidgetSchema } from './registry';
 import type { BuilderBlock } from './types';
+
+// Load custom widgets from localStorage
+function loadCustomWidgets(): WidgetSchema[] {
+  try {
+    const stored = localStorage.getItem('astro-builder-custom-widgets');
+    if (stored) {
+      const data = JSON.parse(stored);
+      return data.widgets || [];
+    }
+  } catch (e) {
+    console.error('Failed to load custom widgets:', e);
+  }
+  return [];
+}
 
 export default function ClientPreview() {
   const [blocks, setBlocks] = useState<BuilderBlock[]>([]);
+  const [customWidgets, setCustomWidgets] = useState<WidgetSchema[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Load custom widgets
+    setCustomWidgets(loadCustomWidgets());
+    
     const loadBlocks = () => {
       try {
         const stored = localStorage.getItem('astro-builder-blocks');
@@ -48,6 +67,9 @@ export default function ClientPreview() {
       if (e.key === 'astro-builder-blocks') {
         loadBlocks();
       }
+      if (e.key === 'astro-builder-custom-widgets') {
+        setCustomWidgets(loadCustomWidgets());
+      }
     };
 
     window.addEventListener('message', handleMessage);
@@ -58,6 +80,16 @@ export default function ClientPreview() {
       window.removeEventListener('storage', handleStorage);
     };
   }, []);
+
+  // Get widget definition (built-in or custom)
+  const getWidgetDef = (type: string): WidgetSchema | undefined => {
+    // Check custom widgets first (they can override built-in)
+    const customWidget = customWidgets.find(w => w.type === type);
+    if (customWidget) return customWidget;
+    
+    // Fall back to built-in registry
+    return WIDGET_REGISTRY.find(w => w.type === type);
+  };
 
   if (loading) {
     return <div className="p-10 text-center">Loading preview...</div>;
@@ -75,7 +107,12 @@ export default function ClientPreview() {
   return (
     <div className="preview-container">
       {blocks.map((block) => (
-        <PreviewRenderer key={block.id} type={block.type} props={block.props} />
+        <PreviewRenderer 
+          key={block.id} 
+          type={block.type} 
+          props={block.props}
+          widgetDef={getWidgetDef(block.type)}
+        />
       ))}
     </div>
   );
