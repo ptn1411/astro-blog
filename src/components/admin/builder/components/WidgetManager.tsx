@@ -207,6 +207,7 @@ ${widgetDescription || '[Thêm mô tả widget của bạn ở đây]'}
     "layout": "card",
     "containerClass": "",
     "showHeader": false,
+    "headerPosition": "center",
     "elements": [
       { "type": "image", "field": "image", "imageSize": "lg", "imageShape": "circle", "className": "mx-auto mb-6" },
       { "type": "title", "field": "title", "className": "text-center mb-2" },
@@ -230,37 +231,55 @@ ${widgetDescription || '[Thêm mô tả widget của bạn ở đây]'}
 === TEMPLATE SYSTEM ===
 
 **Layout Types:**
-- "card" - Card với shadow và padding
-- "section" - Full-width section
-- "list" - Danh sách vertical
-- "grid" - Grid layout
-- "hero" - Hero section style
+- "card" - Card với shadow, rounded corners và padding (max-w-2xl)
+- "section" - Full-width section với header support (max-w-7xl)
+- "list" - Danh sách vertical với spacing (max-w-4xl)
+- "grid" - Grid layout responsive (max-w-7xl)
+- "hero" - Hero section style (giống section)
+
+**Template Properties:**
+- "layout": Layout type (required)
+- "containerClass": Tailwind classes cho container
+- "showHeader": boolean - Hiển thị header với title/subtitle/tagline từ props
+- "headerPosition": "left" | "center" - Vị trí header (default: center)
+- "elements": Array các TemplateElement
 
 **Element Types:**
-- "title" - Heading text (h2)
-- "subtitle" - Subtitle text
-- "text" - Paragraph text
-- "image" - Image với imageSize (sm/md/lg/xl/full) và imageShape (square/rounded/circle)
-- "icon" - Icon display
-- "button" - Button/CTA với buttonVariant (primary/secondary/outline)
-- "list" - List items với listStyle (bullet/check/number/none)
-- "tags" - Tag badges
-- "social" - Social links
-- "progress" - Progress bars (cho skills)
-- "grid" - Nested grid với gridCols
-- "divider" - Horizontal divider
-- "custom" - Custom HTML content
+1. "title" - Heading text (h2), render HTML
+2. "subtitle" - Subtitle text, render HTML
+3. "text" - Paragraph text, render HTML
+4. "image" - Image với các options:
+   - imageSize: "sm" (w-16 h-16) | "md" (w-24 h-24) | "lg" (w-full aspect-square) | "xl" (w-48 h-48) | "full" (w-full h-auto)
+   - imageShape: "square" | "rounded" (rounded-xl) | "circle" (rounded-full)
+5. "icon" - Icon display (tabler icons)
+6. "button" - Button/CTA:
+   - buttonVariant: "primary" (gradient blue) | "secondary" (gray) | "outline" (border)
+   - Field có thể là string hoặc object {text, href, icon}
+7. "list" - List items:
+   - listStyle: "bullet" | "check" (✓) | "number" | "none"
+   - Field phải là array
+8. "tags" - Tag badges với auto-styling theo nội dung (sale=red, new=green, hot=orange)
+9. "social" - Social links, field là array [{platform, url, icon}]
+10. "progress" - Progress bars, field là array [{name, level, color}]
+11. "grid" - Grid layout:
+    - gridCols: 2-6 columns
+    - Có thể có "elements" (nested) hoặc "field" (data-driven)
+    - itemTemplate: {containerClass, elements} cho mỗi item
+12. "carousel" - Carousel/Slider:
+    - slidesToShow: số items hiển thị (default: 4)
+    - showArrows: boolean
+    - showDots: boolean
+    - itemTemplate: template cho mỗi item
+13. "divider" - Horizontal divider line
+14. "custom" - Custom HTML content, hỗ trợ placeholders {{categories}}, {{priceRanges}}, {{colors}}
 
-**Element Properties:**
+**Element Properties (chung):**
 - "type": Element type (required)
-- "field": Field name from props to display (required)
+- "field": Field name từ props (required)
 - "className": Tailwind CSS classes
-- "condition": Field name to check for conditional rendering
-- "imageSize": sm/md/lg/xl/full (for image)
-- "imageShape": square/rounded/circle (for image)
-- "buttonVariant": primary/secondary/outline (for button)
-- "listStyle": bullet/check/number/none (for list)
-- "gridCols": Number of columns (for grid)
+- "condition": Field name để check conditional rendering
+- "wrapper": Wrapper element class
+- "children" hoặc "elements": Nested elements
 
 === FIELD TYPES ===
 - "text" - Single line text input
@@ -269,15 +288,39 @@ ${widgetDescription || '[Thêm mô tả widget của bạn ở đây]'}
 - "boolean" - Checkbox/toggle
 - "image" - Image picker
 - "icon" - Icon picker (format: tabler:icon-name)
-- "json" - JSON editor
-- "array" - Array of items với arraySchema
-- "select" - Dropdown với options
+- "json" - JSON editor cho complex data
+- "array" - Array với arraySchema:
+  \`\`\`json
+  {
+    "name": "items",
+    "label": "Items",
+    "type": "array",
+    "arraySchema": [
+      { "key": "title", "label": "Title", "type": "text" },
+      { "key": "description", "label": "Description", "type": "textarea" },
+      { "key": "icon", "label": "Icon", "type": "icon" },
+      { "key": "image.src", "label": "Image", "type": "image" }
+    ]
+  }
+  \`\`\`
+- "select" - Dropdown với options:
+  \`\`\`json
+  {
+    "name": "variant",
+    "label": "Variant",
+    "type": "select",
+    "options": [
+      { "label": "Primary", "value": "primary" },
+      { "label": "Secondary", "value": "secondary" }
+    ]
+  }
+  \`\`\`
 
 === CATEGORIES ===
 - "hero" - Hero sections
 - "features" - Feature displays
 - "content" - Content blocks
-- "social" - Social proof (testimonials, stats)
+- "social" - Social proof (testimonials, stats, team)
 - "blog" - Blog related
 - "misc" - Miscellaneous
 
@@ -293,6 +336,7 @@ ${widgetDescription || '[Thêm mô tả widget của bạn ở đây]'}
   "template": {
     "layout": "card",
     "containerClass": "text-center",
+    "showHeader": false,
     "elements": [
       { "type": "image", "field": "avatar", "imageSize": "lg", "imageShape": "circle", "className": "mx-auto mb-6 border-4 border-blue-100" },
       { "type": "title", "field": "name", "className": "text-2xl mb-1" },
@@ -326,6 +370,61 @@ ${widgetDescription || '[Thêm mô tả widget của bạn ở đây]'}
         { "key": "platform", "label": "Platform", "type": "text" },
         { "key": "url", "label": "URL", "type": "text" },
         { "key": "icon", "label": "Icon", "type": "icon" }
+      ]
+    }
+  ]
+}
+\`\`\`
+
+**Product Grid với Carousel:**
+\`\`\`json
+{
+  "type": "ProductCarousel",
+  "label": "Product Carousel",
+  "category": "content",
+  "icon": null,
+  "template": {
+    "layout": "section",
+    "showHeader": true,
+    "headerPosition": "center",
+    "elements": [
+      {
+        "type": "carousel",
+        "field": "products",
+        "slidesToShow": 4,
+        "showArrows": true,
+        "showDots": true,
+        "itemTemplate": {
+          "containerClass": "group",
+          "elements": [
+            { "type": "image", "field": "image", "imageSize": "full", "imageShape": "rounded", "className": "mb-4" },
+            { "type": "tags", "field": "badge", "className": "absolute top-2 left-2" },
+            { "type": "title", "field": "name", "className": "text-lg font-semibold" },
+            { "type": "text", "field": "price", "className": "text-blue-600 font-bold" }
+          ]
+        }
+      }
+    ]
+  },
+  "defaultProps": {
+    "title": "Sản phẩm nổi bật",
+    "subtitle": "Khám phá các sản phẩm mới nhất",
+    "products": [
+      { "name": "Product 1", "price": "199.000đ", "badge": "New", "image": "https://via.placeholder.com/300" }
+    ]
+  },
+  "fields": [
+    { "name": "title", "label": "Title", "type": "text" },
+    { "name": "subtitle", "label": "Subtitle", "type": "text" },
+    {
+      "name": "products",
+      "label": "Products",
+      "type": "array",
+      "arraySchema": [
+        { "key": "name", "label": "Name", "type": "text" },
+        { "key": "price", "label": "Price", "type": "text" },
+        { "key": "badge", "label": "Badge", "type": "text" },
+        { "key": "image", "label": "Image", "type": "image" }
       ]
     }
   ]
@@ -377,9 +476,11 @@ ${widgetDescription || '[Thêm mô tả widget của bạn ở đây]'}
 1. Type phải là PascalCase và unique (vd: ProfileCard, SkillsChart)
 2. Template elements phải map với fields trong defaultProps
 3. Sử dụng Tailwind CSS classes cho styling
-4. Icon format: "tabler:icon-name" (vd: tabler:user, tabler:star)
+4. Icon format: "tabler:icon-name" (vd: tabler:user, tabler:star, tabler:brand-github)
 5. Đảm bảo JSON valid, không có trailing comma
 6. defaultProps phải có giá trị mẫu cho tất cả fields
+7. Với nested data (image.src), dùng dot notation trong arraySchema key
+8. Với grid/carousel, dùng itemTemplate để định nghĩa cách render mỗi item
 
 Hãy tạo widget JSON hoàn chỉnh theo mô tả trên.`;
   };

@@ -66,7 +66,7 @@ const IMPORTS: Record<string, string> = {
   Events: '~/components/widgets/Events.astro',
   EffectsWidget: '~/components/widgets/EffectsWidget.astro',
   ImageSlider: '~/components/widgets/ImageSlider.astro',
-  
+  ProductFilter: '~/components/widgets/ProductFilter.astro',
 };
 
 export type ElementMetadata = {
@@ -431,9 +431,6 @@ function renderTemplateElement(element: TemplateElement, props: Record<string, a
         return `<div class="${className}">${htmlContent}</div>`;
       }
       
-      // Check if this contains filter placeholders - add interactive JS
-      const hasFilters = htmlContent.includes('{{categories}}') || htmlContent.includes('{{priceRanges}}') || htmlContent.includes('{{colors}}');
-      
       // Process template placeholders like {{categories}}, {{priceRanges}}, {{colors}}
       const placeholderRegex = /\{\{(\w+)\}\}/g;
       htmlContent = htmlContent.replace(placeholderRegex, (match, fieldName) => {
@@ -478,99 +475,9 @@ function renderTemplateElement(element: TemplateElement, props: Record<string, a
         return escapeHtmlContent(String(fieldValue));
       });
       
-      // Add interactive JavaScript for filters
-      if (hasFilters) {
-        const filterScript = `
-<script>
-(function() {
-  // Filter list click handler (categories, priceRanges)
-  document.querySelectorAll('.filter-list').forEach(list => {
-    list.addEventListener('click', (e) => {
-      const btn = e.target.closest('.filter-btn');
-      if (!btn) return;
-      
-      // Remove active from all buttons in this list
-      list.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.remove('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/25');
-        b.classList.add('bg-white', 'hover:bg-gray-50', 'text-gray-700', 'hover:text-gray-900', 'border', 'border-gray-200', 'hover:border-gray-300');
-        const count = b.querySelector('.filter-count');
-        if (count) {
-          count.classList.remove('bg-white/20', 'text-white');
-          count.classList.add('bg-gray-100', 'text-gray-500');
-        }
-      });
-      
-      // Add active to clicked button
-      btn.classList.add('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/25');
-      btn.classList.remove('bg-white', 'hover:bg-gray-50', 'text-gray-700', 'hover:text-gray-900', 'border', 'border-gray-200', 'hover:border-gray-300');
-      const count = btn.querySelector('.filter-count');
-      if (count) {
-        count.classList.add('bg-white/20', 'text-white');
-        count.classList.remove('bg-gray-100', 'text-gray-500');
-      }
-      
-      // Dispatch custom event
-      const filterType = list.dataset.filterType;
-      const filterId = btn.dataset.filterId;
-      document.dispatchEvent(new CustomEvent('filterChange', { detail: { type: filterType, id: filterId } }));
-    });
-  });
-  
-  // Color filter click handler (toggle)
-  document.querySelectorAll('.color-filter').forEach(container => {
-    container.addEventListener('click', (e) => {
-      const btn = e.target.closest('.color-btn');
-      if (!btn) return;
-      
-      const isActive = btn.classList.contains('active');
-      
-      if (isActive) {
-        btn.classList.remove('active', 'ring-2', 'ring-blue-500', 'ring-offset-2', 'scale-110');
-        btn.innerHTML = '';
-      } else {
-        btn.classList.add('active', 'ring-2', 'ring-blue-500', 'ring-offset-2', 'scale-110');
-        btn.innerHTML = '<svg class="w-4 h-4 mx-auto text-white drop-shadow" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
-      }
-      
-      // Dispatch custom event
-      const colorId = btn.dataset.colorId;
-      document.dispatchEvent(new CustomEvent('filterChange', { detail: { type: 'colors', id: colorId, active: !isActive } }));
-    });
-  });
-  
-  // Clear filters button
-  document.querySelectorAll('button').forEach(btn => {
-    if (btn.textContent.includes('Xóa bộ lọc') || btn.textContent.includes('Clear') || btn.textContent.includes('Reset')) {
-      btn.addEventListener('click', () => {
-        // Reset all filter lists to first item
-        document.querySelectorAll('.filter-list').forEach(list => {
-          const buttons = list.querySelectorAll('.filter-btn');
-          buttons.forEach((b, i) => {
-            if (i === 0) {
-              b.classList.add('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/25');
-              b.classList.remove('bg-white', 'hover:bg-gray-50', 'text-gray-700', 'hover:text-gray-900', 'border', 'border-gray-200', 'hover:border-gray-300');
-            } else {
-              b.classList.remove('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/25');
-              b.classList.add('bg-white', 'hover:bg-gray-50', 'text-gray-700', 'hover:text-gray-900', 'border', 'border-gray-200', 'hover:border-gray-300');
-            }
-          });
-        });
-        
-        // Reset all color filters
-        document.querySelectorAll('.color-btn').forEach(b => {
-          b.classList.remove('active', 'ring-2', 'ring-blue-500', 'ring-offset-2', 'scale-110');
-          b.innerHTML = '';
-        });
-        
-        document.dispatchEvent(new CustomEvent('filterChange', { detail: { type: 'reset' } }));
-      });
-    }
-  });
-})();
-</script>`;
-        
-        return `<div class="${className}">${htmlContent}</div>${filterScript}`;
-      }
+      // Note: Interactive JS only works in preview mode (React)
+      // For static MDX output, filters are display-only
+      // To add interactivity, include a separate client-side script
       
       // For quote-like content, wrap with quotation marks
       if (className.includes('italic') || element.field === 'quote') {

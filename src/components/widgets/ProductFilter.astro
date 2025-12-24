@@ -1,0 +1,314 @@
+---
+// ProductFilter.astro - Interactive product filter component
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  categories?: Array<{ id: string; name?: string; label?: string; count?: number; active?: boolean }>;
+  priceRanges?: Array<{ id: string; name?: string; label?: string; active?: boolean }>;
+  colors?: Array<{ id: string; name: string; hex: string; active?: boolean }>;
+  products?: Array<{
+    name: string;
+    image: string;
+    price?: number;
+    originalPrice?: number;
+    badge?: string[];
+    priceHtml?: string;
+    colors?: string[];
+  }>;
+  columns?: number;
+}
+
+const { 
+  title = "Sản Phẩm",
+  subtitle,
+  categories = [],
+  priceRanges = [],
+  colors = [],
+  products = [],
+  columns = 3
+} = Astro.props;
+
+const gridColsClass = {
+  2: 'md:grid-cols-2',
+  3: 'md:grid-cols-3',
+  4: 'md:grid-cols-4',
+  5: 'md:grid-cols-5',
+  6: 'md:grid-cols-6',
+}[columns] || 'md:grid-cols-3';
+---
+
+<section class="relative not-prose px-4 py-12 md:py-16 lg:py-20 max-w-7xl mx-auto">
+  {(title || subtitle) && (
+    <div class="mb-10 md:mb-14 text-left">
+      {title && <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight">{title}</h2>}
+      {subtitle && <p class="text-lg text-gray-500 dark:text-slate-400 max-w-2xl leading-relaxed">{subtitle}</p>}
+    </div>
+  )}
+  
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <!-- Filter Sidebar -->
+    <div class="col-span-1 space-y-6" id="filter-sidebar">
+      <!-- Categories -->
+      {categories.length > 0 && (
+        <div class="pb-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+            </svg>
+            Danh mục
+          </h3>
+          <ul class="filter-list space-y-1.5" data-filter-type="categories">
+            {categories.map((cat) => (
+              <li class="list-none">
+                <button
+                  data-filter-id={cat.id}
+                  class:list={[
+                    'filter-btn w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200',
+                    cat.active
+                      ? 'active bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/25'
+                      : 'bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-300 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                  ]}
+                >
+                  {cat.name || cat.label}
+                  {cat.count !== undefined && (
+                    <span class:list={[
+                      'px-2 py-0.5 text-xs rounded-full transition-all',
+                      cat.active ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-gray-400'
+                    ]}>
+                      {cat.count}
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      <!-- Price Ranges -->
+      {priceRanges.length > 0 && (
+        <div class="pb-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Khoảng giá</h3>
+          <ul class="filter-list space-y-1.5" data-filter-type="priceRanges">
+            {priceRanges.map((range) => (
+              <li class="list-none">
+                <button
+                  data-filter-id={range.id}
+                  class:list={[
+                    'filter-btn w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200',
+                    range.active
+                      ? 'active bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/25'
+                      : 'bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-300 dark:bg-slate-800 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-700'
+                  ]}
+                >
+                  {range.name || range.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      <!-- Colors -->
+      {colors.length > 0 && (
+        <div class="pb-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Màu sắc</h3>
+          <div class="color-filter flex flex-wrap gap-2" data-filter-type="colors">
+            {colors.map((color) => (
+              <button
+                data-color-id={color.id}
+                class:list={[
+                  'color-btn w-8 h-8 rounded-full transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center',
+                  color.hex?.toUpperCase() === '#FFFFFF' ? 'border-2 border-gray-200' : 'border border-transparent',
+                  color.active
+                    ? 'active ring-2 ring-blue-500 ring-offset-2 scale-110'
+                    : 'hover:scale-110 hover:ring-2 hover:ring-gray-300 hover:ring-offset-1'
+                ]}
+                style={`background-color: ${color.hex}`}
+                title={color.name}
+              >
+                {color.active && (
+                  <svg class="w-4 h-4 text-white drop-shadow" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      <!-- Clear Filters -->
+      <button
+        id="clear-filters-btn"
+        class="w-full py-2.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950 rounded-xl transition-all duration-200"
+      >
+        Xóa bộ lọc
+      </button>
+    </div>
+    
+    <!-- Products Grid -->
+    <div class={`col-span-1 md:col-span-3 grid grid-cols-1 ${gridColsClass} gap-6`} id="products-grid">
+      {products.map((product) => (
+        <div class="product-card bg-white dark:bg-slate-800/50 rounded-2xl overflow-hidden relative border border-gray-100 dark:border-slate-700 hover:shadow-xl hover:shadow-gray-200/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 group">
+          {/* Badge */}
+          {product.badge && product.badge.length > 0 && product.badge[0] && (
+            <div class="absolute top-3 left-3 z-10 flex flex-wrap gap-1.5">
+              {product.badge.map((tag) => {
+                const tagLower = tag.toLowerCase();
+                let badgeClass = 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25';
+                if (tagLower.includes('sale') || tagLower.includes('%')) {
+                  badgeClass = 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-500/25';
+                } else if (tagLower.includes('new') || tagLower.includes('mới')) {
+                  badgeClass = 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25';
+                } else if (tagLower.includes('hot')) {
+                  badgeClass = 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25';
+                }
+                return <span class={`px-2.5 py-1 text-xs font-semibold rounded-lg ${badgeClass}`}>{tag}</span>;
+              })}
+            </div>
+          )}
+          
+          {/* Image */}
+          <div class="overflow-hidden">
+            <img
+              src={product.image}
+              alt={product.name}
+              class="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+          </div>
+          
+          {/* Content */}
+          <div class="p-4">
+            <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2">{product.name}</h3>
+            
+            {/* Price */}
+            {product.priceHtml ? (
+              <div class="flex items-center gap-2 mb-3" set:html={product.priceHtml} />
+            ) : product.price && (
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-lg font-bold text-gray-900 dark:text-white">
+                  {product.price.toLocaleString('vi-VN')}₫
+                </span>
+                {product.originalPrice && (
+                  <span class="text-sm text-gray-400 line-through">
+                    {product.originalPrice.toLocaleString('vi-VN')}₫
+                  </span>
+                )}
+              </div>
+            )}
+            
+            {/* Color tags */}
+            {product.colors && product.colors.length > 0 && (
+              <div class="flex flex-wrap gap-1.5">
+                {product.colors.map((color) => (
+                  <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 rounded-full">
+                    {color}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  // Filter functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    // Filter list click handler (categories, priceRanges)
+    document.querySelectorAll('.filter-list').forEach(list => {
+      list.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement).closest('.filter-btn');
+        if (!btn) return;
+        
+        // Remove active from all buttons in this list
+        list.querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.remove('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/25');
+          b.classList.add('bg-white', 'hover:bg-gray-50', 'text-gray-700', 'hover:text-gray-900', 'border', 'border-gray-200', 'hover:border-gray-300', 'dark:bg-slate-800', 'dark:text-gray-300', 'dark:border-slate-700', 'dark:hover:bg-slate-700');
+          const count = b.querySelector('.filter-count, span[class*="rounded-full"]');
+          if (count) {
+            count.classList.remove('bg-white/20', 'text-white');
+            count.classList.add('bg-gray-100', 'text-gray-500', 'dark:bg-slate-700', 'dark:text-gray-400');
+          }
+        });
+        
+        // Add active to clicked button
+        btn.classList.add('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/25');
+        btn.classList.remove('bg-white', 'hover:bg-gray-50', 'text-gray-700', 'hover:text-gray-900', 'border', 'border-gray-200', 'hover:border-gray-300', 'dark:bg-slate-800', 'dark:text-gray-300', 'dark:border-slate-700', 'dark:hover:bg-slate-700');
+        const count = btn.querySelector('span[class*="rounded-full"]');
+        if (count) {
+          count.classList.add('bg-white/20', 'text-white');
+          count.classList.remove('bg-gray-100', 'text-gray-500', 'dark:bg-slate-700', 'dark:text-gray-400');
+        }
+        
+        // Dispatch custom event
+        const filterType = (list as HTMLElement).dataset.filterType;
+        const filterId = (btn as HTMLElement).dataset.filterId;
+        document.dispatchEvent(new CustomEvent('filterChange', { detail: { type: filterType, id: filterId } }));
+      });
+    });
+    
+    // Color filter click handler (toggle)
+    document.querySelectorAll('.color-filter').forEach(container => {
+      container.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement).closest('.color-btn');
+        if (!btn) return;
+        
+        const isActive = btn.classList.contains('active');
+        
+        if (isActive) {
+          btn.classList.remove('active', 'ring-2', 'ring-blue-500', 'ring-offset-2', 'scale-110');
+          btn.innerHTML = '';
+        } else {
+          btn.classList.add('active', 'ring-2', 'ring-blue-500', 'ring-offset-2', 'scale-110');
+          btn.innerHTML = '<svg class="w-4 h-4 text-white drop-shadow" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+        }
+        
+        // Dispatch custom event
+        const colorId = (btn as HTMLElement).dataset.colorId;
+        document.dispatchEvent(new CustomEvent('filterChange', { detail: { type: 'colors', id: colorId, active: !isActive } }));
+      });
+    });
+    
+    // Clear filters button
+    const clearBtn = document.getElementById('clear-filters-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        // Reset all filter lists to first item
+        document.querySelectorAll('.filter-list').forEach(list => {
+          const buttons = list.querySelectorAll('.filter-btn');
+          buttons.forEach((b, i) => {
+            if (i === 0) {
+              b.classList.add('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/25');
+              b.classList.remove('bg-white', 'hover:bg-gray-50', 'text-gray-700', 'hover:text-gray-900', 'border', 'border-gray-200', 'hover:border-gray-300', 'dark:bg-slate-800', 'dark:text-gray-300', 'dark:border-slate-700', 'dark:hover:bg-slate-700');
+              const count = b.querySelector('span[class*="rounded-full"]');
+              if (count) {
+                count.classList.add('bg-white/20', 'text-white');
+                count.classList.remove('bg-gray-100', 'text-gray-500');
+              }
+            } else {
+              b.classList.remove('active', 'bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/25');
+              b.classList.add('bg-white', 'hover:bg-gray-50', 'text-gray-700', 'hover:text-gray-900', 'border', 'border-gray-200', 'hover:border-gray-300', 'dark:bg-slate-800', 'dark:text-gray-300', 'dark:border-slate-700', 'dark:hover:bg-slate-700');
+              const count = b.querySelector('span[class*="rounded-full"]');
+              if (count) {
+                count.classList.remove('bg-white/20', 'text-white');
+                count.classList.add('bg-gray-100', 'text-gray-500');
+              }
+            }
+          });
+        });
+        
+        // Reset all color filters
+        document.querySelectorAll('.color-btn').forEach(b => {
+          b.classList.remove('active', 'ring-2', 'ring-blue-500', 'ring-offset-2', 'scale-110');
+          b.innerHTML = '';
+        });
+        
+        document.dispatchEvent(new CustomEvent('filterChange', { detail: { type: 'reset' } }));
+      });
+    }
+  });
+</script>
