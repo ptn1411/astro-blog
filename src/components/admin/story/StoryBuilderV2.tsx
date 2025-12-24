@@ -10,10 +10,12 @@ import {
   Music2,
   PanelLeft,
   Play,
+  Plus,
   Redo2,
   Save,
   Settings,
   Sparkles,
+  Trash2,
   Undo2,
   Upload,
   ZoomIn,
@@ -23,6 +25,7 @@ import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { useHistory } from '~/hooks/useHistory';
+import { useResponsive } from '~/hooks/useResponsive';
 import { getPendingMedia, uploadAllPendingMedia } from '~/utils/media';
 import { AudioPanel } from './AudioPanel';
 import { CanvasElement } from './CanvasElementV2';
@@ -33,6 +36,19 @@ import {
   type ExportSettings,
 } from './ExportSettingsModal';
 import { LayersPanel } from './LayersPanel';
+import {
+  BottomNavBar,
+  BottomSheet,
+  CompactTimeline,
+  FloatingActionButton,
+  MobileHeader,
+  MobilePropertiesPanel,
+  MobileResourcesPanel,
+  SwipeNavigator,
+  TouchCanvas,
+  type MenuItem,
+  type NavTab,
+} from './mobile';
 import { PropertiesPanelV2 } from './PropertiesPanelV2';
 import { ResourcePanelV2 } from './ResourcePanelV2';
 import { StoryPreviewV2 } from './StoryPreviewV2';
@@ -122,6 +138,17 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
   const [leftPanelTab, setLeftPanelTab] = useState<'resources' | 'layers' | 'audio'>('resources');
   const [animationTrigger, setAnimationTrigger] = useState(0); // For triggering animation preview
 
+  // Mobile-specific state
+  const { isMobile, isTablet: _isTablet } = useResponsive();
+  const [mobileActiveTab, setMobileActiveTab] = useState<string>('canvas');
+  const [showMobileResources, setShowMobileResources] = useState(false);
+  const [showMobileProperties, setShowMobileProperties] = useState(false);
+  const [showFloatingToolbar, setShowFloatingToolbar] = useState(false);
+  const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
+  const [_contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   // AI prompt / paste JSON
   const [aiTopic, setAiTopic] = useState('');
   const [aiPrompt, setAiPrompt] = useState('');
@@ -151,6 +178,13 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
   const currentSlideIndex = story.slides.findIndex((s) => s.id === currentSlideId);
   const selectedElement =
     selectedElementIds.length === 1 ? currentSlide?.elements.find((e) => e.id === selectedElementIds[0]) : null;
+
+  // Mobile navigation tabs configuration
+  const mobileNavTabs: NavTab[] = [
+    { id: 'canvas', label: 'Canvas', icon: <Grid3X3 size={20} /> },
+    { id: 'layers', label: 'Layers', icon: <Layers size={20} /> },
+    { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
+  ];
 
   // Timeline state
   const [currentTime, setCurrentTime] = useState(0);
@@ -213,6 +247,11 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
 
   // Auto-save
   useAutoSave(story);
+
+  // Track unsaved changes
+  useEffect(() => {
+    setHasUnsavedChanges(true);
+  }, [story]);
 
   // Early return if story is not ready
   if (!story || !story.slides || story.slides.length === 0) {
@@ -521,6 +560,15 @@ export default function StoryBuilderV2({ initialStory, onBack }: StoryBuilderPro
     a.click();
     URL.revokeObjectURL(url);
   }, [story]);
+
+  // Mobile menu items (defined after exportStory)
+  const mobileMenuItems: MenuItem[] = [
+    { id: 'preview', label: 'Preview', icon: <Play size={18} />, onClick: () => { setPreviewStartIndex(currentSlideIndex); setIsPreviewMode(true); } },
+    { id: 'export-json', label: 'Export JSON', icon: <Download size={18} />, onClick: exportStory },
+    { id: 'export-video', label: 'Export Video', icon: <Film size={18} />, onClick: () => setShowExportModal(true) },
+    { id: 'import', label: 'Import', icon: <Upload size={18} />, onClick: () => fileInputRef.current?.click() },
+    { id: 'ai-json', label: 'AI JSON', icon: <Sparkles size={18} />, onClick: () => setShowAiModal(true) },
+  ];
 
   const generateAIPrompt = useCallback((topic: string) => {
     return `Bạn là AI chuyên gia tạo JSON cho Story Builder chuyên nghiệp.
@@ -1208,6 +1256,7 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
 
   // Save to server
   const handleSave = async () => {
+    setIsSaving(true);
     try {
       // Check for pending media (images/videos/audio)
       const pendingMedia = getPendingMedia();
@@ -1245,12 +1294,89 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
       if (!res.ok) throw new Error('Failed to save');
 
       const data = await res.json();
+      setHasUnsavedChanges(false);
       alert(`Story saved to ${data.path}`);
     } catch (error) {
       console.error(error);
       alert('Failed to save story');
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  // Mobile-specific handlers
+  const handleMobileBack = useCallback(() => {
+    if (onBack) {
+      onBack();
+    }
+  }, [onBack]);
+
+  const handleMobileMenuOpen = useCallback(() => {
+    // Menu is handled by MobileHeader component
+  }, []);
+
+  const handleCanvasTap = useCallback((_position: { x: number; y: number }) => {
+    // Show floating toolbar when canvas is tapped
+    setShowFloatingToolbar(true);
+    setSelectedElementIds([]);
+    // Hide toolbar after 3 seconds
+    setTimeout(() => setShowFloatingToolbar(false), 3000);
+  }, []);
+
+  const handleElementLongPress = useCallback((elementId: string, position: { x: number; y: number }) => {
+    setContextMenuPosition(position);
+    setSelectedElementIds([elementId]);
+  }, []);
+
+  const handleMobileElementSelect = useCallback((elementId: string) => {
+    setSelectedElementIds([elementId]);
+    // Show properties panel when element is selected on mobile
+    if (isMobile) {
+      setShowMobileProperties(true);
+    }
+  }, [isMobile]);
+
+  const handleMobilePinchZoom = useCallback((elementId: string, scale: number) => {
+    const element = currentSlide.elements.find(el => el.id === elementId);
+    if (!element || element.locked) return;
+    
+    updateElement(elementId, {
+      width: Math.max(20, element.style.width * scale),
+      height: Math.max(20, element.style.height * scale),
+    });
+  }, [currentSlide.elements, updateElement]);
+
+  const handleMobileRotate = useCallback((elementId: string, angle: number) => {
+    const element = currentSlide.elements.find(el => el.id === elementId);
+    if (!element || element.locked) return;
+    
+    updateElement(elementId, {
+      rotation: (element.style.rotation || 0) + angle,
+    });
+  }, [currentSlide.elements, updateElement]);
+
+  const handleSwipeLeft = useCallback(() => {
+    // Navigate to next slide
+    if (currentSlideIndex < story.slides.length - 1) {
+      setCurrentSlideId(story.slides[currentSlideIndex + 1].id);
+      setSelectedElementIds([]);
+    }
+  }, [currentSlideIndex, story.slides]);
+
+  const handleSwipeRight = useCallback(() => {
+    // Navigate to previous slide
+    if (currentSlideIndex > 0) {
+      setCurrentSlideId(story.slides[currentSlideIndex - 1].id);
+      setSelectedElementIds([]);
+    }
+  }, [currentSlideIndex, story.slides]);
+
+  const handleMobileTabChange = useCallback((tabId: string) => {
+    setMobileActiveTab(tabId);
+    if (tabId === 'settings') {
+      setShowSettings(true);
+    }
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -1400,7 +1526,306 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
         <StoryPreviewV2 story={story} onClose={() => setIsPreviewMode(false)} startSlideIndex={previewStartIndex} />
       )}
 
-      {/* Header */}
+      {/* Mobile Layout */}
+      {isMobile ? (
+        <>
+          {/* Mobile Header */}
+          <MobileHeader
+            title={story.title}
+            onBack={handleMobileBack}
+            onSave={handleSave}
+            onMenuOpen={handleMobileMenuOpen}
+            hasUnsavedChanges={hasUnsavedChanges}
+            isSaving={isSaving}
+            menuItems={mobileMenuItems}
+          />
+
+          {/* Mobile Canvas Area with SwipeNavigator */}
+          <div className="flex-1 flex flex-col overflow-hidden relative" style={{ paddingBottom: isTimelineExpanded ? '200px' : '112px' }}>
+            <SwipeNavigator
+              currentIndex={currentSlideIndex}
+              totalSlides={story.slides.length}
+              onSwipeLeft={handleSwipeLeft}
+              onSwipeRight={handleSwipeRight}
+              enabled={selectedElementIds.length === 0}
+            >
+              <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+                <TouchCanvas
+                  slide={currentSlide}
+                  selectedElementIds={selectedElementIds}
+                  onElementSelect={handleMobileElementSelect}
+                  onElementUpdate={(elementId, updates) => updateElement(elementId, updates)}
+                  onPinchZoom={handleMobilePinchZoom}
+                  onRotate={handleMobileRotate}
+                  onLongPress={handleElementLongPress}
+                  onDoubleTap={(elementId) => {
+                    const element = currentSlide.elements.find(el => el.id === elementId);
+                    if (element?.type === 'text') {
+                      setShowMobileProperties(true);
+                    }
+                  }}
+                  onCanvasTap={handleCanvasTap}
+                  zoom={canvasState.zoom}
+                  showGrid={canvasState.showGrid}
+                  gridSize={canvasState.gridSize}
+                  snapToGrid={canvasState.snapToGrid}
+                >
+                  {/* Background */}
+                  {currentSlide.background.type === 'color' && (
+                    <div
+                      className="absolute inset-0 w-full h-full"
+                      style={{ backgroundColor: currentSlide.background.value }}
+                    />
+                  )}
+                  {currentSlide.background.type === 'gradient' && currentSlide.background.gradient && (
+                    <div
+                      className="absolute inset-0 w-full h-full"
+                      style={{
+                        background:
+                          currentSlide.background.gradient.type === 'radial'
+                            ? `radial-gradient(circle, ${currentSlide.background.gradient.colors.map((c) => `${c.color} ${c.position}%`).join(', ')})`
+                            : `linear-gradient(${currentSlide.background.gradient.angle || 0}deg, ${currentSlide.background.gradient.colors.map((c) => `${c.color} ${c.position}%`).join(', ')})`,
+                      }}
+                    />
+                  )}
+                  {currentSlide.background.type === 'image' && (
+                    <img
+                      src={currentSlide.background.value}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      alt="slide-bg"
+                    />
+                  )}
+                  {currentSlide.background.type === 'video' && (
+                    <video
+                      src={currentSlide.background.value}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      muted
+                      loop
+                      autoPlay
+                    />
+                  )}
+
+                  {/* Elements */}
+                  {currentSlide.elements.map((element) => (
+                    <CanvasElement
+                      key={element.id}
+                      element={element}
+                      isSelected={selectedElementIds.includes(element.id)}
+                      currentTime={currentTime}
+                      onSelect={(multiSelect) => {
+                        if (multiSelect) {
+                          setSelectedElementIds((prev) =>
+                            prev.includes(element.id) ? prev.filter((id) => id !== element.id) : [...prev, element.id]
+                          );
+                        } else {
+                          handleMobileElementSelect(element.id);
+                        }
+                      }}
+                      onUpdate={(updates) => updateElement(element.id, updates)}
+                      onDelete={() => deleteElement(element.id)}
+                      onDuplicate={() => duplicateElement(element.id)}
+                      onToggleLock={() => toggleElementLock(element.id)}
+                      snapToGrid={canvasState.snapToGrid}
+                      gridSize={canvasState.gridSize}
+                      zoom={canvasState.zoom}
+                      playAnimation={selectedElementIds.includes(element.id) && animationTrigger > 0}
+                    />
+                  ))}
+                </TouchCanvas>
+              </div>
+            </SwipeNavigator>
+
+            {/* Floating Toolbar - shown on canvas tap */}
+            {showFloatingToolbar && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-800 rounded-full px-4 py-2 shadow-lg border border-slate-700 z-20">
+                <button
+                  onClick={() => setShowMobileResources(true)}
+                  className="p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-full transition-colors"
+                  title="Add Element"
+                >
+                  <Plus size={20} />
+                </button>
+                <button
+                  onClick={undo}
+                  disabled={!canUndo}
+                  className={`p-2 rounded-full transition-colors ${!canUndo ? 'text-slate-600' : 'text-slate-300 hover:text-white hover:bg-slate-700'}`}
+                  title="Undo"
+                >
+                  <Undo2 size={20} />
+                </button>
+                <button
+                  onClick={redo}
+                  disabled={!canRedo}
+                  className={`p-2 rounded-full transition-colors ${!canRedo ? 'text-slate-600' : 'text-slate-300 hover:text-white hover:bg-slate-700'}`}
+                  title="Redo"
+                >
+                  <Redo2 size={20} />
+                </button>
+              </div>
+            )}
+
+            {/* Context Menu on Long Press */}
+            {_contextMenuPosition && selectedElementIds.length === 1 && (
+              <>
+                {/* Backdrop to close menu */}
+                <div 
+                  className="fixed inset-0 z-30" 
+                  onClick={() => setContextMenuPosition(null)}
+                />
+                {/* Context Menu */}
+                <div 
+                  className="absolute z-40 bg-slate-800 rounded-xl shadow-xl border border-slate-700 py-2 min-w-[160px]"
+                  style={{ 
+                    left: Math.min(_contextMenuPosition.x, window.innerWidth - 180),
+                    top: Math.min(_contextMenuPosition.y, window.innerHeight - 250),
+                  }}
+                >
+                  <button
+                    onClick={() => {
+                      duplicateElement(selectedElementIds[0]);
+                      setContextMenuPosition(null);
+                    }}
+                    className="w-full px-4 py-3 text-left text-slate-200 hover:bg-slate-700 flex items-center gap-3"
+                  >
+                    <Copy size={18} /> Duplicate
+                  </button>
+                  <button
+                    onClick={() => {
+                      toggleElementLock(selectedElementIds[0]);
+                      setContextMenuPosition(null);
+                    }}
+                    className="w-full px-4 py-3 text-left text-slate-200 hover:bg-slate-700 flex items-center gap-3"
+                  >
+                    {currentSlide.elements.find(el => el.id === selectedElementIds[0])?.locked 
+                      ? <><Layers size={18} /> Unlock</>
+                      : <><Layers size={18} /> Lock</>
+                    }
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Bring to front
+                      const maxZ = Math.max(...currentSlide.elements.map(el => el.style.zIndex || 0));
+                      updateElement(selectedElementIds[0], { zIndex: maxZ + 1 });
+                      setContextMenuPosition(null);
+                    }}
+                    className="w-full px-4 py-3 text-left text-slate-200 hover:bg-slate-700 flex items-center gap-3"
+                  >
+                    <Layers size={18} /> Bring to Front
+                  </button>
+                  <div className="border-t border-slate-700 my-1" />
+                  <button
+                    onClick={() => {
+                      deleteElement(selectedElementIds[0]);
+                      setContextMenuPosition(null);
+                    }}
+                    className="w-full px-4 py-3 text-left text-red-400 hover:bg-red-500/10 flex items-center gap-3"
+                  >
+                    <Trash2 size={18} /> Delete
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Floating Action Button for adding elements */}
+            <FloatingActionButton
+              icon={<Plus size={24} />}
+              onClick={() => setShowMobileResources(true)}
+              position="bottom-right"
+              size="large"
+            />
+          </div>
+
+          {/* Mobile Compact Timeline */}
+          <CompactTimeline
+            currentTime={currentTime}
+            duration={currentSlide.duration || 5}
+            isExpanded={isTimelineExpanded}
+            onTimeChange={setCurrentTime}
+            onToggleExpand={() => setIsTimelineExpanded(!isTimelineExpanded)}
+            slides={story.slides}
+            currentSlideIndex={currentSlideIndex}
+            onSlideSelect={(index) => {
+              setCurrentSlideId(story.slides[index].id);
+              setSelectedElementIds([]);
+            }}
+            isPlaying={isPlaying}
+            onTogglePlay={() => setIsPlaying(!isPlaying)}
+          />
+
+          {/* Mobile Bottom Navigation */}
+          <BottomNavBar
+            tabs={mobileNavTabs}
+            activeTab={mobileActiveTab}
+            onTabChange={handleMobileTabChange}
+          />
+
+          {/* Mobile Resources Panel */}
+          <MobileResourcesPanel
+            isOpen={showMobileResources}
+            onClose={() => setShowMobileResources(false)}
+            onAddElement={addElement}
+            onApplyTemplate={applyTemplate}
+          />
+
+          {/* Mobile Properties Panel */}
+          <MobilePropertiesPanel
+            isOpen={showMobileProperties}
+            onClose={() => setShowMobileProperties(false)}
+            element={selectedElement || null}
+            slide={currentSlide}
+            onUpdateElement={(updates) => {
+              if (selectedElementIds.length === 1) {
+                updateElement(selectedElementIds[0], updates);
+              }
+            }}
+            onUpdateSlide={(updates) => updateSlide(currentSlideId, updates)}
+            onDeleteElement={() => {
+              if (selectedElement) {
+                deleteElement(selectedElement.id);
+                setShowMobileProperties(false);
+              }
+            }}
+            onDuplicateElement={() => {
+              if (selectedElement) {
+                duplicateElement(selectedElement.id);
+              }
+            }}
+            onToggleLock={() => {
+              if (selectedElement) {
+                toggleElementLock(selectedElement.id);
+              }
+            }}
+          />
+
+          {/* Mobile Layers Panel (shown via BottomSheet when layers tab is active) */}
+          <BottomSheet
+            isOpen={mobileActiveTab === 'layers'}
+            onClose={() => setMobileActiveTab('canvas')}
+            title="Layers"
+            snapPoints={[0.5, 0.8]}
+            initialSnap={0}
+          >
+            <LayersPanel
+              elements={currentSlide.elements}
+              selectedElementIds={selectedElementIds}
+              onSelectElement={(id, multiSelect) => {
+                if (multiSelect) {
+                  setSelectedElementIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+                } else {
+                  setSelectedElementIds([id]);
+                }
+              }}
+              onReorderElements={reorderElements}
+              onToggleVisibility={toggleElementVisibility}
+              onToggleLock={toggleElementLock}
+              onDeleteElement={deleteElement}
+              onDuplicateElement={duplicateElement}
+            />
+          </BottomSheet>
+        </>
+      ) : (
+        <>
+          {/* Desktop Header */}
       <header className="flex items-center justify-between px-4 py-2.5 bg-slate-800 border-b border-slate-700">
         <div className="flex items-center gap-4">
           {onBack && (
@@ -2082,6 +2507,8 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

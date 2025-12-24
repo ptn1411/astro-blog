@@ -1,7 +1,9 @@
-import { Copy, Edit, Eye, FileText, Loader2, MoreVertical, Play, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { Copy, Edit, Eye, FileText, Loader2, MoreVertical, Play, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { GITHUB_BRANCH, GITHUB_CONFIG, getGitHubApiUrl, getGitHubContentUrl } from '../config';
 import type { Story } from './types';
+import { useResponsive } from '../../../hooks/useResponsive';
+import { FloatingActionButton, BottomSheet } from './mobile';
 
 // Helper functions
 function getGitHubToken(): string | null {
@@ -112,6 +114,11 @@ export default function StoriesManager({ onCreateNew, onEdit }: StoriesManagerPr
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStory, setSelectedStory] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState<string | null>(null);
+  
+  // Mobile responsive state
+  const { isMobile, viewportWidth } = useResponsive();
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [mobileActionStory, setMobileActionStory] = useState<StoredStory | null>(null);
 
   // Load stories from localStorage or GitHub/local API
   useEffect(() => {
@@ -370,22 +377,38 @@ export default function StoriesManager({ onCreateNew, onEdit }: StoriesManagerPr
   return (
     <div className="h-screen flex flex-col bg-slate-900 text-white">
       {/* Header */}
-      <div className="bg-slate-800 border-b border-slate-700 px-6 py-4">
+      <div className="bg-slate-800 border-b border-slate-700 px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Quản lý Bản tin
+          <div className={isMobile ? 'flex-1 min-w-0' : ''}>
+            <h1 className={`font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+              {isMobile ? 'Bản tin' : 'Quản lý Bản tin'}
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
-              {stories.length} bản tin • {filteredStories.length} hiển thị
-              <span
-                className={`ml-2 px-2 py-0.5 rounded text-xs ${isLocal ? 'bg-green-500/20 text-green-400' : 'bg-purple-500/20 text-purple-400'}`}
-              >
-                {isLocal ? '🖥️ Dev Mode' : '☁️ Production'}
-              </span>
-            </p>
+            {!isMobile && (
+              <p className="text-sm text-slate-400 mt-1">
+                {stories.length} bản tin • {filteredStories.length} hiển thị
+                <span
+                  className={`ml-2 px-2 py-0.5 rounded text-xs ${isLocal ? 'bg-green-500/20 text-green-400' : 'bg-purple-500/20 text-purple-400'}`}
+                >
+                  {isLocal ? '🖥️ Dev Mode' : '☁️ Production'}
+                </span>
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
+            {/* Mobile search toggle */}
+            {isMobile && (
+              <button
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                className={`p-2.5 rounded-lg border transition-colors ${
+                  showMobileSearch 
+                    ? 'border-blue-500 bg-blue-500/20 text-blue-400' 
+                    : 'border-slate-600 hover:bg-slate-700'
+                }`}
+                title="Tìm kiếm"
+              >
+                {showMobileSearch ? <X size={18} /> : <Search size={18} />}
+              </button>
+            )}
             <button
               onClick={() => loadStories()}
               disabled={isLoading}
@@ -394,29 +417,35 @@ export default function StoriesManager({ onCreateNew, onEdit }: StoriesManagerPr
             >
               <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
             </button>
-            <button
-              onClick={onCreateNew}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-lg font-medium transition-all shadow-lg shadow-blue-500/30"
-            >
-              <Plus size={20} />
-              Tạo bản tin mới
-            </button>
+            {/* Desktop create button */}
+            {!isMobile && (
+              <button
+                onClick={onCreateNew}
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-lg font-medium transition-all shadow-lg shadow-blue-500/30"
+              >
+                <Plus size={20} />
+                Tạo bản tin mới
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Search */}
-        <div className="mt-4">
-          <div className="relative max-w-md">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm theo tên hoặc ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
-            />
+        {/* Search - Desktop always visible, Mobile toggleable */}
+        {(!isMobile || showMobileSearch) && (
+          <div className={`${isMobile ? 'mt-3' : 'mt-4'}`}>
+            <div className={`relative ${isMobile ? 'w-full' : 'max-w-md'}`}>
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo tên hoặc ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                autoFocus={isMobile && showMobileSearch}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Content */}
@@ -448,7 +477,13 @@ export default function StoriesManager({ onCreateNew, onEdit }: StoriesManagerPr
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+          <div className={`grid gap-3 ${
+            viewportWidth < 480 
+              ? 'grid-cols-1' 
+              : viewportWidth < 768 
+                ? 'grid-cols-2' 
+                : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'
+          }`}>
             {filteredStories.map((story) => (
               <div
                 key={story.id}
@@ -457,7 +492,14 @@ export default function StoriesManager({ onCreateNew, onEdit }: StoriesManagerPr
                     ? 'border-blue-500 shadow-lg shadow-blue-500/20'
                     : 'border-slate-700 hover:border-slate-600'
                 }`}
-                onClick={() => setSelectedStory(story.id)}
+                onClick={() => {
+                  if (isMobile) {
+                    // On mobile, tap opens bottom sheet with actions
+                    setMobileActionStory(story);
+                  } else {
+                    setSelectedStory(story.id);
+                  }
+                }}
               >
                 {/* Thumbnail */}
                 <div className="aspect-[9/16] rounded-t-lg relative overflow-hidden bg-slate-700">
@@ -565,6 +607,83 @@ export default function StoriesManager({ onCreateNew, onEdit }: StoriesManagerPr
 
       {/* Click outside to close menu */}
       {showMenu && <div className="fixed inset-0 z-0" onClick={() => setShowMenu(null)} />}
+
+      {/* Mobile Floating Action Button for creating new story */}
+      {isMobile && (
+        <FloatingActionButton
+          icon={<Plus size={24} />}
+          onClick={onCreateNew}
+          position="bottom-right"
+          size="large"
+          color="bg-gradient-to-r from-blue-600 to-purple-600"
+          label="Tạo bản tin mới"
+        />
+      )}
+
+      {/* Mobile Story Actions Bottom Sheet */}
+      <BottomSheet
+        isOpen={!!mobileActionStory}
+        onClose={() => setMobileActionStory(null)}
+        title={mobileActionStory?.story.title || 'Tùy chọn'}
+        snapPoints={[0.4]}
+        initialSnap={0}
+      >
+        {mobileActionStory && (
+          <div className="p-4 space-y-2">
+            <button
+              onClick={() => {
+                onEdit(mobileActionStory.story);
+                setMobileActionStory(null);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <Edit size={20} className="text-blue-400" />
+              <span className="text-white">Chỉnh sửa</span>
+            </button>
+            <button
+              onClick={() => {
+                handleDuplicate(mobileActionStory);
+                setMobileActionStory(null);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <Copy size={20} className="text-green-400" />
+              <span className="text-white">Nhân bản</span>
+            </button>
+            <button
+              onClick={() => {
+                handleExport(mobileActionStory);
+                setMobileActionStory(null);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <Eye size={20} className="text-purple-400" />
+              <span className="text-white">Export JSON</span>
+            </button>
+            <a
+              href={`/stories/${mobileActionStory.story.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-700 rounded-lg transition-colors"
+              onClick={() => setMobileActionStory(null)}
+            >
+              <Play size={20} className="text-cyan-400" />
+              <span className="text-white">Xem trước</span>
+            </a>
+            <div className="border-t border-slate-700 my-2" />
+            <button
+              onClick={() => {
+                handleDelete(mobileActionStory);
+                setMobileActionStory(null);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-red-500/20 rounded-lg transition-colors"
+            >
+              <Trash2 size={20} className="text-red-400" />
+              <span className="text-red-400">Xóa</span>
+            </button>
+          </div>
+        )}
+      </BottomSheet>
     </div>
   );
 }
