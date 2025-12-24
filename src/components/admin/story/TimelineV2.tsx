@@ -18,7 +18,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Copy, Layers, LayoutGrid, MoreHorizontal, Pause, Play, Plus, Trash2 } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import type { StoryElement, StorySlide, TransitionType } from './types';
-
+import { resolveMediaUrl } from '~/utils/mediaUrl';
 interface TimelineProps {
   slides: StorySlide[];
   currentSlideId: string;
@@ -117,10 +117,10 @@ const SortableSlide = ({
         {/* Thumbnail Preview */}
         <div className="w-full h-full" style={getThumbnailBg()}>
           {slide.background.type === 'image' && (
-            <img src={slide.background.value} className="w-full h-full object-cover" alt="slide" draggable={false} />
+            <img src={resolveMediaUrl(slide.background.value)} className="w-full h-full object-cover" alt="slide" draggable={false} />
           )}
           {slide.background.type === 'video' && (
-            <video src={slide.background.value} className="w-full h-full object-cover" muted />
+            <video src={resolveMediaUrl(slide.background.value)} className="w-full h-full object-cover" muted />
           )}
 
           {/* Mini element previews */}

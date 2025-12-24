@@ -1,5 +1,6 @@
 import { Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { resolveMediaUrl } from '~/utils/mediaUrl';
 import {
   animateTextByLetters,
   gsap,
@@ -770,7 +771,7 @@ const PreviewElement = memo(function PreviewElement({
       {element.type === 'image' && (
         <LinkWrapper link={element.link}>
           <img
-            src={element.content}
+            src={resolveMediaUrl(element.content)}
             className="w-full h-full object-cover"
             alt={element.content}
             style={{ borderRadius: element.style.borderRadius || 0 }}
@@ -780,7 +781,7 @@ const PreviewElement = memo(function PreviewElement({
       {element.type === 'video' && (
         <LinkWrapper link={element.link}>
           <video
-            src={element.content}
+            src={resolveMediaUrl(element.content)}
             className="w-full h-full object-cover"
             muted
             playsInline
@@ -793,7 +794,7 @@ const PreviewElement = memo(function PreviewElement({
       {(element.type === 'sticker' || element.type === 'gif') && (
         <LinkWrapper link={element.link}>
           <img
-            src={element.content}
+            src={resolveMediaUrl(element.content)}
             className="w-full h-full object-contain"
             alt={element.type}
             style={{ borderRadius: element.style.borderRadius || 0 }}
@@ -935,7 +936,7 @@ const PreviewElement = memo(function PreviewElement({
             }}
           >
             {element.content ? (
-              <img src={element.content} alt="avatar" className="w-full h-full object-cover rounded-inherit" />
+              <img src={resolveMediaUrl(element.content)} alt="avatar" className="w-full h-full object-cover rounded-inherit" />
             ) : (
               element.avatar?.name?.[0]?.toUpperCase() || 'U'
             )}
@@ -1272,7 +1273,7 @@ const PreviewElement = memo(function PreviewElement({
           const rawImages = (element.slider?.images || element.carousel?.images || []) as Array<
             string | { src: string; caption?: string }
           >;
-          const images = rawImages.map((img) => (typeof img === 'string' ? { src: img } : img));
+          const images = rawImages.map((img) => (typeof img === 'string' ? { src: resolveMediaUrl(img) } : { ...img, src: resolveMediaUrl(img.src) }));
           const count = images.length;
           const index = count ? Math.max(0, Math.min(sliderCurrentIndex, count - 1)) : 0;
           const displayIndex = count ? Math.max(0, Math.min(sliderDisplayedIndex, count - 1)) : 0;
@@ -1667,25 +1668,10 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
     return () => cancelAnimationFrame(animationFrameId);
   }, [currentSlideIndex, currentSlide.duration, isPaused, isTransitioning]);
 
-  // Helper to resolve asset paths
-  const resolveAssetPath = (path: string): string => {
-    if (!path) return path;
-    if (path.startsWith('~/assets/audio')) {
-      return path.replace('~/assets/audio', '/src/assets/audio');
-    }
-    if (path.startsWith('~/assets/images')) {
-      return path.replace('~/assets/images', '/src/assets/images');
-    }
-    if (path.startsWith('~/assets/videos')) {
-      return path.replace('~/assets/videos', '/src/assets/videos');
-    }
-    return path;
-  };
-
   // Handle background audio (plays throughout entire story)
   useEffect(() => {
     if (story.audio?.src && !bgAudioRef.current) {
-      const audioSrc = resolveAssetPath(story.audio.src);
+      const audioSrc = resolveMediaUrl(story.audio.src);
       bgAudioRef.current = new Audio(audioSrc);
       bgAudioRef.current.loop = true;
       bgAudioRef.current.volume = story.audio.volume ?? 0.5;
@@ -1719,7 +1705,7 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
 
     // Play slide audio if exists
     if (currentSlide.audio?.src) {
-      const audioSrc = resolveAssetPath(currentSlide.audio.src);
+      const audioSrc = resolveMediaUrl(currentSlide.audio.src);
       slideAudioRef.current = new Audio(audioSrc);
       slideAudioRef.current.volume = currentSlide.audio.volume ?? 0.8;
 
@@ -1918,11 +1904,7 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
               {currentSlide.background.type === 'image' && currentSlide.background.value && (
                 <>
                   <img
-                    src={
-                      currentSlide.background.value.startsWith('~/')
-                        ? currentSlide.background.value.replace('~/', '/src/')
-                        : currentSlide.background.value
-                    }
+                    src={resolveMediaUrl(currentSlide.background.value)}
                     className="absolute inset-0 w-full h-full"
                     alt="slide-bg"
                     style={{
@@ -1949,11 +1931,7 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
               {currentSlide.background.type === 'video' && currentSlide.background.value && (
                 <>
                   <video
-                    src={
-                      currentSlide.background.value.startsWith('~/')
-                        ? currentSlide.background.value.replace('~/assets/videos', '/src/assets/videos')
-                        : currentSlide.background.value
-                    }
+                    src={resolveMediaUrl(currentSlide.background.value)}
                     className="absolute inset-0 w-full h-full object-cover"
                     autoPlay
                     muted

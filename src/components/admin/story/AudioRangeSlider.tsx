@@ -1,5 +1,6 @@
 import { Pause, Play } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { resolveMediaUrl } from '~/utils/mediaUrl';
 
 interface AudioRangeSliderProps {
   src: string;
@@ -27,16 +28,7 @@ export const AudioRangeSlider: React.FC<AudioRangeSliderProps> = ({
   const sliderRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
 
-  // Resolve asset path
-  const resolveAssetPath = (path: string): string => {
-    if (!path) return path;
-    if (path.startsWith('~/assets/')) {
-      return path.replace('~/assets/', '/src/assets/');
-    }
-    return path;
-  };
-
-  const resolvedSrc = resolveAssetPath(src);
+  const resolvedSrc = resolveMediaUrl(src);
 
   // Load audio duration
   useEffect(() => {

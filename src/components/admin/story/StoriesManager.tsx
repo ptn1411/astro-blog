@@ -1,6 +1,7 @@
 import { Copy, Edit, Eye, FileText, Loader2, MoreVertical, Play, Plus, RefreshCw, Search, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { GITHUB_BRANCH, GITHUB_CONFIG, getGitHubApiUrl, getGitHubContentUrl } from '../config';
+import { resolveMediaUrl } from '~/utils/mediaUrl';
 import type { Story } from './types';
 import { useResponsive } from '../../../hooks/useResponsive';
 import { FloatingActionButton, BottomSheet } from './mobile';
@@ -505,8 +506,10 @@ export default function StoriesManager({ onCreateNew, onEdit }: StoriesManagerPr
                 <div className="aspect-[9/16] rounded-t-lg relative overflow-hidden bg-slate-700">
                   {story.thumbnail?.startsWith('http') ||
                   story.thumbnail?.startsWith('/') ||
-                  story.thumbnail?.startsWith('data:') ? (
-                    <img src={story.thumbnail} alt={story.story.title} className="w-full h-full object-cover" />
+                  story.thumbnail?.startsWith('data:') ||
+                  story.thumbnail?.startsWith('src/') ||
+                  story.thumbnail?.startsWith('~/') ? (
+                    <img src={resolveMediaUrl(story.thumbnail)} alt={story.story.title} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full" style={{ background: story.thumbnail || '#1e293b' }} />
                   )}

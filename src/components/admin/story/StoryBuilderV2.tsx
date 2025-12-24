@@ -27,6 +27,7 @@ import { flushSync } from 'react-dom';
 import { useHistory } from '~/hooks/useHistory';
 import { useResponsive } from '~/hooks/useResponsive';
 import { getPendingMedia, uploadAllPendingMedia } from '~/utils/media';
+import { resolveMediaUrl } from '~/utils/mediaUrl';
 import { AudioPanel } from './AudioPanel';
 import { CanvasElement } from './CanvasElementV2';
 import {
@@ -64,6 +65,8 @@ import {
   type StorySlide,
   type StoryTemplate,
 } from './types';
+import { getGitHubToken, saveToGitHub } from '../builder/actions/saveActions';
+import { GITHUB_CONFIG } from '../config';
 
 // Initial story
 const createInitialStory = (): Story => ({
@@ -931,11 +934,12 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
           // Write video to FFmpeg
           await ffmpeg.writeFile('video.mp4', new Uint8Array(buffer));
 
-          // Fetch audio file with timeout
+          // Fetch audio file with timeout - resolve URL for production
+          const resolvedAudioSrc = resolveMediaUrl(audioSrc);
           const controller = new AbortController();
           const fetchTimeout = setTimeout(() => controller.abort(), 15000);
 
-          const audioResponse = await fetch(audioSrc, { signal: controller.signal });
+          const audioResponse = await fetch(resolvedAudioSrc, { signal: controller.signal });
           clearTimeout(fetchTimeout);
 
           const audioBlob = await audioResponse.blob();
@@ -1117,10 +1121,11 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
 
       if (settings.includeAudio && hasAudio && audioSrc) {
         try {
-          // Fetch audio file with timeout
+          // Fetch audio file with timeout - resolve URL for production
+          const resolvedAudioSrc = resolveMediaUrl(audioSrc);
           const controller = new AbortController();
           const fetchTimeout = setTimeout(() => controller.abort(), 15000);
-          const audioResponse = await fetch(audioSrc, { signal: controller.signal });
+          const audioResponse = await fetch(resolvedAudioSrc, { signal: controller.signal });
           clearTimeout(fetchTimeout);
 
           const audioBlob = await audioResponse.blob();
@@ -1258,16 +1263,36 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Check for pending media (images/videos/audio)
-      const pendingMedia = getPendingMedia();
+      const isLocal =
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1' ||
+          window.location.hostname.endsWith('.local'));
 
-      if (pendingMedia.length > 0) {
-        const isProduction =
-          typeof window !== 'undefined' &&
-          window.location.hostname !== 'localhost' &&
-          window.location.hostname !== '127.0.0.1';
+      if (isLocal) {
+        // LOCAL: Save via API endpoint
+        const res = await fetch('/admin/save-story', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(story),
+        });
 
-        if (isProduction) {
+        if (!res.ok) throw new Error('Failed to save');
+
+        const data = await res.json();
+        setHasUnsavedChanges(false);
+        alert(`Story saved to ${data.path}`);
+      } else {
+        // PRODUCTION: Save to GitHub
+        const token = getGitHubToken();
+        if (!token) {
+          alert('Không tìm thấy GitHub token. Vui lòng đăng nhập lại.');
+          return;
+        }
+
+        // Check for pending media and upload first
+        const pendingMedia = getPendingMedia();
+        if (pendingMedia.length > 0) {
           const confirmUpload = confirm(
             `Có ${pendingMedia.length} file media đang chờ upload lên GitHub.\n` +
               `Bao gồm: ${pendingMedia.map((m) => `${m.type} (${m.fileName})`).join(', ')}\n\n` +
@@ -1275,33 +1300,76 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
           );
 
           if (confirmUpload) {
-            // Upload all pending media to GitHub
             await uploadAllPendingMedia((current, total, fileName, type) => {
               console.log(`Uploading ${type} ${current}/${total}: ${fileName}`);
             });
             alert(`Đã upload ${pendingMedia.length} file media lên GitHub!`);
           }
         }
+
+        // Generate MDX content and save to GitHub
+        const sanitizedId = story.id.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase();
+        const mdxContent = generateStoryMdx(story);
+        const mdxPath = `${GITHUB_CONFIG.contentPaths.stories}/${sanitizedId}.mdx`;
+
+        await saveToGitHub({
+          path: mdxPath,
+          content: mdxContent,
+          message: `Update story: ${story.title}`,
+          token,
+        });
+
+        console.log('Story saved to GitHub:', mdxPath);
+        setHasUnsavedChanges(false);
+        alert(`Story saved to GitHub: ${mdxPath}`);
       }
-
-      // Save story to server
-      const res = await fetch('/admin/save-story', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(story),
-      });
-
-      if (!res.ok) throw new Error('Failed to save');
-
-      const data = await res.json();
-      setHasUnsavedChanges(false);
-      alert(`Story saved to ${data.path}`);
     } catch (error) {
       console.error(error);
-      alert('Failed to save story');
+      alert('Failed to save story: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Generate MDX content for story with proper frontmatter structure (matching save-story.ts)
+  const generateStoryMdx = (storyData: Story): string => {
+    // Build frontmatter object matching save-story.ts structure
+    const frontmatter: Record<string, unknown> = {
+      id: storyData.id,
+      title: storyData.title,
+      slides: storyData.slides,
+    };
+
+    if (storyData.description) {
+      frontmatter.description = storyData.description;
+    }
+
+    if (storyData.thumbnail) {
+      // Keep thumbnail path as-is (could be ~/assets/... or /src/assets/... or URL)
+      frontmatter.thumbnail = storyData.thumbnail;
+    }
+
+    if (storyData.audio) {
+      frontmatter.audio = storyData.audio;
+    }
+
+    if (storyData.settings) {
+      frontmatter.settings = storyData.settings;
+    }
+
+    // Serialize to YAML frontmatter (same format as save-story.ts)
+    const yamlString = Object.entries(frontmatter)
+      .map(([key, value]) => {
+        if (value === undefined) return '';
+        return `${key}: ${JSON.stringify(value)}`;
+      })
+      .filter(Boolean)
+      .join('\n');
+
+    return `---
+${yamlString}
+---
+`;
   };
 
   // Mobile-specific handlers
@@ -1496,7 +1564,7 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
             )}
             {currentSlide.background.type === 'image' && (
               <img
-                src={currentSlide.background.value}
+                src={resolveMediaUrl(currentSlide.background.value)}
                 className="absolute inset-0 w-full h-full object-cover"
                 alt="bg"
               />
@@ -1590,14 +1658,14 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
                   )}
                   {currentSlide.background.type === 'image' && (
                     <img
-                      src={currentSlide.background.value}
+                      src={resolveMediaUrl(currentSlide.background.value)}
                       className="absolute inset-0 w-full h-full object-cover"
                       alt="slide-bg"
                     />
                   )}
                   {currentSlide.background.type === 'video' && (
                     <video
-                      src={currentSlide.background.value}
+                      src={resolveMediaUrl(currentSlide.background.value)}
                       className="absolute inset-0 w-full h-full object-cover"
                       muted
                       loop
@@ -2109,14 +2177,14 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
                 )}
                 {currentSlide.background.type === 'image' && (
                   <img
-                    src={currentSlide.background.value}
+                    src={resolveMediaUrl(currentSlide.background.value)}
                     className="absolute inset-0 w-full h-full object-cover"
                     alt="slide-bg"
                   />
                 )}
                 {currentSlide.background.type === 'video' && (
                   <video
-                    src={currentSlide.background.value}
+                    src={resolveMediaUrl(currentSlide.background.value)}
                     className="absolute inset-0 w-full h-full object-cover"
                     muted
                     loop
@@ -2289,7 +2357,7 @@ Chủ đề: ${topic || '[NHẬP CHỦ ĐỀ Ở ĐÂY]'}
                 </div>
                 {story.thumbnail && (
                   <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-600">
-                    <img src={story.thumbnail} alt="Thumbnail preview" className="w-full h-full object-cover" />
+                    <img src={resolveMediaUrl(story.thumbnail)} alt="Thumbnail preview" className="w-full h-full object-cover" />
                     <button
                       onClick={() => setStory((prev) => (prev ? { ...prev, thumbnail: undefined } : prev))}
                       className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-red-500 rounded text-white text-xs transition-colors"

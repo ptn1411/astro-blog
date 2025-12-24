@@ -19,6 +19,7 @@ import {
   ANIME_EASINGS,
   GSAP_ANIMATION_NAMES,
   GSAP_EASINGS,
+  gsap,
   LOOP_ANIMATION_NAMES,
   playAnimeAnimation,
   playAnimeLoopAnimation,
@@ -259,56 +260,97 @@ const EnterAnimationPreview: React.FC<{
   const [key, setKey] = useState(0); // For re-triggering animation
 
   const playAnimation = useCallback(() => {
-    if (!previewRef.current) return;
+    if (!previewRef.current || isPlaying) return;
 
     setIsPlaying(true);
-
-    // Reset element to initial state
     const el = previewRef.current;
-    el.style.opacity = '0';
-    el.style.transform = 'scale(0.5)';
+
+    // Reset element to initial hidden state
+    gsap.set(el, { opacity: 0, scale: 0.5, x: 0, y: 0, rotation: 0 });
 
     // Small delay to ensure reset is applied
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       if (!previewRef.current) return;
 
       if (engine === 'gsap' && gsapType) {
+        // Use GSAP animation
         playGSAPAnimation(previewRef.current, gsapType, {
           duration: duration / 1000,
-          ease: easing,
+          ease: easing || 'power2.out',
           onComplete: () => setIsPlaying(false),
         });
       } else if (engine === 'anime' && animeType) {
+        // Use Anime.js animation
         const anim = playAnimeAnimation(previewRef.current, animeType, {
           duration,
-          easing,
+          easing: easing || 'easeOutQuad',
           onComplete: () => setIsPlaying(false),
         });
         if (!anim) {
           // Fallback if animation not found
-          el.style.opacity = '1';
-          el.style.transform = 'scale(1)';
-          setIsPlaying(false);
+          gsap.to(el, { opacity: 1, scale: 1, duration: duration / 1000, onComplete: () => setIsPlaying(false) });
         }
-      } else {
-        // CSS animation fallback
-        el.style.transition = `all ${duration}ms ${easing || 'ease-out'}`;
-        el.style.opacity = '1';
-        el.style.transform = 'scale(1)';
-        setTimeout(() => setIsPlaying(false), duration);
-      }
-    }, 50);
-  }, [engine, gsapType, animeType, duration, easing]);
+      } else if (engine === 'css' && animationType && animationType !== 'none') {
+        // CSS animation - use GSAP for preview since CSS keyframes are complex
+        const animationMap: Record<string, object> = {
+          fadeIn: { opacity: 0 },
+          fadeOut: { opacity: 1 },
+          fadeInUp: { opacity: 0, y: 30 },
+          fadeInDown: { opacity: 0, y: -30 },
+          slideInLeft: { x: -50, opacity: 0 },
+          slideInRight: { x: 50, opacity: 0 },
+          slideInUp: { y: 50, opacity: 0 },
+          slideInDown: { y: -50, opacity: 0 },
+          scaleIn: { scale: 0, opacity: 0 },
+          scaleOut: { scale: 1.5, opacity: 0 },
+          bounceIn: { scale: 0, opacity: 0 },
+          rotateIn: { rotation: -180, scale: 0, opacity: 0 },
+          zoomIn: { scale: 0.3, opacity: 0 },
+          pulse: { scale: 0.9 },
+          shake: { x: -10 },
+          float: { y: 10 },
+        };
 
-  // Play animation when type changes
+        const fromVars = animationMap[animationType] || { opacity: 0 };
+        gsap.set(el, fromVars);
+        
+        gsap.to(el, {
+          opacity: 1,
+          scale: 1,
+          x: 0,
+          y: 0,
+          rotation: 0,
+          duration: duration / 1000,
+          ease: animationType === 'bounceIn' ? 'bounce.out' : 'power2.out',
+          onComplete: () => setIsPlaying(false),
+        });
+      } else {
+        // No animation, just show
+        gsap.to(el, { opacity: 1, scale: 1, duration: 0.3, onComplete: () => setIsPlaying(false) });
+      }
+    });
+  }, [engine, gsapType, animeType, animationType, duration, easing, isPlaying]);
+
+  // Play animation when type changes or replay is clicked
   useEffect(() => {
-    if (gsapType || animeType || animationType !== 'none') {
-      playAnimation();
+    const hasAnimation = 
+      (engine === 'gsap' && gsapType) || 
+      (engine === 'anime' && animeType) || 
+      (engine === 'css' && animationType && animationType !== 'none');
+    
+    if (hasAnimation) {
+      // Small delay to let the component mount
+      const timer = setTimeout(() => playAnimation(), 100);
+      return () => clearTimeout(timer);
     }
-  }, [gsapType, animeType, animationType, key, playAnimation]);
+  }, [gsapType, animeType, animationType, engine, key]);
 
   // Don't show if no animation selected
-  const hasAnimation = engine === 'gsap' ? gsapType : engine === 'anime' ? animeType : animationType !== 'none';
+  const hasAnimation = 
+    (engine === 'gsap' && gsapType) || 
+    (engine === 'anime' && animeType) || 
+    (engine === 'css' && animationType && animationType !== 'none');
+  
   if (!hasAnimation) {
     return null;
   }
@@ -318,7 +360,11 @@ const EnterAnimationPreview: React.FC<{
       <div className="flex items-center justify-between mb-2">
         <div className="text-xs text-slate-500">Preview</div>
         <button
-          onClick={() => setKey((k) => k + 1)}
+          onClick={() => {
+            if (!isPlaying) {
+              setKey((k) => k + 1);
+            }
+          }}
           disabled={isPlaying}
           className={`px-2 py-1 text-xs rounded transition-colors ${
             isPlaying ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-500'

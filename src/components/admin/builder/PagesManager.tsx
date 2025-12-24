@@ -98,6 +98,18 @@ function parsePageContent(content: string): {
   };
 }
 
+// Helper to decode base64 with proper UTF-8 support
+function decodeBase64UTF8(base64: string): string {
+  // Remove any whitespace/newlines that GitHub might include
+  const cleanBase64 = base64.replace(/\s/g, '');
+  const binaryString = atob(cleanBase64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
 async function fetchPageContent(path: string, token: string): Promise<string | null> {
   try {
     const response = await fetch(getGitHubApiUrl(path), {
@@ -110,7 +122,7 @@ async function fetchPageContent(path: string, token: string): Promise<string | n
     if (!response.ok) return null;
 
     const data = await response.json();
-    return atob(data.content);
+    return decodeBase64UTF8(data.content);
   } catch (error) {
     console.error('Failed to fetch page content:', error);
     return null;

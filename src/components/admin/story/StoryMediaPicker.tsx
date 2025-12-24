@@ -3,6 +3,7 @@ import { CheckCircle2, FolderOpen, Image, Loader2, Music, Upload, Video, X } fro
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { GITHUB_CONFIG, REPO_NAME, REPO_OWNER } from '../config';
+import { resolveMediaUrl } from '~/utils/mediaUrl';
 
 type MediaType = 'image' | 'audio' | 'video';
 
@@ -249,20 +250,7 @@ export default function StoryMediaPicker({ value, onChange, mediaType, label }: 
 
   // Get preview URL
   const getPreviewUrl = useCallback((url: string) => {
-    if (!url) return '';
-    if (url.startsWith('~/assets/images')) {
-      return url.replace('~/assets/images', '/src/assets/images');
-    }
-    if (url.startsWith('~/assets/audio')) {
-      return url.replace('~/assets/audio', '/src/assets/audio');
-    }
-    if (url.startsWith('~/assets/videos')) {
-      return url.replace('~/assets/videos', '/src/assets/videos');
-    }
-    if (url.startsWith('/src/')) {
-      return url;
-    }
-    return url;
+    return resolveMediaUrl(url);
   }, []);
 
   const handleFileUpload = async (file: File) => {

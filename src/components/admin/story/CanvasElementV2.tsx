@@ -2,6 +2,7 @@ import { Copy, Lock, Trash2, Unlock } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ElementStyle, StoryElement } from './types';
 import { computeRenderAnimationState } from './animationUtils';
+import { resolveMediaUrl } from '~/utils/mediaUrl';
 
 interface CanvasElementProps {
   element: StoryElement;
@@ -348,7 +349,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         return (
           <div className="relative w-full h-full">
             <img
-              src={element.content}
+              src={resolveMediaUrl(element.content)}
               alt={element.type}
               className="w-full h-full object-cover pointer-events-none"
               style={{ borderRadius: element.style.borderRadius }}
@@ -372,7 +373,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         return (
           <div className="relative w-full h-full">
             <video
-              src={element.content}
+              src={resolveMediaUrl(element.content)}
               className="w-full h-full object-cover pointer-events-none"
               style={{ borderRadius: element.style.borderRadius }}
               muted
@@ -399,7 +400,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         return (
           <div className="relative w-full h-full">
             <img
-              src={element.content}
+              src={resolveMediaUrl(element.content)}
               alt={element.type}
               className="w-full h-full object-contain pointer-events-none"
               draggable={false}
@@ -556,7 +557,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
               }}
             >
               {element.content ? (
-                <img src={element.content} alt="avatar" className="w-full h-full object-cover rounded-inherit" />
+                <img src={resolveMediaUrl(element.content)} alt="avatar" className="w-full h-full object-cover rounded-inherit" />
               ) : (
                 element.avatar?.name?.[0]?.toUpperCase() || 'U'
               )}
