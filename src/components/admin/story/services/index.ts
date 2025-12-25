@@ -1,2 +1,2 @@
 // Services layer exports
-export {};
+export * from './storiesService';
