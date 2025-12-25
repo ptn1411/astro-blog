@@ -18,9 +18,9 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Copy, Edit2, GripVertical, MoreVertical, Trash2, X } from 'lucide-react';
-import { BUILDER_TOUCH_CONFIG } from '../constants/breakpoints';
-import { WIDGET_REGISTRY } from '../registry';
-import type { BuilderBlock } from '../types';
+import { BUILDER_TOUCH_CONFIG } from '../config/breakpoints.constants';
+import { WIDGET_REGISTRY } from '../config/registry';
+import type { BuilderBlock } from '../core/types';
 
 /**
  * MobileBlockList Component - Touch-optimized block list for mobile devices

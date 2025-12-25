@@ -10,8 +10,8 @@ import {
   X,
   ChevronRight,
 } from 'lucide-react';
-import { BUILDER_TOUCH_CONFIG } from '../constants/breakpoints';
-import { ConfirmationDialog } from '../../story/mobile/ConfirmationDialog';
+import { BUILDER_TOUCH_CONFIG } from '../config/breakpoints.constants';
+import { ConfirmationDialog } from '../../shared/mobile';
 
 /**
  * MobilePagesManager Component - Mobile-optimized pages list and management

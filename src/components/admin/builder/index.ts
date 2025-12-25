@@ -1,17 +1,27 @@
-// Types
-export * from './types';
+/**
+ * Builder Module Entry Point
+ * 
+ * This module provides the Page Builder functionality for creating
+ * and editing web pages with drag-and-drop widgets.
+ */
 
-// Utils
-export * from './utils';
+// Core Types
+export * from './core';
 
-// Templates
-export { PAGE_TEMPLATES } from './templates';
+// Config (Registry, Templates, Constants)
+export * from './config';
 
 // Hooks
 export * from './hooks';
 
-// Components
-export * from './components';
+// Services (Storage, Export, Save)
+export * from './services';
 
-// Actions
-export * from './actions';
+// Utils
+export * from './utils';
+
+// UI Components
+export * from './ui';
+
+// Mobile Components
+export * from './mobile';

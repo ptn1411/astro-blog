@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Copy, Clipboard, Sparkles, Check } from 'lucide-react';
-import { BottomSheet } from '../../story/mobile/BottomSheet';
+import { BottomSheet } from '../../shared/mobile';
 
 /**
  * MobileAIPromptModal Component - Mobile-optimized AI Prompt Generator using BottomSheet

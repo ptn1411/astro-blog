@@ -4,7 +4,25 @@
  * This module exports all mobile-specific UI components for the Story Editor.
  */
 
-export { BottomSheet, type BottomSheetProps, findNearestSnapPoint, calculateSheetHeight } from './BottomSheet';
+// Re-export from subfolders for organized imports
+export * from './layout';
+export * from './canvas';
+export * from './panels';
+export * from './timeline';
+export * from './navigation';
+export * from './common';
+
+// Re-export shared mobile components for backward compatibility
+export { 
+  BottomSheet, 
+  type BottomSheetProps, 
+  findNearestSnapPoint, 
+  calculateSheetHeight,
+  ConfirmationDialog,
+  type ConfirmationDialogProps,
+} from '../../shared/mobile';
+
+// Direct exports for backward compatibility
 export { FloatingActionButton, type FABProps } from './FloatingActionButton';
 export { BottomNavBar, type BottomNavBarProps, type NavTab } from './BottomNavBar';
 export { 
@@ -24,10 +42,6 @@ export {
   type MobileHeaderProps,
   type MenuItem,
 } from './MobileHeader';
-export {
-  ConfirmationDialog,
-  type ConfirmationDialogProps,
-} from './ConfirmationDialog';
 export {
   MobilePropertiesPanel,
   type MobilePropertiesPanelProps,

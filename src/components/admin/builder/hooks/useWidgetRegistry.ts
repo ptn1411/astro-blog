@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { WIDGET_REGISTRY, type WidgetSchema, type WidgetType } from '../registry';
+import { WIDGET_REGISTRY, type WidgetSchema, type WidgetType } from '../config/registry';
 import {
   loadCustomWidgets,
   loadWidgetsFromLocalStorage,
   saveCustomWidgets,
   saveWidgetsToLocalStorage,
-} from '../actions/widgetStorage';
+} from '../services/storage/widgetStorage';
 
 export interface UseWidgetRegistryReturn {
   // Registry state

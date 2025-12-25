@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useResponsive, type ResponsiveState } from '../../../../hooks/useResponsive';
-import { getLayoutMode, type LayoutMode } from '../constants/breakpoints';
+import { getLayoutMode, type LayoutMode } from '../config/breakpoints.constants';
 
 /**
  * Builder-specific responsive state interface
@@ -99,6 +99,6 @@ export function useBuilderResponsive(): BuilderResponsiveState {
 /**
  * Re-export breakpoints for convenience
  */
-export { BUILDER_BREAKPOINTS, type LayoutMode } from '../constants/breakpoints';
+export { BUILDER_BREAKPOINTS, type LayoutMode } from '../config/breakpoints.constants';
 
 export default useBuilderResponsive;

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Clipboard, AlertCircle, Check, X } from 'lucide-react';
-import { BottomSheet } from '../../story/mobile/BottomSheet';
-import { BUILDER_TOUCH_CONFIG } from '../constants/breakpoints';
+import { BottomSheet } from '../../shared/mobile';
+import { BUILDER_TOUCH_CONFIG } from '../config/breakpoints.constants';
 
 /**
  * MobilePasteJSONModal Component - Mobile-optimized JSON paste interface using BottomSheet

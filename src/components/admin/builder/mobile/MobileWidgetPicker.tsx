@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
-import { BottomSheet } from '../../story/mobile/BottomSheet';
-import { WIDGET_CATEGORIES, WIDGET_REGISTRY, type WidgetType, type WidgetCategory } from '../registry';
-import { BUILDER_TOUCH_CONFIG } from '../constants/breakpoints';
+import { BottomSheet } from '../../shared/mobile';
+import { WIDGET_CATEGORIES, WIDGET_REGISTRY, type WidgetType, type WidgetCategory } from '../config/registry';
+import { BUILDER_TOUCH_CONFIG } from '../config/breakpoints.constants';
 
 /**
  * MobileWidgetPicker Component - Mobile-friendly widget selection using BottomSheet

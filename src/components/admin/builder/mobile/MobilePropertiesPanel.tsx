@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { ChevronDown, Settings, FileText, Check } from 'lucide-react';
-import { BottomSheet } from '../../story/mobile/BottomSheet';
-import { BUILDER_TOUCH_CONFIG } from '../constants/breakpoints';
-import type { BuilderBlock, PageMetadata } from '../types';
-import type { WidgetSchema } from '../registry';
+import { BottomSheet } from '../../shared/mobile';
+import { BUILDER_TOUCH_CONFIG } from '../config/breakpoints.constants';
+import type { BuilderBlock, PageMetadata } from '../core/types';
+import type { WidgetSchema } from '../config/registry';
 import { MobileArrayEditor } from './MobileArrayEditor';
-import { ImagePicker } from '../ImagePicker';
-import { IconPicker } from '../IconPicker';
+import { ImagePicker } from '../ui/pickers/ImagePicker';
+import { IconPicker } from '../ui/pickers/IconPicker';
 
 /**
  * MobilePropertiesPanel Component - Mobile-optimized properties editor using BottomSheet

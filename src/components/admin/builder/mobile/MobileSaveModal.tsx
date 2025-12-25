@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, Save, FileText, AlertCircle } from 'lucide-react';
-import { BottomSheet } from '../../story/mobile/BottomSheet';
+import { BottomSheet } from '../../shared/mobile';
 import { GITHUB_CONFIG } from '../../config';
-import { BUILDER_TOUCH_CONFIG } from '../constants/breakpoints';
+import { BUILDER_TOUCH_CONFIG } from '../config/breakpoints.constants';
 
 /**
  * MobileSaveModal Component - Mobile-optimized save form using BottomSheet

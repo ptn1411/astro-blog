@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { ChevronDown, ChevronUp, GripVertical, Plus, Trash2, X } from 'lucide-react';
-import { BUILDER_TOUCH_CONFIG } from '../constants/breakpoints';
-import { ImagePicker } from '../ImagePicker';
-import { IconPicker } from '../IconPicker';
+import { BUILDER_TOUCH_CONFIG } from '../config/breakpoints.constants';
+import { ImagePicker } from '../ui/pickers/ImagePicker';
+import { IconPicker } from '../ui/pickers/IconPicker';
 
 /**
  * MobileArrayEditor Component - Touch-friendly array item management

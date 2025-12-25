@@ -44,8 +44,8 @@ import {
   Sun,
 } from 'lucide-react';
 import { uploadMediaLocally } from '~/utils/media';
-import { GiphyPanel } from '../GiphyPanel';
-import { StoryImagePicker } from '../StoryMediaPicker';
+import { GiphyPanel } from '../ui/panels';
+import { StoryImagePicker } from '../ui/pickers';
 import type { ElementType, ShapeType, StoryTemplate } from '../types';
 
 /**
