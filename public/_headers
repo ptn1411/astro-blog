@@ -41,11 +41,11 @@
 
 # HTML pages - cache for 1 hour, revalidate
 /*.html
-  Cache-Control: public, max-age=3600, must-revalidate
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400
 
 # Root HTML - cache for 1 hour, revalidate
 /
-  Cache-Control: public, max-age=3600, must-revalidate
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400
 
 # RSS feed - cache for 1 hour
 /rss.xml
