@@ -19,7 +19,19 @@ export interface ApiAction {
   auth?: AuthConfig;
 }
 
-// Item Mapping for product fields
+// Dynamic Field Definition
+export type FieldType = 'text' | 'image' | 'price' | 'link' | 'badge' | 'html';
+
+export interface DynamicField {
+  id: string;
+  label: string;
+  path: string;
+  type: FieldType;
+  // Optional styling
+  className?: string;
+}
+
+// Item Mapping for product fields (legacy - kept for backward compatibility)
 export interface ItemMapping {
   name: string;
   price: string;
@@ -31,12 +43,13 @@ export interface ItemMapping {
 // Data Mapper Configuration
 export interface DataMapperConfig {
   rootPath: string;
-  itemMapping: ItemMapping;
+  itemMapping?: ItemMapping; // Legacy - optional for backward compatibility
+  fields?: DynamicField[]; // New dynamic fields
 }
 
 // Display Configuration
 export interface DisplayConfig {
-  layout: 'grid' | 'list';
+  layout: 'grid' | 'list' | 'card';
   columns: 2 | 3 | 4;
   showImage: boolean;
   showPrice: boolean;
@@ -69,7 +82,13 @@ export interface ApiDataWidgetConfig {
   messages: MessageConfig;
 }
 
-// Mapped Product (output of DataMapper)
+// Mapped Item (output of DataMapper) - now supports dynamic fields
+export interface MappedItem {
+  [key: string]: unknown;
+  _fields?: DynamicField[]; // Reference to field definitions for rendering
+}
+
+// Mapped Product (legacy - kept for backward compatibility)
 export interface MappedProduct {
   name: string;
   price: number | null;
@@ -80,7 +99,7 @@ export interface MappedProduct {
 
 // Cache Entry
 export interface CacheEntry {
-  data: MappedProduct[];
+  data: MappedProduct[] | MappedItem[];
   timestamp: number;
   widgetId: string;
 }
@@ -97,7 +116,7 @@ export type ApiError =
 export interface ApiDataWidgetState {
   loading: boolean;
   error: ApiError | null;
-  data: MappedProduct[];
+  data: MappedProduct[] | MappedItem[];
 }
 
 // Default configurations
@@ -133,3 +152,21 @@ export const DEFAULT_ITEM_MAPPING: ItemMapping = {
   description: 'description',
   url: 'url',
 };
+
+// Default dynamic fields (equivalent to legacy mapping)
+export const DEFAULT_DYNAMIC_FIELDS: DynamicField[] = [
+  { id: 'name', label: 'Name', path: 'title', type: 'text' },
+  { id: 'price', label: 'Price', path: 'price', type: 'price' },
+  { id: 'image', label: 'Image', path: 'image', type: 'image' },
+  { id: 'description', label: 'Description', path: 'description', type: 'text' },
+];
+
+// Field type options for UI
+export const FIELD_TYPE_OPTIONS: { label: string; value: FieldType }[] = [
+  { label: 'Text', value: 'text' },
+  { label: 'Image', value: 'image' },
+  { label: 'Price', value: 'price' },
+  { label: 'Link', value: 'link' },
+  { label: 'Badge', value: 'badge' },
+  { label: 'HTML', value: 'html' },
+];

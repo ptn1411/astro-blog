@@ -5,6 +5,7 @@ import { ImagePicker } from '../pickers/ImagePicker';
 import type { WidgetSchema } from '../../config/registry';
 import type { BuilderBlock } from '../../core/types/block.types';
 import { JsonEditor } from './JsonEditor';
+import { ApiDataWidgetConfig } from '../widgets/apiData/ApiDataWidgetConfig';
 
 // Deep clone helper (or import from utils)
 const deepClone = <T,>(obj: T): T => JSON.parse(JSON.stringify(obj));
@@ -58,6 +59,21 @@ export function PropsEditor({
           />
         </div>
       </div>
+    );
+  }
+
+  // Use custom config component for ApiDataWidget
+  if (selectedBlock.type === 'ApiDataWidget') {
+    const handleConfigChange = (newConfig: Record<string, unknown>) => {
+      updateBlockProps(selectedBlock.id, { ...selectedBlock.props, ...newConfig });
+    };
+
+    return (
+      <ApiDataWidgetConfig
+        config={selectedBlock.props as any}
+        onChange={handleConfigChange}
+        isDarkMode={isDarkMode}
+      />
     );
   }
 
@@ -123,17 +139,7 @@ export function PropsEditor({
                 isDarkMode={isDarkMode}
                 itemSchema={field.arraySchema}
               />
-            ) : (
-              <input
-                type="text"
-                className={`w-full p-2 border rounded text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder:text-gray-500' : 'bg-white border-gray-300 placeholder:text-gray-400'}`}
-                value={(currentValue as string) || ''}
-                onChange={(e) => handleUpdate(e.target.value)}
-                placeholder={field.placeholder}
-              />
-            )}
-
-            {field.type === 'select' && (
+            ) : field.type === 'select' ? (
               <select
                 className={`w-full p-2 border rounded text-sm outline-none focus:ring-2 focus:ring-blue-500 ${
                   isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300'
@@ -148,6 +154,14 @@ export function PropsEditor({
                   </option>
                 ))}
               </select>
+            ) : (
+              <input
+                type="text"
+                className={`w-full p-2 border rounded text-sm ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder:text-gray-500' : 'bg-white border-gray-300 placeholder:text-gray-400'}`}
+                value={(currentValue as string) || ''}
+                onChange={(e) => handleUpdate(e.target.value)}
+                placeholder={field.placeholder}
+              />
             )}
           </div>
         );

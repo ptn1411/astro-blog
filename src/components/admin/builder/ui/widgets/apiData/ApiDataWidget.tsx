@@ -1,6 +1,7 @@
 /**
  * ApiDataWidget Component
  * Main widget component that fetches data from API and displays products
+ * Supports both legacy fixed fields and dynamic fields
  * 
  * Requirements: 4.1, 4.2, 4.3, 4.4
  * - Display loading indicator while fetching
@@ -13,8 +14,9 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import type {
   ApiDataWidgetConfig,
   MappedProduct,
+  MappedItem,
+  DynamicField,
   ApiError,
-  ApiDataWidgetState,
 } from '../../../core/types/apiDataWidget.types';
 import {
   DEFAULT_DISPLAY_CONFIG,
@@ -22,20 +24,29 @@ import {
   DEFAULT_MESSAGE_CONFIG,
 } from '../../../core/types/apiDataWidget.types';
 import { fetchData, type FetchResult } from '../../../services/apiData/ApiFetcher';
-import { mapArrayData } from '../../../services/apiData/DataMapper';
+import { mapArrayData, mapDynamicData } from '../../../services/apiData/DataMapper';
 import {
   generateCacheKey,
   getCachedData,
   setCachedData,
 } from '../../../services/apiData/CacheManager';
 import { ProductGrid } from './ProductGrid';
+import { DynamicItemGrid } from './DynamicItemGrid';
 
 export interface ApiDataWidgetProps {
   config: ApiDataWidgetConfig;
   /** Optional: Override for testing - skip actual API calls */
-  testData?: MappedProduct[];
+  testData?: MappedProduct[] | MappedItem[];
   /** Optional: Force error state for testing */
   testError?: ApiError;
+}
+
+// Extended state to support both legacy and dynamic data
+interface ExtendedWidgetState {
+  loading: boolean;
+  error: ApiError | null;
+  legacyData: MappedProduct[];
+  dynamicData: MappedItem[];
 }
 
 /**
@@ -147,13 +158,18 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
   const method = config.action.method;
   const bodyStr = config.action.body ? JSON.stringify(config.action.body) : '';
   const rootPath = config.dataMapper.rootPath;
-  const itemMappingStr = JSON.stringify(config.dataMapper.itemMapping);
+  const itemMappingStr = config.dataMapper.itemMapping ? JSON.stringify(config.dataMapper.itemMapping) : '';
+  const fieldsStr = config.dataMapper.fields ? JSON.stringify(config.dataMapper.fields) : '';
+  
+  // Check if using dynamic fields
+  const useDynamicFields = config.dataMapper.fields && config.dataMapper.fields.length > 0;
 
-  // State management
-  const [state, setState] = useState<ApiDataWidgetState>({
+  // State management - extended to support both legacy and dynamic data
+  const [state, setState] = useState<ExtendedWidgetState>({
     loading: true,
     error: null,
-    data: [],
+    legacyData: [],
+    dynamicData: [],
   });
 
   // AbortController ref for cleanup
@@ -166,12 +182,16 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
   const fetchWidgetData = useCallback(async () => {
     // Handle test mode
     if (testData !== undefined) {
-      setState({ loading: false, error: null, data: testData });
+      if (useDynamicFields) {
+        setState({ loading: false, error: null, legacyData: [], dynamicData: testData as MappedItem[] });
+      } else {
+        setState({ loading: false, error: null, legacyData: testData as MappedProduct[], dynamicData: [] });
+      }
       return;
     }
 
     if (testError !== undefined) {
-      setState({ loading: false, error: testError, data: [] });
+      setState({ loading: false, error: testError, legacyData: [], dynamicData: [] });
       return;
     }
 
@@ -182,11 +202,15 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
         endpoint,
         method,
         bodyStr ? JSON.parse(bodyStr) : undefined,
-        { rootPath, itemMapping: JSON.parse(itemMappingStr) }
+        { rootPath, itemMapping: itemMappingStr ? JSON.parse(itemMappingStr) : undefined }
       );
       const cachedData = getCachedData(cacheKey);
       if (cachedData !== null) {
-        setState({ loading: false, error: null, data: cachedData });
+        if (useDynamicFields) {
+          setState({ loading: false, error: null, legacyData: [], dynamicData: cachedData as MappedItem[] });
+        } else {
+          setState({ loading: false, error: null, legacyData: cachedData as MappedProduct[], dynamicData: [] });
+        }
         return;
       }
     }
@@ -213,16 +237,24 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
       if (!isMountedRef.current) return;
 
       if (!result.success) {
-        setState({ loading: false, error: result.error, data: [] });
+        setState({ loading: false, error: result.error, legacyData: [], dynamicData: [] });
         return;
       }
 
-      // Map the response data
-      const mappedData = mapArrayData(
-        result.data,
-        rootPath,
-        JSON.parse(itemMappingStr)
-      );
+      // Map the response data based on field type
+      let mappedData: MappedProduct[] | MappedItem[];
+      
+      if (useDynamicFields && fieldsStr) {
+        const fields = JSON.parse(fieldsStr) as DynamicField[];
+        mappedData = mapDynamicData(result.data, rootPath, fields);
+        setState({ loading: false, error: null, legacyData: [], dynamicData: mappedData });
+      } else if (itemMappingStr) {
+        mappedData = mapArrayData(result.data, rootPath, JSON.parse(itemMappingStr));
+        setState({ loading: false, error: null, legacyData: mappedData, dynamicData: [] });
+      } else {
+        setState({ loading: false, error: null, legacyData: [], dynamicData: [] });
+        return;
+      }
 
       // Cache the result if enabled
       if (cacheEnabled && cacheDuration > 0) {
@@ -231,12 +263,10 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
           endpoint,
           method,
           bodyStr ? JSON.parse(bodyStr) : undefined,
-          { rootPath, itemMapping: JSON.parse(itemMappingStr) }
+          { rootPath, itemMapping: itemMappingStr ? JSON.parse(itemMappingStr) : undefined }
         );
-        setCachedData(cacheKey, mappedData, cacheDuration, configId);
+        setCachedData(cacheKey, mappedData as MappedProduct[], cacheDuration, configId);
       }
-
-      setState({ loading: false, error: null, data: mappedData });
     } catch (err) {
       // Check if component is still mounted
       if (!isMountedRef.current) return;
@@ -249,9 +279,9 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
         type: 'network',
         message: err instanceof Error ? err.message : 'An unexpected error occurred',
       };
-      setState({ loading: false, error, data: [] });
+      setState({ loading: false, error, legacyData: [], dynamicData: [] });
     }
-  }, [configId, endpoint, method, bodyStr, rootPath, itemMappingStr, cacheEnabled, cacheDuration, testData, testError, config.action]);
+  }, [configId, endpoint, method, bodyStr, rootPath, itemMappingStr, fieldsStr, cacheEnabled, cacheDuration, testData, testError, config.action, useDynamicFields]);
 
   // Fetch data on mount and when config changes
   useEffect(() => {
@@ -273,7 +303,7 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
   }, [fetchWidgetData]);
 
   // Render based on state
-  const { loading, error, data } = state;
+  const { loading, error, legacyData, dynamicData } = state;
 
   if (loading) {
     return (
@@ -291,7 +321,24 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
     );
   }
 
-  if (data.length === 0) {
+  // Render dynamic fields
+  if (useDynamicFields && config.dataMapper.fields) {
+    if (dynamicData.length === 0) {
+      return (
+        <div className="api-data-widget" data-widget-id={config.id}>
+          <EmptyState message={messages.empty} />
+        </div>
+      );
+    }
+    return (
+      <div className="api-data-widget" data-widget-id={config.id}>
+        <DynamicItemGrid items={dynamicData} fields={config.dataMapper.fields} display={display} />
+      </div>
+    );
+  }
+
+  // Render legacy fields
+  if (legacyData.length === 0) {
     return (
       <div className="api-data-widget" data-widget-id={config.id}>
         <EmptyState message={messages.empty} />
@@ -301,7 +348,7 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
 
   return (
     <div className="api-data-widget" data-widget-id={config.id}>
-      <ProductGrid products={data} display={display} />
+      <ProductGrid products={legacyData} display={display} />
     </div>
   );
 };

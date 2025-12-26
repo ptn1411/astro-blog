@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { AlignLeft, Check, X } from 'lucide-react';
 
 interface JsonEditorProps {
-  value: any;
-  onChange: (value: any) => void;
+  value: unknown;
+  onChange: (value: unknown) => void;
   isDarkMode: boolean;
 }
 
@@ -40,8 +41,44 @@ export function JsonEditor({ value, onChange, isDarkMode }: JsonEditorProps) {
     }
   };
 
+  const handleFormat = () => {
+    try {
+      const parsed = JSON.parse(text);
+      const formatted = JSON.stringify(parsed, null, 2);
+      setText(formatted);
+      setError(null);
+      onChange(parsed);
+    } catch {
+      // Can't format invalid JSON
+    }
+  };
+
   return (
-    <div>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          {error ? (
+            <X size={14} className="text-red-500" />
+          ) : text && text !== 'null' ? (
+            <Check size={14} className="text-green-500" />
+          ) : null}
+          {error && <span className="text-xs text-red-500 truncate max-w-[200px]">{error}</span>}
+        </div>
+        <button
+          type="button"
+          onClick={handleFormat}
+          disabled={!!error}
+          className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+            isDarkMode
+              ? 'bg-gray-600 hover:bg-gray-500 text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed'
+              : 'bg-gray-200 hover:bg-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed'
+          }`}
+          title="Format JSON"
+        >
+          <AlignLeft size={12} />
+          Format
+        </button>
+      </div>
       <textarea
         className={`w-full p-2 border rounded text-sm font-mono ${
           isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900'
@@ -51,7 +88,6 @@ export function JsonEditor({ value, onChange, isDarkMode }: JsonEditorProps) {
         onChange={(e) => handleChange(e.target.value)}
         spellCheck={false}
       />
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
 }

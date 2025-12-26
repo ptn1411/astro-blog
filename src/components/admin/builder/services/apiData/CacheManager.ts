@@ -5,7 +5,7 @@
  * Cache keys are generated from widget configuration to ensure uniqueness.
  */
 
-import type { MappedProduct, DataMapperConfig, CacheEntry } from '../../core/types/apiDataWidget.types';
+import type { MappedProduct, MappedItem, DataMapperConfig, CacheEntry } from '../../core/types/apiDataWidget.types';
 
 const CACHE_PREFIX = 'api_widget_cache_';
 
@@ -67,7 +67,7 @@ export function generateCacheKey(
  *   // Fetch fresh data
  * }
  */
-export function getCachedData(key: string): MappedProduct[] | null {
+export function getCachedData(key: string): (MappedProduct[] | MappedItem[]) | null {
   // Check if we're in a browser environment
   if (typeof window === 'undefined' || !window.localStorage) {
     return null;
@@ -124,7 +124,7 @@ export function getCachedData(key: string): MappedProduct[] | null {
  */
 export function setCachedData(
   key: string,
-  data: MappedProduct[],
+  data: MappedProduct[] | MappedItem[],
   duration: number,
   widgetId: string = ''
 ): boolean {
@@ -256,7 +256,7 @@ export class CacheManager {
   /**
    * Retrieves cached data if available and not expired.
    */
-  get(): MappedProduct[] | null {
+  get(): (MappedProduct[] | MappedItem[]) | null {
     return getCachedData(this.cacheKey);
   }
 
@@ -266,7 +266,7 @@ export class CacheManager {
    * @param data - The MappedProduct array to cache
    * @returns true if caching succeeded
    */
-  set(data: MappedProduct[]): boolean {
+  set(data: MappedProduct[] | MappedItem[]): boolean {
     return setCachedData(this.cacheKey, data, this.duration, this.widgetId);
   }
 
@@ -304,7 +304,7 @@ export class CacheManager {
    * @param fetchFn - Async function to fetch data if cache miss
    * @returns The cached or freshly fetched data
    */
-  async getOrFetch(fetchFn: () => Promise<MappedProduct[]>): Promise<MappedProduct[]> {
+  async getOrFetch(fetchFn: () => Promise<MappedProduct[] | MappedItem[]>): Promise<MappedProduct[] | MappedItem[]> {
     const cached = this.get();
     if (cached !== null) {
       return cached;

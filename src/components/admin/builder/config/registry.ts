@@ -1609,14 +1609,13 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
         auth: { type: 'none' },
       },
       dataMapper: {
-        rootPath: 'data',
-        itemMapping: {
-          name: 'title',
-          price: 'price',
-          image: 'image',
-          description: 'description',
-          url: 'url',
-        },
+        rootPath: '',
+        fields: [
+          { id: 'name', label: 'Name', path: 'title', type: 'text' },
+          { id: 'price', label: 'Price', path: 'price', type: 'price' },
+          { id: 'image', label: 'Image', path: 'thumbnail', type: 'image' },
+          { id: 'description', label: 'Description', path: 'description', type: 'text' },
+        ],
       },
       display: {
         layout: 'grid',
@@ -1638,71 +1637,6 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       },
     },
     fields: [
-      // API Configuration
-      { name: 'action.endpoint', label: 'API Endpoint URL', type: 'text', placeholder: 'https://api.example.com/products' },
-      {
-        name: 'action.method',
-        label: 'HTTP Method',
-        type: 'select',
-        options: [
-          { label: 'GET', value: 'GET' },
-          { label: 'POST', value: 'POST' },
-        ],
-      },
-      { name: 'action.headers', label: 'Headers (JSON)', type: 'json', placeholder: '{"Content-Type": "application/json"}' },
-      { name: 'action.body', label: 'Request Body (JSON, for POST)', type: 'json', placeholder: '{}' },
-      {
-        name: 'action.auth.type',
-        label: 'Authentication Type',
-        type: 'select',
-        options: [
-          { label: 'None', value: 'none' },
-          { label: 'Bearer Token', value: 'bearer' },
-          { label: 'API Key', value: 'apiKey' },
-        ],
-      },
-      { name: 'action.auth.token', label: 'Bearer Token', type: 'text', placeholder: 'Your bearer token' },
-      { name: 'action.auth.apiKeyHeader', label: 'API Key Header Name', type: 'text', placeholder: 'X-API-Key' },
-      { name: 'action.auth.apiKeyValue', label: 'API Key Value', type: 'text', placeholder: 'Your API key' },
-      // Data Mapping
-      { name: 'dataMapper.rootPath', label: 'Data Root Path', type: 'text', placeholder: 'data.products' },
-      { name: 'dataMapper.itemMapping.name', label: 'Name Field Path', type: 'text', placeholder: 'title' },
-      { name: 'dataMapper.itemMapping.price', label: 'Price Field Path', type: 'text', placeholder: 'price.amount' },
-      { name: 'dataMapper.itemMapping.image', label: 'Image Field Path', type: 'text', placeholder: 'thumbnail' },
-      { name: 'dataMapper.itemMapping.description', label: 'Description Field Path', type: 'text', placeholder: 'description' },
-      { name: 'dataMapper.itemMapping.url', label: 'URL Field Path', type: 'text', placeholder: 'link' },
-      // Display Options
-      {
-        name: 'display.layout',
-        label: 'Layout',
-        type: 'select',
-        options: [
-          { label: 'Grid', value: 'grid' },
-          { label: 'List', value: 'list' },
-        ],
-      },
-      {
-        name: 'display.columns',
-        label: 'Columns',
-        type: 'select',
-        options: [
-          { label: '2 Columns', value: '2' },
-          { label: '3 Columns', value: '3' },
-          { label: '4 Columns', value: '4' },
-        ],
-      },
-      { name: 'display.showImage', label: 'Show Image', type: 'boolean' },
-      { name: 'display.showPrice', label: 'Show Price', type: 'boolean' },
-      { name: 'display.showDescription', label: 'Show Description', type: 'boolean' },
-      { name: 'display.currency', label: 'Currency Symbol', type: 'text', placeholder: 'USD' },
-      { name: 'display.placeholderImage', label: 'Placeholder Image URL', type: 'text', placeholder: 'https://via.placeholder.com/300x200' },
-      // Cache Options
-      { name: 'cache.enabled', label: 'Enable Cache', type: 'boolean' },
-      { name: 'cache.duration', label: 'Cache Duration (seconds)', type: 'number', placeholder: '300' },
-      // Messages
-      { name: 'messages.loading', label: 'Loading Message', type: 'text', placeholder: 'Loading...' },
-      { name: 'messages.error', label: 'Error Message', type: 'text', placeholder: 'Failed to load data.' },
-      { name: 'messages.empty', label: 'Empty State Message', type: 'text', placeholder: 'No items found.' },
       ...COMMON_FIELDS,
     ],
   },

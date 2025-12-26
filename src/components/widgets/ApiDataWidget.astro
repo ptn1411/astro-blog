@@ -2,6 +2,7 @@
 /**
  * ApiDataWidget - Astro component for fetching and displaying API data
  * Uses React component with client:only directive for client-side data fetching
+ * Supports both legacy fixed fields and dynamic fields
  */
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import Headline from '~/components/ui/Headline.astro';
@@ -9,6 +10,17 @@ import type { Widget } from '~/types';
 
 // Import React component
 import { ApiDataWidgetClient } from './ApiDataWidgetClient';
+
+// Dynamic Field Types
+type FieldType = 'text' | 'image' | 'price' | 'link' | 'badge' | 'html';
+
+interface DynamicField {
+  id: string;
+  label: string;
+  path: string;
+  type: FieldType;
+  className?: string;
+}
 
 export interface Props extends Widget {
   title?: string;
@@ -30,17 +42,20 @@ export interface Props extends Widget {
   // Data Mapping
   dataMapper?: {
     rootPath: string;
-    itemMapping: {
+    // Legacy fixed fields (optional)
+    itemMapping?: {
       name: string;
       price: string;
       image: string;
       description: string;
       url?: string;
     };
+    // New dynamic fields (optional)
+    fields?: DynamicField[];
   };
   // Display Options
   display?: {
-    layout?: 'grid' | 'list';
+    layout?: 'grid' | 'list' | 'card';
     columns?: 2 | 3 | 4;
     showImage?: boolean;
     showPrice?: boolean;
@@ -80,6 +95,7 @@ const {
       description: 'description',
       url: 'url',
     },
+    fields: undefined,
   },
   display = {
     layout: 'grid',
@@ -120,6 +136,7 @@ const config = {
   dataMapper: {
     rootPath: dataMapper.rootPath,
     itemMapping: dataMapper.itemMapping,
+    fields: dataMapper.fields,
   },
   display: {
     layout: display.layout || 'grid',

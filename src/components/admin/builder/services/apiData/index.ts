@@ -3,7 +3,7 @@
  * Exports all services for API Data Widget
  */
 
-export { DataMapper, getValueByPath, mapArrayData } from './DataMapper';
+export { DataMapper, getValueByPath, mapArrayData, mapDynamicData } from './DataMapper';
 export { 
   CacheManager, 
   generateCacheKey, 

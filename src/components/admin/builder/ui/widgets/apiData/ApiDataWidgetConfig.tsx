@@ -31,7 +31,9 @@ import type {
   CacheConfig,
   MessageConfig,
   MappedProduct,
+  MappedItem,
   ApiError,
+  DynamicField,
 } from '../../../core/types/apiDataWidget.types';
 import {
   DEFAULT_DISPLAY_CONFIG,
@@ -39,10 +41,13 @@ import {
   DEFAULT_MESSAGE_CONFIG,
   DEFAULT_AUTH_CONFIG,
   DEFAULT_ITEM_MAPPING,
+  DEFAULT_DYNAMIC_FIELDS,
 } from '../../../core/types/apiDataWidget.types';
 import { fetchData, validateEndpoint } from '../../../services/apiData/ApiFetcher';
-import { mapArrayData } from '../../../services/apiData/DataMapper';
+import { mapArrayData, mapDynamicData } from '../../../services/apiData/DataMapper';
 import { ProductGrid } from './ProductGrid';
+import { DynamicFieldsEditor } from './DynamicFieldsEditor';
+import { DynamicItemGrid } from './DynamicItemGrid';
 
 export interface ApiDataWidgetConfigProps {
   /** Current widget configuration */
@@ -113,6 +118,7 @@ interface PreviewState {
   loading: boolean;
   error: ApiError | null;
   data: MappedProduct[];
+  dynamicData: MappedItem[];
 }
 
 /**
@@ -194,6 +200,7 @@ export const ApiDataWidgetConfig: React.FC<ApiDataWidgetConfigProps> = ({
     loading: false,
     error: null,
     data: [],
+    dynamicData: [],
   });
   const [showPreview, setShowPreview] = useState(false);
 
@@ -220,7 +227,11 @@ export const ApiDataWidgetConfig: React.FC<ApiDataWidgetConfigProps> = ({
   const dataMapper: DataMapperConfig = {
     rootPath: config.dataMapper?.rootPath || '',
     itemMapping: config.dataMapper?.itemMapping || DEFAULT_ITEM_MAPPING,
+    fields: config.dataMapper?.fields || DEFAULT_DYNAMIC_FIELDS,
   };
+
+  // Get dynamic fields
+  const dynamicFields = dataMapper.fields || DEFAULT_DYNAMIC_FIELDS;
 
   const display: DisplayConfig = { ...DEFAULT_DISPLAY_CONFIG, ...config.display };
   const cache: CacheConfig = { ...DEFAULT_CACHE_CONFIG, ...config.cache };
@@ -344,23 +355,33 @@ export const ApiDataWidgetConfig: React.FC<ApiDataWidgetConfigProps> = ({
   const testFetch = useCallback(async () => {
     if (!validate()) return;
 
-    setPreview({ loading: true, error: null, data: [] });
+    setPreview({ loading: true, error: null, data: [], dynamicData: [] });
     setShowPreview(true);
 
     const result = await fetchData(action);
 
     if (!result.success) {
-      setPreview({ loading: false, error: result.error, data: [] });
+      setPreview({ loading: false, error: result.error, data: [], dynamicData: [] });
       return;
     }
 
     try {
-      const mappedData = mapArrayData(
-        result.data,
-        dataMapper.rootPath,
-        dataMapper.itemMapping
-      );
-      setPreview({ loading: false, error: null, data: mappedData });
+      // Use dynamic fields if available, otherwise fall back to legacy mapping
+      if (dynamicFields && dynamicFields.length > 0) {
+        const mappedDynamicData = mapDynamicData(
+          result.data,
+          dataMapper.rootPath,
+          dynamicFields
+        );
+        setPreview({ loading: false, error: null, data: [], dynamicData: mappedDynamicData });
+      } else {
+        const mappedData = mapArrayData(
+          result.data,
+          dataMapper.rootPath,
+          dataMapper.itemMapping || DEFAULT_ITEM_MAPPING
+        );
+        setPreview({ loading: false, error: null, data: mappedData, dynamicData: [] });
+      }
     } catch (err) {
       setPreview({
         loading: false,
@@ -369,9 +390,10 @@ export const ApiDataWidgetConfig: React.FC<ApiDataWidgetConfigProps> = ({
           message: err instanceof Error ? err.message : 'Failed to map data',
         },
         data: [],
+        dynamicData: [],
       });
     }
-  }, [action, dataMapper, validate]);
+  }, [action, dataMapper, dynamicFields, validate]);
 
   return (
     <div className="space-y-4">
@@ -525,94 +547,31 @@ export const ApiDataWidgetConfig: React.FC<ApiDataWidgetConfigProps> = ({
       <Section title="🗺️ Data Mapping" isDarkMode={isDarkMode}>
         <div className="space-y-3">
           <FormField
-            label="Root Path (JSONPath to array)"
+            label="Root Path (JSONPath to data)"
             error={errors.rootPath}
             isDarkMode={isDarkMode}
-            required
           >
             <input
               type="text"
               className={`${inputClass} ${errors.rootPath ? 'border-red-500' : ''}`}
               value={dataMapper.rootPath}
               onChange={(e) => updateDataMapper({ rootPath: e.target.value })}
-              placeholder="data.products"
+              placeholder="data.products or leave empty for root"
             />
             <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Path to the array in API response (e.g., "data.products", "results")
+              Path to the data in API response. Leave empty if data is at root level.
             </p>
           </FormField>
 
           <div className={`p-3 rounded ${isDarkMode ? 'bg-gray-750' : 'bg-gray-50'}`}>
             <p className={`text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Item Field Mappings
+              Field Mappings
             </p>
-            <div className="grid grid-cols-2 gap-2">
-              <FormField label="Name Field" isDarkMode={isDarkMode}>
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={dataMapper.itemMapping.name}
-                  onChange={(e) =>
-                    updateDataMapper({
-                      itemMapping: { ...dataMapper.itemMapping, name: e.target.value },
-                    })
-                  }
-                  placeholder="title"
-                />
-              </FormField>
-              <FormField label="Price Field" isDarkMode={isDarkMode}>
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={dataMapper.itemMapping.price}
-                  onChange={(e) =>
-                    updateDataMapper({
-                      itemMapping: { ...dataMapper.itemMapping, price: e.target.value },
-                    })
-                  }
-                  placeholder="price"
-                />
-              </FormField>
-              <FormField label="Image Field" isDarkMode={isDarkMode}>
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={dataMapper.itemMapping.image}
-                  onChange={(e) =>
-                    updateDataMapper({
-                      itemMapping: { ...dataMapper.itemMapping, image: e.target.value },
-                    })
-                  }
-                  placeholder="thumbnail"
-                />
-              </FormField>
-              <FormField label="Description Field" isDarkMode={isDarkMode}>
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={dataMapper.itemMapping.description}
-                  onChange={(e) =>
-                    updateDataMapper({
-                      itemMapping: { ...dataMapper.itemMapping, description: e.target.value },
-                    })
-                  }
-                  placeholder="description"
-                />
-              </FormField>
-              <FormField label="URL Field (optional)" isDarkMode={isDarkMode}>
-                <input
-                  type="text"
-                  className={inputClass}
-                  value={dataMapper.itemMapping.url || ''}
-                  onChange={(e) =>
-                    updateDataMapper({
-                      itemMapping: { ...dataMapper.itemMapping, url: e.target.value },
-                    })
-                  }
-                  placeholder="link"
-                />
-              </FormField>
-            </div>
+            <DynamicFieldsEditor
+              fields={dynamicFields}
+              onChange={(fields) => updateDataMapper({ fields })}
+              isDarkMode={isDarkMode}
+            />
           </div>
         </div>
       </Section>
@@ -625,10 +584,11 @@ export const ApiDataWidgetConfig: React.FC<ApiDataWidgetConfigProps> = ({
               <select
                 className={selectClass}
                 value={display.layout}
-                onChange={(e) => updateDisplay({ layout: e.target.value as 'grid' | 'list' })}
+                onChange={(e) => updateDisplay({ layout: e.target.value as 'grid' | 'list' | 'card' })}
               >
                 <option value="grid">Grid</option>
                 <option value="list">List</option>
+                <option value="card">Card (Single)</option>
               </select>
             </FormField>
             <FormField label="Columns" isDarkMode={isDarkMode}>
@@ -845,7 +805,40 @@ export const ApiDataWidgetConfig: React.FC<ApiDataWidgetConfigProps> = ({
               </div>
             )}
 
-            {!preview.loading && !preview.error && preview.data.length > 0 && (
+            {/* Dynamic data preview */}
+            {!preview.loading && !preview.error && preview.dynamicData.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle size={16} className="text-green-500" />
+                  <span
+                    className={`text-sm font-medium ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}
+                  >
+                    {preview.dynamicData.length} items loaded
+                  </span>
+                </div>
+                <div className="max-h-96 overflow-auto">
+                  <DynamicItemGrid
+                    items={preview.dynamicData.slice(0, 6)}
+                    fields={dynamicFields}
+                    display={display}
+                  />
+                </div>
+                {preview.dynamicData.length > 6 && (
+                  <p
+                    className={`text-xs text-center mt-2 ${
+                      isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                    }`}
+                  >
+                    Showing 6 of {preview.dynamicData.length} items
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Legacy data preview (fallback) */}
+            {!preview.loading && !preview.error && preview.data.length > 0 && preview.dynamicData.length === 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <CheckCircle size={16} className="text-green-500" />

@@ -1,6 +1,7 @@
 /**
  * ApiDataWidgetClient - React client component for API Data Widget
  * This component handles client-side data fetching and rendering
+ * Supports both legacy fixed fields and dynamic fields
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -29,8 +30,24 @@ interface ItemMapping {
   url?: string;
 }
 
+// Dynamic Field Types
+type FieldType = 'text' | 'image' | 'price' | 'link' | 'badge' | 'html';
+
+interface DynamicField {
+  id: string;
+  label: string;
+  path: string;
+  type: FieldType;
+  className?: string;
+}
+
+interface MappedItem {
+  [key: string]: unknown;
+  _fields?: DynamicField[];
+}
+
 interface DisplayConfig {
-  layout: 'grid' | 'list';
+  layout: 'grid' | 'list' | 'card';
   columns: 2 | 3 | 4;
   showImage: boolean;
   showPrice: boolean;
@@ -45,7 +62,8 @@ interface ApiDataWidgetConfig {
   action: ApiAction;
   dataMapper: {
     rootPath: string;
-    itemMapping: ItemMapping;
+    itemMapping?: ItemMapping; // Legacy - optional
+    fields?: DynamicField[]; // New dynamic fields
   };
   display: DisplayConfig;
   cache: {
@@ -143,6 +161,30 @@ function mapArrayData(data: unknown, rootPath: string, itemMapping: ItemMapping)
   return [];
 }
 
+// Dynamic field mapping
+function mapDynamicData(data: unknown, rootPath: string, fields: DynamicField[]): MappedItem[] {
+  const extractedData = getValueByPath(data, rootPath);
+
+  const mapSingleItem = (item: unknown): MappedItem => {
+    const result: MappedItem = {};
+    for (const field of fields) {
+      result[field.id] = getValueByPath(item, field.path);
+    }
+    result._fields = fields;
+    return result;
+  };
+
+  if (Array.isArray(extractedData)) {
+    return extractedData.map(mapSingleItem);
+  }
+
+  if (extractedData !== null && extractedData !== undefined && typeof extractedData === 'object') {
+    return [mapSingleItem(extractedData)];
+  }
+
+  return [];
+}
+
 function sanitizeText(text: string | null): string {
   if (!text) return '';
   return text
@@ -178,7 +220,7 @@ function generateCacheKey(widgetId: string, endpoint: string, method: string): s
   return `${CACHE_PREFIX}${widgetId}_${Math.abs(hash).toString(36)}`;
 }
 
-function getCachedData(key: string): MappedProduct[] | null {
+function getCachedData(key: string): (MappedProduct[] | MappedItem[]) | null {
   if (typeof window === 'undefined') return null;
   try {
     const cached = localStorage.getItem(key);
@@ -194,7 +236,7 @@ function getCachedData(key: string): MappedProduct[] | null {
   }
 }
 
-function setCachedData(key: string, data: MappedProduct[], duration: number): void {
+function setCachedData(key: string, data: MappedProduct[] | MappedItem[], duration: number): void {
   if (typeof window === 'undefined' || duration <= 0) return;
   try {
     localStorage.setItem(key, JSON.stringify({
@@ -316,11 +358,176 @@ const ProductGrid: React.FC<{ products: MappedProduct[]; display: DisplayConfig 
   );
 };
 
+// Dynamic Field Components
+const DynamicFieldRenderer: React.FC<{
+  field: DynamicField;
+  value: unknown;
+  display: DisplayConfig;
+}> = ({ field, value, display }) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  switch (field.type) {
+    case 'image':
+      return (
+        <div className="aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-t-lg">
+          <img
+            src={String(value)}
+            alt={field.label}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (target.src !== display.placeholderImage) {
+                target.src = display.placeholderImage;
+              }
+            }}
+          />
+        </div>
+      );
+
+    case 'price':
+      return (
+        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+          {formatPrice(typeof value === 'number' ? value : parseFloat(String(value)) || 0, display.currency)}
+        </p>
+      );
+
+    case 'link':
+      return (
+        <a
+          href={String(value)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 hover:underline text-sm truncate block"
+        >
+          {String(value)}
+        </a>
+      );
+
+    case 'badge': {
+      const badges = Array.isArray(value) ? value : [value];
+      return (
+        <div className="flex flex-wrap gap-1">
+          {badges.map((badge, i) => (
+            <span
+              key={i}
+              className="px-2 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full"
+            >
+              {sanitizeText(String(badge))}
+            </span>
+          ))}
+        </div>
+      );
+    }
+
+    case 'html':
+      return (
+        <div
+          className="text-sm text-gray-600 dark:text-gray-400 prose prose-sm dark:prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: String(value) }}
+        />
+      );
+
+    case 'text':
+    default:
+      return (
+        <p className={`text-sm text-gray-700 dark:text-gray-300 ${field.className || ''}`}>
+          {sanitizeText(String(value))}
+        </p>
+      );
+  }
+};
+
+const DynamicItemCard: React.FC<{ item: MappedItem; fields: DynamicField[]; display: DisplayConfig }> = ({
+  item,
+  fields,
+  display,
+}) => {
+  const imageFields = fields.filter((f) => f.type === 'image');
+  const otherFields = fields.filter((f) => f.type !== 'image');
+  const titleField = otherFields.find((f) => f.type === 'text');
+  const remainingFields = titleField ? otherFields.filter((f) => f.id !== titleField.id) : otherFields;
+
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200">
+      {imageFields.length > 0 && display.showImage && (
+        <DynamicFieldRenderer field={imageFields[0]} value={item[imageFields[0].id]} display={display} />
+      )}
+      <div className="p-4 space-y-2">
+        {titleField && (
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
+            {sanitizeText(String(item[titleField.id] || ''))}
+          </h3>
+        )}
+        {remainingFields.map((field) => {
+          const value = item[field.id];
+          if (value === null || value === undefined || value === '') return null;
+          return (
+            <div key={field.id}>
+              {field.label && field.type !== 'price' && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{field.label}</p>
+              )}
+              <DynamicFieldRenderer field={field} value={value} display={display} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const DynamicItemGrid: React.FC<{ items: MappedItem[]; fields: DynamicField[]; display: DisplayConfig }> = ({
+  items,
+  fields,
+  display,
+}) => {
+  const { layout, columns } = display;
+
+  if (items.length === 0) return null;
+
+  if (layout === 'list') {
+    return (
+      <div className="flex flex-col gap-4">
+        {items.map((item, index) => (
+          <DynamicItemCard key={`item-${index}`} item={item} fields={fields} display={display} />
+        ))}
+      </div>
+    );
+  }
+
+  if (layout === 'card') {
+    return (
+      <div className="max-w-md mx-auto">
+        {items.slice(0, 1).map((item, index) => (
+          <DynamicItemCard key={`item-${index}`} item={item} fields={fields} display={display} />
+        ))}
+      </div>
+    );
+  }
+
+  const columnClasses: Record<number, string> = {
+    2: 'grid-cols-1 sm:grid-cols-2',
+    3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+  };
+
+  return (
+    <div className={`grid gap-4 ${columnClasses[columns] || columnClasses[3]}`}>
+      {items.map((item, index) => (
+        <DynamicItemCard key={`item-${index}`} item={item} fields={fields} display={display} />
+      ))}
+    </div>
+  );
+};
+
 // Main Component
 export const ApiDataWidgetClient: React.FC<ApiDataWidgetClientProps> = ({ config }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
-  const [data, setData] = useState<MappedProduct[]>([]);
+  const [legacyData, setLegacyData] = useState<MappedProduct[]>([]);
+  const [dynamicData, setDynamicData] = useState<MappedItem[]>([]);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -328,6 +535,9 @@ export const ApiDataWidgetClient: React.FC<ApiDataWidgetClientProps> = ({ config
   const { action, dataMapper, display, cache, messages } = config;
   const endpoint = action.endpoint;
   const method = action.method;
+  
+  // Check if using dynamic fields
+  const useDynamicFields = dataMapper.fields && dataMapper.fields.length > 0;
 
   const fetchData = useCallback(async () => {
     if (!endpoint) {
@@ -341,7 +551,11 @@ export const ApiDataWidgetClient: React.FC<ApiDataWidgetClientProps> = ({ config
       const cacheKey = generateCacheKey(config.id, endpoint, method);
       const cachedData = getCachedData(cacheKey);
       if (cachedData) {
-        setData(cachedData);
+        if (useDynamicFields) {
+          setDynamicData(cachedData as MappedItem[]);
+        } else {
+          setLegacyData(cachedData as MappedProduct[]);
+        }
         setLoading(false);
         return;
       }
@@ -383,15 +597,26 @@ export const ApiDataWidgetClient: React.FC<ApiDataWidgetClientProps> = ({ config
       }
 
       const responseData = await response.json();
-      const mappedData = mapArrayData(responseData, dataMapper.rootPath, dataMapper.itemMapping);
+      
+      let mappedData: MappedProduct[] | MappedItem[];
+      
+      if (useDynamicFields && dataMapper.fields) {
+        mappedData = mapDynamicData(responseData, dataMapper.rootPath, dataMapper.fields);
+        setDynamicData(mappedData as MappedItem[]);
+      } else if (dataMapper.itemMapping) {
+        mappedData = mapArrayData(responseData, dataMapper.rootPath, dataMapper.itemMapping);
+        setLegacyData(mappedData as MappedProduct[]);
+      } else {
+        mappedData = [];
+        setLegacyData([]);
+      }
 
       // Cache result
       if (cache.enabled && cache.duration > 0) {
         const cacheKey = generateCacheKey(config.id, endpoint, method);
-        setCachedData(cacheKey, mappedData, cache.duration);
+        setCachedData(cacheKey, mappedData as MappedProduct[], cache.duration);
       }
 
-      setData(mappedData);
       setError(null);
     } catch (err) {
       if (!isMountedRef.current) return;
@@ -406,7 +631,7 @@ export const ApiDataWidgetClient: React.FC<ApiDataWidgetClientProps> = ({ config
         setLoading(false);
       }
     }
-  }, [endpoint, method, action, dataMapper, cache, config.id]);
+  }, [endpoint, method, action, dataMapper, cache, config.id, useDynamicFields]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -428,11 +653,20 @@ export const ApiDataWidgetClient: React.FC<ApiDataWidgetClientProps> = ({ config
     return <ErrorDisplay message={messages.error} onRetry={fetchData} />;
   }
 
-  if (data.length === 0) {
+  // Render dynamic fields
+  if (useDynamicFields && dataMapper.fields) {
+    if (dynamicData.length === 0) {
+      return <EmptyState message={messages.empty} />;
+    }
+    return <DynamicItemGrid items={dynamicData} fields={dataMapper.fields} display={display} />;
+  }
+
+  // Render legacy fields
+  if (legacyData.length === 0) {
     return <EmptyState message={messages.empty} />;
   }
 
-  return <ProductGrid products={data} display={display} />;
+  return <ProductGrid products={legacyData} display={display} />;
 };
 
 export default ApiDataWidgetClient;

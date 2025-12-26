@@ -3,9 +3,10 @@
  * 
  * Supports JSONPath-like dot notation for accessing nested properties
  * and mapping arrays of data to MappedProduct format.
+ * Now also supports dynamic field mapping.
  */
 
-import type { ItemMapping, MappedProduct } from '../../core/types/apiDataWidget.types';
+import type { ItemMapping, MappedProduct, DynamicField, MappedItem } from '../../core/types/apiDataWidget.types';
 
 /**
  * Extracts a value from an object using dot notation path.
@@ -57,7 +58,7 @@ export function getValueByPath(obj: unknown, path: string): unknown {
 }
 
 /**
- * Maps a single item from API response to MappedProduct format.
+ * Maps a single item from API response to MappedProduct format (legacy).
  * 
  * @param item - The source item object
  * @param itemMapping - Field mapping configuration
@@ -80,6 +81,27 @@ function mapSingleItem(item: unknown, itemMapping: ItemMapping): MappedProduct {
 }
 
 /**
+ * Maps a single item using dynamic field definitions.
+ * 
+ * @param item - The source item object
+ * @param fields - Array of dynamic field definitions
+ * @returns MappedItem with extracted values based on field definitions
+ */
+function mapSingleItemDynamic(item: unknown, fields: DynamicField[]): MappedItem {
+  const result: MappedItem = {};
+  
+  for (const field of fields) {
+    const value = getValueByPath(item, field.path);
+    result[field.id] = value;
+  }
+  
+  // Store field definitions for rendering
+  result._fields = fields;
+  
+  return result;
+}
+
+/**
  * Maps array data from API response to MappedProduct array.
  * Also supports single object responses by wrapping them in an array.
  * 
@@ -87,24 +109,6 @@ function mapSingleItem(item: unknown, itemMapping: ItemMapping): MappedProduct {
  * @param rootPath - Path to the array/object in the response (e.g., "data.products")
  * @param itemMapping - Field mapping configuration for each item
  * @returns Array of MappedProduct objects
- * 
- * @example
- * // Array response
- * const response = {
- *   data: {
- *     products: [
- *       { title: 'Product 1', price: 99.99, thumbnail: 'url1', desc: 'Description 1' }
- *     ]
- *   }
- * };
- * const mapping = { name: 'title', price: 'price', image: 'thumbnail', description: 'desc' };
- * mapArrayData(response, 'data.products', mapping);
- * // Returns: [{ name: 'Product 1', price: 99.99, image: 'url1', description: 'Description 1', url: null }]
- * 
- * // Single object response
- * const singleUser = { name: 'John', email: 'john@example.com' };
- * mapArrayData(singleUser, '', { name: 'name', description: 'email', ... });
- * // Returns: [{ name: 'John', description: 'john@example.com', ... }]
  */
 export function mapArrayData(
   data: unknown,
@@ -122,6 +126,37 @@ export function mapArrayData(
   // If it's a single object (not null/undefined), wrap it in an array
   if (extractedData !== null && extractedData !== undefined && typeof extractedData === 'object') {
     return [mapSingleItem(extractedData, itemMapping)];
+  }
+
+  // Otherwise return empty array
+  return [];
+}
+
+/**
+ * Maps data using dynamic field definitions.
+ * Supports both array and single object responses.
+ * 
+ * @param data - The full API response object
+ * @param rootPath - Path to the array/object in the response
+ * @param fields - Array of dynamic field definitions
+ * @returns Array of MappedItem objects
+ */
+export function mapDynamicData(
+  data: unknown,
+  rootPath: string,
+  fields: DynamicField[]
+): MappedItem[] {
+  // Extract the data from the response using rootPath
+  const extractedData = getValueByPath(data, rootPath);
+
+  // If it's an array, map each item
+  if (Array.isArray(extractedData)) {
+    return extractedData.map((item) => mapSingleItemDynamic(item, fields));
+  }
+
+  // If it's a single object (not null/undefined), wrap it in an array
+  if (extractedData !== null && extractedData !== undefined && typeof extractedData === 'object') {
+    return [mapSingleItemDynamic(extractedData, fields)];
   }
 
   // Otherwise return empty array
