@@ -49,55 +49,50 @@ Tính năng API Data Widget cho phép người dùng tạo widget có khả năn
 
 1. THE Product_List_Template SHALL display items in a responsive grid (1 column mobile, 2-3 columns desktop)
 2. THE Product_List_Template SHALL display product image, name, price, and description for each item
-3. WHEN price is available, THE Product_List_Template SHALL format price with currency symbol
+3. THE Product_List_Template SHALL format price with configurable currency symbol
 4. WHEN image is missing, THE Product_List_Template SHALL display a placeholder image
-5. THE Product_List_Template SHALL support click action to navigate to product detail URL
 
 ### Requirement 4: Loading and Error States
 
-**User Story:** As a website visitor, I want to see appropriate feedback while data is loading or if errors occur, so that I understand the current state.
+**User Story:** As a website visitor, I want to see appropriate feedback while data is loading or if errors occur.
 
 #### Acceptance Criteria
 
-1. WHILE API request is in progress, THE API_Data_Widget SHALL display a loading indicator
-2. IF API request fails, THEN THE API_Data_Widget SHALL display an error message
+1. WHILE data is loading, THE API_Data_Widget SHALL display a loading indicator
+2. IF API call fails, THEN THE API_Data_Widget SHALL display an error message
 3. IF API returns empty data, THEN THE API_Data_Widget SHALL display an empty state message
-4. THE API_Data_Widget SHALL support configuring custom loading, error, and empty state messages
-5. WHEN error occurs, THE API_Data_Widget SHALL log error details to console for debugging
+4. THE API_Data_Widget SHALL support configurable messages for loading, error, and empty states
 
-### Requirement 5: Caching and Refresh
+### Requirement 5: Caching
 
-**User Story:** As a content editor, I want to control data caching behavior, so that I can balance between performance and data freshness.
+**User Story:** As a content editor, I want to cache API responses, so that the widget loads faster on subsequent visits.
 
 #### Acceptance Criteria
 
-1. THE API_Data_Widget SHALL support configuring cache duration in seconds
-2. WHEN cache is valid, THE API_Data_Widget SHALL use cached data instead of making new request
-3. THE API_Data_Widget SHALL support manual refresh action to bypass cache
-4. WHEN cache duration is 0, THE API_Data_Widget SHALL always fetch fresh data
-5. THE API_Data_Widget SHALL store cached data in browser localStorage with widget ID as key
+1. THE API_Data_Widget SHALL support optional caching of API responses
+2. WHEN caching is enabled, THE API_Data_Widget SHALL store responses in localStorage
+3. THE API_Data_Widget SHALL support configurable cache duration (TTL)
+4. WHEN cache expires, THE API_Data_Widget SHALL fetch fresh data from API
 
 ### Requirement 6: Builder Integration
 
-**User Story:** As a content editor, I want to configure API widgets through the visual builder, so that I can easily set up data-driven content.
+**User Story:** As a content editor, I want to configure the API widget through the builder interface.
 
 #### Acceptance Criteria
 
-1. THE Builder SHALL include API_Data_Widget in the widget palette
-2. THE Builder SHALL provide a form UI to configure API endpoint, method, headers
-3. THE Builder SHALL provide a data mapping UI with field selectors
-4. THE Builder SHALL provide preview functionality to test API calls
-5. WHEN saving widget configuration, THE Builder SHALL validate required fields (endpoint URL)
-6. THE Builder SHALL serialize API_Data_Widget configuration to JSON for storage
+1. THE API_Data_Widget SHALL be available in the widget picker
+2. THE Builder SHALL provide a configuration UI for API endpoint, method, headers
+3. THE Builder SHALL provide a configuration UI for data mapping fields
+4. THE Builder SHALL provide a preview of the widget with sample data
+5. THE Builder SHALL validate required fields before saving
+6. THE API_Data_Widget configuration SHALL serialize to JSON for storage
 
 ### Requirement 7: Security
 
-**User Story:** As a system administrator, I want API calls to be secure, so that sensitive data is protected.
+**User Story:** As a system administrator, I want the widget to follow security best practices.
 
 #### Acceptance Criteria
 
-1. THE API_Data_Widget SHALL only allow HTTPS endpoints in production mode
-2. THE API_Data_Widget SHALL sanitize API response data before rendering to prevent XSS
-3. THE API_Data_Widget SHALL not expose authentication tokens in client-side rendered HTML
-4. WHEN storing API keys, THE Builder SHALL mask the value in the UI after saving
-5. THE API_Data_Widget SHALL support CORS proxy configuration for cross-origin requests
+1. WHEN in production mode, THE API_Data_Widget SHALL only allow HTTPS endpoints
+2. THE API_Data_Widget SHALL sanitize all rendered text to prevent XSS attacks
+3. THE API_Data_Widget SHALL NOT expose authentication tokens in rendered HTML

@@ -1,4 +1,4 @@
-import type { WidgetType } from '~/components/admin/builder/registry';
+import type { WidgetType } from '~/components/admin/builder/config/registry';
 
 interface BuilderBlock {
   id: string;
@@ -67,6 +67,7 @@ const IMPORTS: Record<string, string> = {
   EffectsWidget: '~/components/widgets/EffectsWidget.astro',
   ImageSlider: '~/components/widgets/ImageSlider.astro',
   ProductFilter: '~/components/widgets/ProductFilter.astro',
+  ApiDataWidget: '~/components/widgets/ApiDataWidget.astro',
 };
 
 export type ElementMetadata = {

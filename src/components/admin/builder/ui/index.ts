@@ -7,3 +7,4 @@ export * from './pickers';
 export * from './editors';
 export * from './preview';
 export * from './layout';
+export * from './widgets/apiData';

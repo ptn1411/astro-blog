@@ -1,0 +1,156 @@
+---
+/**
+ * ApiDataWidget - Astro component for fetching and displaying API data
+ * Uses React component with client:only directive for client-side data fetching
+ */
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import Headline from '~/components/ui/Headline.astro';
+import type { Widget } from '~/types';
+
+// Import React component
+import { ApiDataWidgetClient } from './ApiDataWidgetClient';
+
+export interface Props extends Widget {
+  title?: string;
+  subtitle?: string;
+  tagline?: string;
+  // API Configuration
+  action?: {
+    endpoint: string;
+    method?: 'GET' | 'POST';
+    headers?: Record<string, string>;
+    body?: Record<string, unknown>;
+    auth?: {
+      type: 'none' | 'bearer' | 'apiKey';
+      token?: string;
+      apiKeyHeader?: string;
+      apiKeyValue?: string;
+    };
+  };
+  // Data Mapping
+  dataMapper?: {
+    rootPath: string;
+    itemMapping: {
+      name: string;
+      price: string;
+      image: string;
+      description: string;
+      url?: string;
+    };
+  };
+  // Display Options
+  display?: {
+    layout?: 'grid' | 'list';
+    columns?: 2 | 3 | 4;
+    showImage?: boolean;
+    showPrice?: boolean;
+    showDescription?: boolean;
+    currency?: string;
+    placeholderImage?: string;
+  };
+  // Cache Options
+  cache?: {
+    enabled?: boolean;
+    duration?: number;
+  };
+  // Custom Messages
+  messages?: {
+    loading?: string;
+    error?: string;
+    empty?: string;
+  };
+}
+
+const {
+  title = '',
+  subtitle = '',
+  tagline = '',
+  action = {
+    endpoint: '',
+    method: 'GET',
+    headers: {},
+    auth: { type: 'none' },
+  },
+  dataMapper = {
+    rootPath: 'data',
+    itemMapping: {
+      name: 'title',
+      price: 'price',
+      image: 'image',
+      description: 'description',
+      url: 'url',
+    },
+  },
+  display = {
+    layout: 'grid',
+    columns: 3,
+    showImage: true,
+    showPrice: true,
+    showDescription: true,
+    currency: 'USD',
+    placeholderImage: 'https://via.placeholder.com/300x200?text=No+Image',
+  },
+  cache = {
+    enabled: true,
+    duration: 300,
+  },
+  messages = {
+    loading: 'Loading...',
+    error: 'Failed to load data. Please try again.',
+    empty: 'No items found.',
+  },
+  id,
+  isDark = false,
+  classes = {},
+  bg = await Astro.slots.render('bg'),
+  ...rest
+} = Astro.props;
+
+// Build config for React component
+const config = {
+  id: id || `api-widget-${Date.now()}`,
+  type: 'ApiDataWidget' as const,
+  action: {
+    endpoint: action.endpoint,
+    method: action.method || 'GET',
+    headers: action.headers || {},
+    body: action.body,
+    auth: action.auth || { type: 'none' as const },
+  },
+  dataMapper: {
+    rootPath: dataMapper.rootPath,
+    itemMapping: dataMapper.itemMapping,
+  },
+  display: {
+    layout: display.layout || 'grid',
+    columns: display.columns || 3,
+    showImage: display.showImage ?? true,
+    showPrice: display.showPrice ?? true,
+    showDescription: display.showDescription ?? true,
+    currency: display.currency || 'USD',
+    placeholderImage: display.placeholderImage || 'https://via.placeholder.com/300x200?text=No+Image',
+  },
+  cache: {
+    enabled: cache.enabled ?? true,
+    duration: cache.duration || 300,
+  },
+  messages: {
+    loading: messages.loading || 'Loading...',
+    error: messages.error || 'Failed to load data. Please try again.',
+    empty: messages.empty || 'No items found.',
+  },
+};
+---
+
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={`max-w-7xl mx-auto ${classes?.container ?? ''}`}
+  bg={bg}
+  {...rest}>
+  {(title || subtitle || tagline) && (
+    <Headline title={title} subtitle={subtitle} tagline={tagline} />
+  )}
+  
+  <ApiDataWidgetClient config={config} client:only="react" />
+</WidgetWrapper>

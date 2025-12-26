@@ -4,6 +4,7 @@ import { playAnimeAnimation, playGSAPAnimation } from '../../../story/animations
 import { WidgetWrapper } from '../canvas/WidgetWrapper';
 import { WIDGET_REGISTRY, type WidgetType } from '../../config/registry';
 import { DynamicWidgetRenderer, getDefaultTemplate } from './DynamicWidgetRenderer';
+import { ApiDataWidget } from '../widgets/apiData';
 
 function tablerNameToComponent(name: string) {
   return (
@@ -136,6 +137,8 @@ const InnerPreviewRenderer: React.FC<{
       return <EventsRenderer {...props} />;
     case 'EffectsWidget':
       return <EffectsWidgetRenderer {...props} />;
+    case 'ApiDataWidget':
+      return <ApiDataWidgetRenderer {...props} />;
     // Custom Widgets - Use Dynamic Renderer
     default:
       // For custom widgets with template, use DynamicWidgetRenderer
@@ -1403,6 +1406,74 @@ const EventsRenderer = (props: any) => {
             </div>
           ))}
       </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ApiDataWidgetRenderer = (props: any) => {
+  const { action, dataMapper, display, cache, messages } = props;
+  
+  // Build config object for ApiDataWidget
+  const config = {
+    id: props.id || 'preview-api-widget',
+    type: 'ApiDataWidget' as const,
+    action: action || {
+      endpoint: '',
+      method: 'GET' as const,
+      headers: {},
+      auth: { type: 'none' as const },
+    },
+    dataMapper: dataMapper || {
+      rootPath: 'data',
+      itemMapping: {
+        name: 'title',
+        price: 'price',
+        image: 'image',
+        description: 'description',
+        url: 'url',
+      },
+    },
+    display: display || {
+      layout: 'grid' as const,
+      columns: 3 as const,
+      showImage: true,
+      showPrice: true,
+      showDescription: true,
+      currency: 'USD',
+      placeholderImage: 'https://via.placeholder.com/300x200?text=No+Image',
+    },
+    cache: cache || {
+      enabled: true,
+      duration: 300,
+    },
+    messages: messages || {
+      loading: 'Loading...',
+      error: 'Failed to load data. Please try again.',
+      empty: 'No items found.',
+    },
+  };
+
+  // If no endpoint configured, show placeholder
+  if (!config.action.endpoint) {
+    return (
+      <section className="relative not-prose px-4 py-16 md:py-20 lg:py-24 max-w-7xl mx-auto">
+        <div className="text-center p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+          <div className="text-gray-400 dark:text-gray-500 mb-2">
+            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400">API Data Widget</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">Configure an API endpoint to display data</p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="relative not-prose px-4 py-8 max-w-7xl mx-auto">
+      <ApiDataWidget config={config} />
     </section>
   );
 };
