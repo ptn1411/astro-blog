@@ -1,13 +1,139 @@
 /**
- * CacheManager - Utility for caching API responses in localStorage
+ * CacheManager - Utility for caching API responses
  * 
  * Provides TTL-based caching with automatic expiration checking.
+ * Uses IndexedDB as primary storage (larger capacity), falls back to localStorage.
  * Cache keys are generated from widget configuration to ensure uniqueness.
  */
 
 import type { MappedProduct, MappedItem, DataMapperConfig, CacheEntry } from '../../core/types/apiDataWidget.types';
 
 const CACHE_PREFIX = 'api_widget_cache_';
+const DB_NAME = 'ApiWidgetCache';
+const DB_VERSION = 1;
+const STORE_NAME = 'cache';
+
+// In-memory cache for fastest access
+const memoryCache = new Map<string, { data: MappedProduct[] | MappedItem[]; expires: number }>();
+
+/**
+ * Opens IndexedDB connection
+ */
+function openDB(): Promise<IDBDatabase | null> {
+  if (typeof window === 'undefined' || !window.indexedDB) {
+    return Promise.resolve(null);
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      
+      request.onerror = () => resolve(null);
+      
+      request.onsuccess = () => resolve(request.result);
+      
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+        }
+      };
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Gets data from IndexedDB
+ */
+async function getFromIndexedDB(key: string): Promise<CacheEntry | null> {
+  const db = await openDB();
+  if (!db) return null;
+
+  return new Promise((resolve) => {
+    try {
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(key);
+      
+      request.onsuccess = () => {
+        const result = request.result;
+        resolve(result ? result.entry : null);
+      };
+      request.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Saves data to IndexedDB
+ */
+async function saveToIndexedDB(key: string, entry: CacheEntry): Promise<boolean> {
+  const db = await openDB();
+  if (!db) return false;
+
+  return new Promise((resolve) => {
+    try {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.put({ key, entry });
+      
+      request.onsuccess = () => resolve(true);
+      request.onerror = () => resolve(false);
+    } catch {
+      resolve(false);
+    }
+  });
+}
+
+/**
+ * Deletes data from IndexedDB
+ */
+async function deleteFromIndexedDB(key: string): Promise<boolean> {
+  const db = await openDB();
+  if (!db) return false;
+
+  return new Promise((resolve) => {
+    try {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.delete(key);
+      
+      request.onsuccess = () => resolve(true);
+      request.onerror = () => resolve(false);
+    } catch {
+      resolve(false);
+    }
+  });
+}
+
+/**
+ * Clears all data from IndexedDB
+ */
+async function clearIndexedDB(): Promise<number> {
+  const db = await openDB();
+  if (!db) return 0;
+
+  return new Promise((resolve) => {
+    try {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const countRequest = store.count();
+      
+      countRequest.onsuccess = () => {
+        const count = countRequest.result;
+        store.clear();
+        resolve(count);
+      };
+      countRequest.onerror = () => resolve(0);
+    } catch {
+      resolve(0);
+    }
+  });
+}
 
 /**
  * Generates a unique cache key based on widget configuration.
@@ -55,167 +181,184 @@ export function generateCacheKey(
 
 /**
  * Retrieves cached data if it exists and hasn't expired.
+ * Checks memory cache first, then IndexedDB, then localStorage.
  * 
  * @param key - The cache key to look up
  * @returns The cached MappedProduct array, or null if not found or expired
- * 
- * @example
- * const data = getCachedData('api_widget_cache_widget-1_abc123');
- * if (data) {
- *   // Use cached data
- * } else {
- *   // Fetch fresh data
- * }
  */
-export function getCachedData(key: string): (MappedProduct[] | MappedItem[]) | null {
-  // Check if we're in a browser environment
-  if (typeof window === 'undefined' || !window.localStorage) {
-    return null;
+export async function getCachedData(key: string): Promise<(MappedProduct[] | MappedItem[]) | null> {
+  const now = Date.now();
+
+  // 1. Check memory cache first (fastest)
+  const memCached = memoryCache.get(key);
+  if (memCached && now < memCached.expires) {
+    return memCached.data;
+  }
+  if (memCached) {
+    memoryCache.delete(key);
   }
 
-  try {
-    const cached = localStorage.getItem(key);
-    
-    if (!cached) {
-      return null;
-    }
+  // 2. Check IndexedDB (larger storage)
+  const idbEntry = await getFromIndexedDB(key);
+  if (idbEntry && now < idbEntry.timestamp) {
+    // Populate memory cache
+    memoryCache.set(key, { data: idbEntry.data, expires: idbEntry.timestamp });
+    return idbEntry.data;
+  }
+  if (idbEntry) {
+    await deleteFromIndexedDB(key);
+  }
 
-    const entry: CacheEntry = JSON.parse(cached);
-    
-    // Validate cache entry structure
-    if (!entry || typeof entry.timestamp !== 'number' || !Array.isArray(entry.data)) {
-      // Invalid cache entry, remove it
-      localStorage.removeItem(key);
-      return null;
-    }
-
-    // Check if cache has expired (timestamp is expiration time)
-    const now = Date.now();
-    if (now > entry.timestamp) {
-      // Cache expired, remove it
-      localStorage.removeItem(key);
-      return null;
-    }
-
-    return entry.data;
-  } catch {
-    // JSON parse error or other issues, remove corrupted entry
+  // 3. Fallback to localStorage (legacy/small data)
+  if (typeof window !== 'undefined' && window.localStorage) {
     try {
-      localStorage.removeItem(key);
+      const cached = localStorage.getItem(key);
+      if (cached) {
+        const entry: CacheEntry = JSON.parse(cached);
+        if (entry && typeof entry.timestamp === 'number' && Array.isArray(entry.data)) {
+          if (now < entry.timestamp) {
+            // Migrate to IndexedDB and memory
+            memoryCache.set(key, { data: entry.data, expires: entry.timestamp });
+            await saveToIndexedDB(key, entry);
+            localStorage.removeItem(key); // Clean up localStorage
+            return entry.data;
+          }
+        }
+        localStorage.removeItem(key);
+      }
     } catch {
-      // Ignore removal errors
+      try { localStorage.removeItem(key); } catch { /* ignore */ }
     }
-    return null;
   }
+
+  return null;
+}
+
+/**
+ * Synchronous version for backward compatibility - checks memory only
+ */
+export function getCachedDataSync(key: string): (MappedProduct[] | MappedItem[]) | null {
+  const now = Date.now();
+  const memCached = memoryCache.get(key);
+  if (memCached && now < memCached.expires) {
+    return memCached.data;
+  }
+  return null;
 }
 
 /**
  * Stores data in the cache with a specified duration.
+ * Saves to memory cache and IndexedDB (async).
  * 
  * @param key - The cache key to store under
  * @param data - The MappedProduct array to cache
  * @param duration - Cache duration in seconds
  * @param widgetId - Widget identifier for the cache entry
  * @returns true if caching succeeded, false otherwise
- * 
- * @example
- * setCachedData('api_widget_cache_widget-1_abc123', products, 300, 'widget-1');
- * // Caches products for 5 minutes
  */
-export function setCachedData(
+export async function setCachedData(
   key: string,
   data: MappedProduct[] | MappedItem[],
   duration: number,
   widgetId: string = ''
-): boolean {
-  // Check if we're in a browser environment
-  if (typeof window === 'undefined' || !window.localStorage) {
-    return false;
-  }
-
+): Promise<boolean> {
   // Don't cache if duration is 0 or negative
   if (duration <= 0) {
     return false;
   }
 
-  try {
-    const entry: CacheEntry = {
-      data,
-      timestamp: Date.now() + (duration * 1000), // Store expiration time
-      widgetId,
-    };
+  const expires = Date.now() + (duration * 1000);
+  
+  // 1. Always save to memory cache (instant access)
+  memoryCache.set(key, { data, expires });
 
-    localStorage.setItem(key, JSON.stringify(entry));
-    return true;
-  } catch {
-    // localStorage might be full or disabled
-    return false;
-  }
+  // 2. Save to IndexedDB (persistent, larger storage)
+  const entry: CacheEntry = {
+    data,
+    timestamp: expires,
+    widgetId,
+  };
+  
+  const saved = await saveToIndexedDB(key, entry);
+  return saved;
 }
 
 /**
- * Removes a specific cache entry.
+ * Synchronous version - saves to memory only
+ */
+export function setCachedDataSync(
+  key: string,
+  data: MappedProduct[] | MappedItem[],
+  duration: number
+): boolean {
+  if (duration <= 0) return false;
+  const expires = Date.now() + (duration * 1000);
+  memoryCache.set(key, { data, expires });
+  return true;
+}
+
+/**
+ * Removes a specific cache entry from all storage layers.
  * 
  * @param key - The cache key to remove
- * @returns true if removal succeeded, false otherwise
- * 
- * @example
- * clearCache('api_widget_cache_widget-1_abc123');
+ * @returns true if removal succeeded
  */
-export function clearCache(key: string): boolean {
-  // Check if we're in a browser environment
-  if (typeof window === 'undefined' || !window.localStorage) {
-    return false;
+export async function clearCache(key: string): Promise<boolean> {
+  // Clear from memory
+  memoryCache.delete(key);
+  
+  // Clear from IndexedDB
+  await deleteFromIndexedDB(key);
+  
+  // Clear from localStorage (legacy)
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.removeItem(key);
+    } catch { /* ignore */ }
   }
-
-  try {
-    localStorage.removeItem(key);
-    return true;
-  } catch {
-    return false;
-  }
+  
+  return true;
 }
 
 /**
- * Clears all API widget cache entries from localStorage.
+ * Clears all API widget cache entries from all storage layers.
  * 
  * @returns The number of entries cleared
  */
-export function clearAllCache(): number {
-  // Check if we're in a browser environment
-  if (typeof window === 'undefined' || !window.localStorage) {
-    return 0;
-  }
-
-  try {
-    const keysToRemove: string[] = [];
-    
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(CACHE_PREFIX)) {
-        keysToRemove.push(key);
+export async function clearAllCache(): Promise<number> {
+  // Clear memory cache
+  const memCount = memoryCache.size;
+  memoryCache.clear();
+  
+  // Clear IndexedDB
+  const idbCount = await clearIndexedDB();
+  
+  // Clear localStorage (legacy)
+  let lsCount = 0;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(CACHE_PREFIX)) {
+          keysToRemove.push(key);
+        }
       }
-    }
-
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    return keysToRemove.length;
-  } catch {
-    return 0;
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      lsCount = keysToRemove.length;
+    } catch { /* ignore */ }
   }
+
+  return Math.max(memCount, idbCount, lsCount);
 }
 
 
 /**
  * CacheManager class providing a stateful interface for cache operations.
- * 
- * Wraps the functional utilities with widget-specific configuration.
+ * Uses IndexedDB for persistent storage with memory cache for fast access.
  */
 export class CacheManager {
   private widgetId: string;
-  private endpoint: string;
-  private method: string;
-  private body?: Record<string, unknown>;
-  private mapperConfig?: DataMapperConfig;
   private duration: number;
   private cacheKey: string;
 
@@ -238,11 +381,7 @@ export class CacheManager {
     mapperConfig?: DataMapperConfig
   ) {
     this.widgetId = widgetId;
-    this.endpoint = endpoint;
-    this.method = method;
     this.duration = duration;
-    this.body = body;
-    this.mapperConfig = mapperConfig;
     this.cacheKey = generateCacheKey(widgetId, endpoint, method, body, mapperConfig);
   }
 
@@ -256,8 +395,15 @@ export class CacheManager {
   /**
    * Retrieves cached data if available and not expired.
    */
-  get(): (MappedProduct[] | MappedItem[]) | null {
+  async get(): Promise<(MappedProduct[] | MappedItem[]) | null> {
     return getCachedData(this.cacheKey);
+  }
+
+  /**
+   * Synchronous get - memory cache only
+   */
+  getSync(): (MappedProduct[] | MappedItem[]) | null {
+    return getCachedDataSync(this.cacheKey);
   }
 
   /**
@@ -266,14 +412,21 @@ export class CacheManager {
    * @param data - The MappedProduct array to cache
    * @returns true if caching succeeded
    */
-  set(data: MappedProduct[] | MappedItem[]): boolean {
+  async set(data: MappedProduct[] | MappedItem[]): Promise<boolean> {
     return setCachedData(this.cacheKey, data, this.duration, this.widgetId);
+  }
+
+  /**
+   * Synchronous set - memory cache only
+   */
+  setSync(data: MappedProduct[] | MappedItem[]): boolean {
+    return setCachedDataSync(this.cacheKey, data, this.duration);
   }
 
   /**
    * Clears this widget's cache entry.
    */
-  clear(): boolean {
+  async clear(): Promise<boolean> {
     return clearCache(this.cacheKey);
   }
 
@@ -292,10 +445,17 @@ export class CacheManager {
   }
 
   /**
-   * Checks if cached data exists and is valid.
+   * Checks if cached data exists and is valid (memory only for sync check).
    */
   has(): boolean {
-    return this.get() !== null;
+    return this.getSync() !== null;
+  }
+
+  /**
+   * Async check if cached data exists.
+   */
+  async hasAsync(): Promise<boolean> {
+    return (await this.get()) !== null;
   }
 
   /**
@@ -305,13 +465,13 @@ export class CacheManager {
    * @returns The cached or freshly fetched data
    */
   async getOrFetch(fetchFn: () => Promise<MappedProduct[] | MappedItem[]>): Promise<MappedProduct[] | MappedItem[]> {
-    const cached = this.get();
+    const cached = await this.get();
     if (cached !== null) {
       return cached;
     }
 
     const data = await fetchFn();
-    this.set(data);
+    await this.set(data);
     return data;
   }
 }

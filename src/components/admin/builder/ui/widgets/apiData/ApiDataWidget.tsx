@@ -27,8 +27,8 @@ import { fetchData, type FetchResult } from '../../../services/apiData/ApiFetche
 import { mapArrayData, mapDynamicData } from '../../../services/apiData/DataMapper';
 import {
   generateCacheKey,
-  getCachedData,
-  setCachedData,
+  getCachedDataSync,
+  setCachedDataSync,
 } from '../../../services/apiData/CacheManager';
 import { ProductGrid } from './ProductGrid';
 import { DynamicItemGrid } from './DynamicItemGrid';
@@ -204,7 +204,7 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
         bodyStr ? JSON.parse(bodyStr) : undefined,
         { rootPath, itemMapping: itemMappingStr ? JSON.parse(itemMappingStr) : undefined }
       );
-      const cachedData = getCachedData(cacheKey);
+      const cachedData = getCachedDataSync(cacheKey);
       if (cachedData !== null) {
         if (useDynamicFields) {
           setState({ loading: false, error: null, legacyData: [], dynamicData: cachedData as MappedItem[] });
@@ -265,7 +265,7 @@ export const ApiDataWidget: React.FC<ApiDataWidgetProps> = ({
           bodyStr ? JSON.parse(bodyStr) : undefined,
           { rootPath, itemMapping: itemMappingStr ? JSON.parse(itemMappingStr) : undefined }
         );
-        setCachedData(cacheKey, mappedData as MappedProduct[], cacheDuration, configId);
+        setCachedDataSync(cacheKey, mappedData as MappedProduct[], cacheDuration);
       }
     } catch (err) {
       // Check if component is still mounted

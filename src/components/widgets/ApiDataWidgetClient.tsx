@@ -206,8 +206,14 @@ function formatPrice(price: number, currency: string): string {
   }
 }
 
-// Cache functions
+// Cache functions - Using IndexedDB with memory cache fallback
 const CACHE_PREFIX = 'api_widget_cache_';
+const DB_NAME = 'ApiWidgetCache';
+const DB_VERSION = 1;
+const STORE_NAME = 'cache';
+
+// In-memory cache for fastest access
+const memoryCache = new Map<string, { data: MappedProduct[] | MappedItem[]; expires: number }>();
 
 function generateCacheKey(widgetId: string, endpoint: string, method: string): string {
   const combined = `${widgetId}|${endpoint}|${method}`;
@@ -220,32 +226,89 @@ function generateCacheKey(widgetId: string, endpoint: string, method: string): s
   return `${CACHE_PREFIX}${widgetId}_${Math.abs(hash).toString(36)}`;
 }
 
-function getCachedData(key: string): (MappedProduct[] | MappedItem[]) | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const cached = localStorage.getItem(key);
-    if (!cached) return null;
-    const entry = JSON.parse(cached);
-    if (Date.now() > entry.timestamp) {
-      localStorage.removeItem(key);
-      return null;
+// Open IndexedDB
+function openDB(): Promise<IDBDatabase | null> {
+  if (typeof window === 'undefined' || !window.indexedDB) {
+    return Promise.resolve(null);
+  }
+  return new Promise((resolve) => {
+    try {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onerror = () => resolve(null);
+      request.onsuccess = () => resolve(request.result);
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+        }
+      };
+    } catch {
+      resolve(null);
     }
-    return entry.data;
+  });
+}
+
+// Get from IndexedDB
+async function getFromIndexedDB(key: string): Promise<{ data: MappedProduct[] | MappedItem[]; timestamp: number } | null> {
+  const db = await openDB();
+  if (!db) return null;
+  return new Promise((resolve) => {
+    try {
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(key);
+      request.onsuccess = () => resolve(request.result?.entry || null);
+      request.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+// Save to IndexedDB
+async function saveToIndexedDB(key: string, data: MappedProduct[] | MappedItem[], timestamp: number): Promise<void> {
+  const db = await openDB();
+  if (!db) return;
+  try {
+    const transaction = db.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.put({ key, entry: { data, timestamp } });
   } catch {
-    return null;
+    // Ignore errors
   }
 }
 
-function setCachedData(key: string, data: MappedProduct[] | MappedItem[], duration: number): void {
-  if (typeof window === 'undefined' || duration <= 0) return;
-  try {
-    localStorage.setItem(key, JSON.stringify({
-      data,
-      timestamp: Date.now() + (duration * 1000),
-    }));
-  } catch {
-    // Ignore storage errors
+// Get cached data - checks memory first, then IndexedDB
+async function getCachedDataAsync(key: string): Promise<(MappedProduct[] | MappedItem[]) | null> {
+  const now = Date.now();
+
+  // 1. Check memory cache (fastest)
+  const memCached = memoryCache.get(key);
+  if (memCached && now < memCached.expires) {
+    return memCached.data;
   }
+  if (memCached) memoryCache.delete(key);
+
+  // 2. Check IndexedDB
+  const idbEntry = await getFromIndexedDB(key);
+  if (idbEntry && now < idbEntry.timestamp) {
+    memoryCache.set(key, { data: idbEntry.data, expires: idbEntry.timestamp });
+    return idbEntry.data;
+  }
+
+  return null;
+}
+
+// Set cached data - saves to memory and IndexedDB
+async function setCachedDataAsync(key: string, data: MappedProduct[] | MappedItem[], duration: number): Promise<void> {
+  if (duration <= 0) return;
+  const expires = Date.now() + (duration * 1000);
+  
+  // Save to memory
+  memoryCache.set(key, { data, expires });
+  
+  // Save to IndexedDB
+  await saveToIndexedDB(key, data, expires);
 }
 
 // Components
@@ -546,10 +609,10 @@ export const ApiDataWidgetClient: React.FC<ApiDataWidgetClientProps> = ({ config
       return;
     }
 
-    // Check cache
+    // Check cache (async - IndexedDB)
     if (cache.enabled) {
       const cacheKey = generateCacheKey(config.id, endpoint, method);
-      const cachedData = getCachedData(cacheKey);
+      const cachedData = await getCachedDataAsync(cacheKey);
       if (cachedData) {
         if (useDynamicFields) {
           setDynamicData(cachedData as MappedItem[]);
@@ -611,10 +674,10 @@ export const ApiDataWidgetClient: React.FC<ApiDataWidgetClientProps> = ({ config
         setLegacyData([]);
       }
 
-      // Cache result
+      // Cache result (async - IndexedDB)
       if (cache.enabled && cache.duration > 0) {
         const cacheKey = generateCacheKey(config.id, endpoint, method);
-        setCachedData(cacheKey, mappedData as MappedProduct[], cache.duration);
+        setCachedDataAsync(cacheKey, mappedData, cache.duration);
       }
 
       setError(null);

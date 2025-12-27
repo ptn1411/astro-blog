@@ -3,6 +3,7 @@ declare module '@pagefind/default-ui' {
   export interface PagefindUIOptions {
     element?: string | HTMLElement;
     bundlePath?: string;
+    baseUrl?: string;
     pageSize?: number;
     resetStyles?: boolean;
     showImages?: boolean;
