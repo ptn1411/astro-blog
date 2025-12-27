@@ -1,26 +1,13 @@
 import { ChevronDown, ChevronRight, Search } from 'lucide-react';
 import React from 'react';
-import { WIDGET_CATEGORIES } from '../../../config/registry';
+import { WIDGET_CATEGORIES, type WidgetSchema } from '../../../config/registry';
 import { SidebarItem } from '../../sidebar/SidebarItem';
-
-interface Widget {
-  type: string;
-  label: string;
-  category: string;
-  fields: Array<{
-    name: string;
-    type: string;
-    label: string;
-    arraySchema?: unknown;
-  }>;
-  defaultProps: Record<string, unknown>;
-}
 
 interface BuilderSidebarProps {
   isDarkMode: boolean;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  widgets: Widget[];
+  widgets: WidgetSchema[];
   collapsedCategories: Set<string>;
   toggleCategory: (categoryId: string) => void;
 }

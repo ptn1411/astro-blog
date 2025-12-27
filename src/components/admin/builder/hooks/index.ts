@@ -6,3 +6,4 @@ export { useWidgetRegistry, type UseWidgetRegistryReturn } from './useWidgetRegi
 export { useBuilderState, type BuilderState, type BuilderStateSetters, type BuilderMode, type ViewType, type PreviewMode } from './useBuilderState';
 export { useBuilderActions } from './useBuilderActions';
 export { useBuilderKeyboard } from './useBuilderKeyboard';
+export { useNavigationEditor, type UseNavigationEditorOptions, type UseNavigationEditorReturn } from './useNavigationEditor';
