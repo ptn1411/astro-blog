@@ -3,15 +3,7 @@ import { getGitHubToken, saveToGitHub } from '../../builder/services/save';
 import { GITHUB_CONFIG } from '~/components/admin/config';
 import type { Story } from '../types';
 import { generateStoryMdx } from './storyExport';
-
-export function isLocalEnvironment(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1' ||
-      window.location.hostname.endsWith('.local'))
-  );
-}
+import { isLocalEnvironment } from '../utils/github';
 
 export async function saveStory(story: Story): Promise<{ success: boolean; path?: string; error?: string }> {
   try {

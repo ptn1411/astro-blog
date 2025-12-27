@@ -17,6 +17,7 @@ export interface BuilderState {
   builderMode: BuilderMode;
   showBlocksPanel: boolean;
   showPropsPanel: boolean;
+  showNavigationPanel: boolean;
   
   // Core state
   blocks: BuilderBlock[];
@@ -47,6 +48,7 @@ export interface BuilderStateSetters {
   setBuilderMode: React.Dispatch<React.SetStateAction<BuilderMode>>;
   setShowBlocksPanel: React.Dispatch<React.SetStateAction<boolean>>;
   setShowPropsPanel: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowNavigationPanel: React.Dispatch<React.SetStateAction<boolean>>;
   setBlocks: React.Dispatch<React.SetStateAction<BuilderBlock[]>>;
   setSelectedId: React.Dispatch<React.SetStateAction<string | null>>;
   setMetadata: React.Dispatch<React.SetStateAction<PageMetadata>>;
@@ -72,6 +74,7 @@ export function useBuilderState() {
   const [builderMode, setBuilderMode] = useState<BuilderMode>('create');
   const [showBlocksPanel, setShowBlocksPanel] = useState(true);
   const [showPropsPanel, setShowPropsPanel] = useState(true);
+  const [showNavigationPanel, setShowNavigationPanel] = useState(false);
 
   // --- Core State ---
   const [blocks, setBlocks] = useState<BuilderBlock[]>([]);
@@ -141,6 +144,7 @@ export function useBuilderState() {
     builderMode,
     showBlocksPanel,
     showPropsPanel,
+    showNavigationPanel,
     blocks,
     selectedId,
     metadata,
@@ -165,6 +169,7 @@ export function useBuilderState() {
     setBuilderMode,
     setShowBlocksPanel,
     setShowPropsPanel,
+    setShowNavigationPanel,
     setBlocks,
     setSelectedId,
     setMetadata,

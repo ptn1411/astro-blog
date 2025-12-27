@@ -143,6 +143,55 @@ export async function resolveRelations() {
 }
 
 /**
+ * Header Link Schema - for navigation
+ */
+const headerLinkSchema = z.object({
+  text: z.string(),
+  href: z.string().optional(),
+  target: z.enum(['_blank', '_self']).optional(),
+  links: z.array(z.object({
+    text: z.string(),
+    href: z.string(),
+    target: z.enum(['_blank', '_self']).optional(),
+  })).optional(),
+});
+
+/**
+ * Header Data Schema
+ */
+const headerDataSchema = z.object({
+  links: z.array(headerLinkSchema).optional(),
+  actions: z.array(z.object({
+    text: z.string(),
+    href: z.string(),
+    target: z.enum(['_blank', '_self']).optional(),
+  })).optional(),
+}).optional();
+
+/**
+ * Footer Data Schema
+ */
+const footerDataSchema = z.object({
+  links: z.array(z.object({
+    title: z.string(),
+    links: z.array(z.object({
+      text: z.string(),
+      href: z.string(),
+    })),
+  })).optional(),
+  secondaryLinks: z.array(z.object({
+    text: z.string(),
+    href: z.string(),
+  })).optional(),
+  socialLinks: z.array(z.object({
+    ariaLabel: z.string(),
+    icon: z.string(),
+    href: z.string(),
+  })).optional(),
+  footNote: z.string().optional(),
+}).optional();
+
+/**
  * Collection: PAGE
  */
 const pageCollection = defineCollection({
@@ -152,6 +201,16 @@ const pageCollection = defineCollection({
       title: z.string().optional(),
       metadata: metadataDefinition(),
       image: image().optional(),
+      // Use pageLayout instead of layout to avoid Astro's reserved field
+      pageLayout: z.enum([
+        'Layout',
+        'PageLayout',
+        'AnimationLayout',
+        'AnimationPageLayout',
+      ]).optional().default('AnimationPageLayout'),
+      // Custom navigation (optional - if not provided, uses default from ~/navigation)
+      headerData: headerDataSchema,
+      footerData: footerDataSchema,
     }),
 });
 

@@ -5,6 +5,19 @@
 
 import type { WidgetType } from '../../config/registry';
 
+// Re-export navigation types for consistency
+export type {
+  HeaderLink,
+  HeaderAction,
+  HeaderData,
+  FooterLink,
+  FooterLinkGroup,
+  SocialLink,
+  FooterData,
+} from './navigation.types';
+
+import type { HeaderData, FooterData } from './navigation.types';
+
 // --- Builder Block Type ---
 export interface BuilderBlock {
   id: string;
@@ -16,6 +29,9 @@ export interface BuilderBlock {
 export interface PageMetadata {
   title: string;
   description: string;
+  layout?: string;
+  headerData?: HeaderData;
+  footerData?: FooterData;
 }
 
 // --- Template Type ---

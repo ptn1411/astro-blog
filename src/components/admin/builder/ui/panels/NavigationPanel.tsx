@@ -8,10 +8,9 @@
  * Requirements: All (1.1-1.5, 2.1-2.7, 3.1-3.7)
  */
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Layout, Menu, Footprints, Download, Upload, AlertCircle, Check, Loader2 } from 'lucide-react';
 import { NavigationEditor } from '../navigation/NavigationEditor';
-import { LayoutSelector } from '../layout/LayoutSelector';
 import { useNavigationEditor } from '../../hooks/useNavigationEditor';
 import type { HeaderData, FooterData, LayoutConfig } from '../../core/types/navigation.types';
 
@@ -63,7 +62,7 @@ export function NavigationPanel({
     isDirty,
     setHeaderData,
     setFooterData,
-    setLayout,
+    // setLayout - not used in this panel, layout is managed via LayoutPanel
     saveToServer,
     exportToTypeScript,
     exportToJSON,
@@ -103,15 +102,6 @@ export function NavigationPanel({
       onConfigChange?.({ headerData, footerData: data, layout });
     },
     [setFooterData, headerData, layout, onConfigChange]
-  );
-
-  // Handle layout change
-  const handleLayoutChange = useCallback(
-    (newLayout: LayoutConfig) => {
-      setLayout(newLayout);
-      onConfigChange?.({ headerData, footerData, layout: newLayout });
-    },
-    [setLayout, headerData, footerData, onConfigChange]
   );
 
   // Handle save to server
@@ -262,11 +252,11 @@ export function NavigationPanel({
       {/* Content */}
       <div className={contentClass}>
         {activeTab === 'layout' && (
-          <LayoutSelector
-            currentLayout={layout}
-            onLayoutChange={handleLayoutChange}
-            isDarkMode={isDarkMode}
-          />
+          <div className={`p-4 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <Layout size={48} className="mx-auto mb-4 opacity-50" />
+            <p className="text-sm">Layout configuration is managed through the page metadata.</p>
+            <p className="text-xs mt-2">Use the Layout Panel in the builder sidebar.</p>
+          </div>
         )}
         {activeTab === 'header' && (
           <NavigationEditor

@@ -189,7 +189,11 @@ export function useBuilderActions({
 
   // --- Preview ---
   const openPreviewInNewTab = useCallback(() => {
+    // Save to localStorage for preview to read
     localStorage.setItem('astro-builder-blocks', JSON.stringify({ blocks, metadata }));
+    
+    // Open preview - navigation will use defaults in preview mode
+    // Custom navigation is applied when page is saved and viewed normally
     window.open('/admin/preview', '_blank');
   }, [blocks, metadata]);
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 
 // Hooks
 import { useBuilderState } from '../../hooks/useBuilderState';
@@ -9,6 +9,8 @@ import { useBuilderKeyboard } from '../../hooks/useBuilderKeyboard';
 import { BuilderHeader, BuilderSidebar, BuilderCanvas } from './components';
 import PagesManager from './PagesManager';
 import { WidgetManager } from './WidgetManager';
+import { LayoutPanel, type HeaderData, type FooterData } from '../panels/LayoutPanel';
+import type { AstroLayoutType } from './LayoutSelector';
 
 // Modals
 import { SaveModal } from '../modals/SaveModal';
@@ -253,6 +255,8 @@ export default function BuilderApp() {
         setShowBlocksPanel={setters.setShowBlocksPanel}
         showPropsPanel={state.showPropsPanel}
         setShowPropsPanel={setters.setShowPropsPanel}
+        showNavigationPanel={state.showNavigationPanel}
+        setShowNavigationPanel={setters.setShowNavigationPanel}
         canUndo={canUndo}
         canRedo={canRedo}
         onUndo={handleUndo}
@@ -313,6 +317,21 @@ export default function BuilderApp() {
             setMetadata={setters.setMetadata}
             getWidget={widgetRegistry.getWidget}
           />
+
+          {/* Layout Panel */}
+          {state.showNavigationPanel && (
+            <div className={`w-80 flex-shrink-0 border-l ${state.isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <LayoutPanel
+                isDarkMode={state.isDarkMode}
+                currentLayout={(state.metadata.layout as AstroLayoutType) || 'AnimationPageLayout'}
+                onLayoutChange={(layout) => setters.setMetadata((prev) => ({ ...prev, layout }))}
+                headerData={state.metadata.headerData as HeaderData | undefined}
+                footerData={state.metadata.footerData as FooterData | undefined}
+                onHeaderDataChange={(headerData) => setters.setMetadata((prev) => ({ ...prev, headerData: headerData as any }))}
+                onFooterDataChange={(footerData) => setters.setMetadata((prev) => ({ ...prev, footerData: footerData as any }))}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

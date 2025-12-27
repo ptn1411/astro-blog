@@ -1,8 +1,11 @@
 ---
-import Layout from '~/layouts/AnimationPageLayout.astro';
+import AnimationPageLayout from '~/layouts/AnimationPageLayout.astro';
 import { ClientPreview } from '~/components/admin/builder';
 
-// We no longer need server-side parsing of blocks since we render on client
+// For preview, we use default layout since navigation is dynamic
+// Custom navigation will be applied when page is saved and viewed normally
+const Layout = AnimationPageLayout;
+
 const metadata = {
   title: 'Builder Preview',
 };
@@ -13,20 +16,65 @@ const metadata = {
 </Layout>
 
 <script>
-  // Add listener for real-time updates from parent iframe (Builder)
+  // Preview update handler
+  function updatePreviewNavigation() {
+    try {
+      const stored = localStorage.getItem('astro-builder-blocks');
+      if (!stored) return;
+
+      const { metadata } = JSON.parse(stored);
+      if (!metadata) return;
+
+      // Update page title
+      if (metadata.title) {
+        document.title = `${metadata.title} - Preview`;
+      }
+
+      // Note: For full navigation preview, user should save and view the actual page
+      // Preview mode shows content with default navigation
+      // Custom navigation is applied when page is saved and viewed normally
+
+    } catch (e) {
+      console.error('Failed to update preview:', e);
+    }
+  }
+
+  // Listen for real-time updates from Builder
   window.addEventListener('message', (event) => {
     if (event.data.type === 'PREVIEW_UPDATE') {
       const { blocks, metadata } = event.data.payload;
-      // Update localStorage so ClientPreview picks it up via storage event (or we can dispatch custom event)
       localStorage.setItem('astro-builder-blocks', JSON.stringify({ blocks, metadata }));
 
-      // Dispatch a storage event manually because setItem in the same window doesn't trigger 'storage' event
+      // Dispatch storage event for ClientPreview
       window.dispatchEvent(
         new StorageEvent('storage', {
           key: 'astro-builder-blocks',
           newValue: JSON.stringify({ blocks, metadata }),
         })
       );
+
+      updatePreviewNavigation();
     }
   });
+
+  // Initial update
+  document.addEventListener('DOMContentLoaded', updatePreviewNavigation);
 </script>
+
+<style>
+  /* Preview indicator */
+  body::before {
+    content: 'PREVIEW MODE - Navigation uses defaults. Save page to see custom navigation.';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    color: white;
+    text-align: center;
+    padding: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 9999;
+  }
+</style>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { BuilderBlock, PageMetadata } from '../types';
+import type { BuilderBlock, PageMetadata } from '../core/types';
 
 interface AutoSaveData {
   blocks: BuilderBlock[];

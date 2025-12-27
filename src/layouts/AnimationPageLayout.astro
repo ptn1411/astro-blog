@@ -3,15 +3,21 @@ import Footer from '~/components/widgets/Footer.astro';
 import Header from '~/components/widgets/Header.astro';
 import Layout from '~/layouts/AnimationLayout.astro';
 
-import { footerData, headerData } from '~/navigation';
+import { footerData as defaultFooterData, headerData as defaultHeaderData } from '~/navigation';
 
 import type { MetaData } from '~/types';
 
 export interface Props {
   metadata?: MetaData;
+  headerData?: typeof defaultHeaderData;
+  footerData?: typeof defaultFooterData;
 }
 
-const { metadata } = Astro.props;
+const { metadata, headerData, footerData } = Astro.props;
+
+// Use custom navigation if provided, otherwise use default
+const finalHeaderData = headerData || defaultHeaderData;
+const finalFooterData = footerData || defaultFooterData;
 ---
 
 <Layout metadata={metadata}>
@@ -19,12 +25,12 @@ const { metadata } = Astro.props;
     <Announcement />
   </slot> -->
   <slot name="header">
-    <Header {...headerData} isSticky showRssFeed showToggleTheme />
+    <Header {...finalHeaderData} isSticky showRssFeed showToggleTheme />
   </slot>
   <main>
     <slot />
   </main>
   <slot name="footer">
-    <Footer {...footerData} />
+    <Footer {...finalFooterData} />
   </slot>
 </Layout>

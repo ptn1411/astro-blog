@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
-import type { BuilderBlock, PageMetadata } from '../types';
-import type { WidgetType, WidgetSchema } from '../registry';
-import { WIDGET_REGISTRY } from '../registry';
+import type { BuilderBlock, PageMetadata } from '../core/types';
+import type { WidgetType, WidgetSchema } from '../config/registry';
+import { WIDGET_REGISTRY } from '../config/registry';
 import { BuilderBottomNavBar, type BuilderMobileView } from './BuilderBottomNavBar';
 import { BuilderMobileHeader } from './BuilderMobileHeader';
 import { MobileBlockList } from './MobileBlockList';

@@ -61,7 +61,7 @@ export interface ApiDataWidgetConfigProps {
 /**
  * Validation result for API Data Widget configuration
  */
-export interface ValidationResult {
+export interface ApiDataValidationResult {
   isValid: boolean;
   errors: ValidationErrors;
 }
@@ -75,9 +75,9 @@ export interface ValidationResult {
  * - Validate URL format and HTTPS in production
  * 
  * @param config - The widget configuration to validate
- * @returns ValidationResult with isValid flag and any errors
+ * @returns ApiDataValidationResult with isValid flag and any errors
  */
-export function validateApiDataWidgetConfig(config: Partial<WidgetConfig>): ValidationResult {
+export function validateApiDataWidgetConfig(config: Partial<WidgetConfig>): ApiDataValidationResult {
   const errors: ValidationErrors = {};
 
   // Validate endpoint URL (required)

@@ -2,7 +2,22 @@
 export const prerender = true;
 
 import { getCollection } from 'astro:content';
-import Layout from '~/layouts/AnimationPageLayout.astro';
+
+// Layout imports - only layouts compatible with page builder
+import AnimationPageLayout from '~/layouts/AnimationPageLayout.astro';
+import AnimationLayout from '~/layouts/AnimationLayout.astro';
+import PageLayout from '~/layouts/PageLayout.astro';
+import BaseLayout from '~/layouts/Layout.astro';
+
+// Layout mapping for page builder compatible layouts
+const LAYOUTS = {
+  'AnimationPageLayout': AnimationPageLayout,
+  'AnimationLayout': AnimationLayout,
+  'PageLayout': PageLayout,
+  'Layout': BaseLayout,
+} as const;
+
+type LayoutKey = keyof typeof LAYOUTS;
 
 // Widget imports
 import { render } from 'astro:content';
@@ -110,6 +125,15 @@ export async function getStaticPaths() {
 const { page } = Astro.props;
 const { Content: PageContent } = await render(page);
 
+// Get layout from frontmatter or use default
+const layoutName = (page.data.pageLayout || 'AnimationPageLayout') as LayoutKey;
+const Layout = LAYOUTS[layoutName] || AnimationPageLayout;
+
+// Get custom navigation from frontmatter (if any)
+// Only pass if explicitly defined, otherwise let layout use defaults
+const headerData = page.data.headerData;
+const footerData = page.data.footerData;
+
 const metadata = {
   title: page.data.title || page.data.metadata?.title,
   description: page.data.metadata?.description,
@@ -119,6 +143,6 @@ const metadata = {
 };
 ---
 
-<Layout metadata={metadata}>
+<Layout metadata={metadata} headerData={headerData as typeof import('~/navigation').headerData | undefined} footerData={footerData as typeof import('~/navigation').footerData | undefined}>
   <PageContent components={COMPONENTS} />
 </Layout>

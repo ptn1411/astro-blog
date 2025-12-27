@@ -4,6 +4,7 @@ import {
   ExternalLink,
   Files,
   Layers,
+  Layout,
   Monitor,
   Moon,
   PanelLeft,
@@ -33,6 +34,8 @@ interface BuilderHeaderProps {
   setShowBlocksPanel: (value: boolean) => void;
   showPropsPanel: boolean;
   setShowPropsPanel: (value: boolean) => void;
+  showNavigationPanel: boolean;
+  setShowNavigationPanel: (value: boolean) => void;
   canUndo: boolean;
   canRedo: boolean;
   onUndo: () => void;
@@ -65,6 +68,8 @@ export function BuilderHeader({
   setShowBlocksPanel,
   showPropsPanel,
   setShowPropsPanel,
+  showNavigationPanel,
+  setShowNavigationPanel,
   canUndo,
   canRedo,
   onUndo,
@@ -231,6 +236,21 @@ export function BuilderHeader({
               title="Toggle Properties Panel"
             >
               <PanelRight size={16} />
+            </button>
+            <button
+              onClick={() => setShowNavigationPanel(!showNavigationPanel)}
+              className={`p-1.5 rounded-md transition-colors ${
+                showNavigationPanel
+                  ? isDarkMode
+                    ? 'bg-gray-600 text-white'
+                    : 'bg-white shadow text-gray-800'
+                  : isDarkMode
+                    ? 'text-gray-400 hover:text-gray-200'
+                    : 'text-gray-600 hover:text-gray-800'
+              }`}
+              title="Toggle Navigation & Layout Panel"
+            >
+              <Layout size={16} />
             </button>
             <div className={`w-px h-4 mx-1 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`} />
           </>

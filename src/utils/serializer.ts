@@ -1,4 +1,12 @@
 import type { WidgetType } from '~/components/admin/builder/config/registry';
+import type {
+  HeaderLink,
+  HeaderData,
+  FooterData,
+} from '~/components/admin/builder/core/types/navigation.types';
+
+// Re-export for external use
+export type { HeaderLink, HeaderData, FooterData };
 
 interface BuilderBlock {
   id: string;
@@ -9,6 +17,9 @@ interface BuilderBlock {
 export interface PageMetadata {
   title?: string;
   description?: string;
+  layout?: string;
+  headerData?: HeaderData;
+  footerData?: FooterData;
 }
 
 export interface BuilderData {
@@ -539,21 +550,102 @@ export function toJSON(blocks: BuilderBlock[], metadata?: ElementMetadata): stri
 /**
  * Convert blocks to MDX with embedded builder data for re-editing
  */
-export function toMDX(blocks: BuilderBlock[], metadata?: ElementMetadata): string {
+export function toMDX(blocks: BuilderBlock[], metadata?: PageMetadata): string {
   const customWidgets = loadCustomWidgetsForSerializer();
   const usedTypes = new Set(blocks.map((b) => b.type));
 
   const escapedTitle = escapeYamlString(metadata?.title || 'Generated Page');
   const escapedDescription = escapeYamlString(metadata?.description || '');
+  const layout = metadata?.layout || 'AnimationPageLayout';
+
+  // Build frontmatter
+  // Use pageLayout instead of layout to avoid Astro's reserved field in MDX
+  let frontmatter = `title: '${escapedTitle}'
+pageLayout: ${layout}`;
+
+  // Add metadata description if present
+  if (escapedDescription) {
+    frontmatter += `
+metadata:
+  description: '${escapedDescription}'`;
+  }
+
+  // Add custom headerData if present
+  if (metadata?.headerData && (metadata.headerData.links?.length || metadata.headerData.actions?.length)) {
+    frontmatter += `
+headerData:
+  links:
+${(metadata.headerData.links || []).map(link => {
+  let linkYaml = `    - text: '${escapeYamlString(link.text)}'`;
+  if (link.href) linkYaml += `\n      href: '${link.href}'`;
+  if (link.target) linkYaml += `\n      target: '${link.target}'`;
+  if (link.links?.length) {
+    linkYaml += `\n      links:`;
+    link.links.forEach(subLink => {
+      linkYaml += `\n        - text: '${escapeYamlString(subLink.text)}'`;
+      linkYaml += `\n          href: '${subLink.href}'`;
+      if (subLink.target) linkYaml += `\n          target: '${subLink.target}'`;
+    });
+  }
+  return linkYaml;
+}).join('\n')}
+  actions:
+${(metadata.headerData.actions || []).map(action => 
+  `    - text: '${escapeYamlString(action.text)}'
+      href: '${action.href}'${action.target ? `\n      target: '${action.target}'` : ''}`
+).join('\n')}`;
+  }
+
+  // Add custom footerData if present
+  if (metadata?.footerData && (
+    metadata.footerData.links?.length || 
+    metadata.footerData.secondaryLinks?.length || 
+    metadata.footerData.socialLinks?.length ||
+    metadata.footerData.footNote
+  )) {
+    frontmatter += `
+footerData:`;
+    
+    if (metadata.footerData.links?.length) {
+      frontmatter += `
+  links:
+${metadata.footerData.links.map(group => 
+  `    - title: '${escapeYamlString(group.title)}'
+      links:
+${group.links.map(link => 
+  `        - text: '${escapeYamlString(link.text)}'
+          href: '${link.href}'`
+).join('\n')}`
+).join('\n')}`;
+    }
+
+    if (metadata.footerData.secondaryLinks?.length) {
+      frontmatter += `
+  secondaryLinks:
+${metadata.footerData.secondaryLinks.map(link => 
+  `    - text: '${escapeYamlString(link.text)}'
+      href: '${link.href}'`
+).join('\n')}`;
+    }
+
+    if (metadata.footerData.socialLinks?.length) {
+      frontmatter += `
+  socialLinks:
+${metadata.footerData.socialLinks.map(link => 
+  `    - ariaLabel: '${escapeYamlString(link.ariaLabel)}'
+      icon: '${link.icon}'
+      href: '${link.href}'`
+).join('\n')}`;
+    }
+
+    if (metadata.footerData.footNote) {
+      frontmatter += `
+  footNote: '${escapeYamlString(metadata.footerData.footNote)}'`;
+    }
+  }
 
   let mdx = `---
-title: '${escapedTitle}'
-${
-  escapedDescription
-    ? `metadata:
-  description: '${escapedDescription}'`
-    : ''
-}
+${frontmatter}
 ---\n\n`;
 
   // Add imports (only for built-in widgets)
@@ -649,9 +741,11 @@ export function parseMDXFrontmatter(mdxContent: string): PageMetadata {
     const frontmatter = frontmatterMatch[1];
     const titleMatch = frontmatter.match(/title:\s*['"]?([^'"\n]+)['"]?/);
     const descMatch = frontmatter.match(/description:\s*['"]?([^'"\n]+)['"]?/);
+    const layoutMatch = frontmatter.match(/pageLayout:\s*['"]?([^'"\n]+)['"]?/);
 
     if (titleMatch) metadata.title = titleMatch[1].trim();
     if (descMatch) metadata.description = descMatch[1].trim();
+    if (layoutMatch) metadata.layout = layoutMatch[1].trim();
   }
 
   return metadata;

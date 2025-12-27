@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import type { BuilderBlock, PageMetadata } from '../types';
+import type { BuilderBlock, PageMetadata } from '../core/types';
 
 const DEBOUNCE_MS = 300;
 

@@ -1,6 +1,71 @@
 ---
 title: 'Untitled Page'
-
+pageLayout: AnimationPageLayout
+headerData:
+  links:
+    - text: 'Trang chủ'
+      href: '/'
+    - text: 'Sản phẩm'
+      href: '/products'
+      links:
+        - text: 'Điện thoại'
+          href: '/products/phones'
+        - text: 'Laptop'
+          href: '/products/laptops'
+        - text: 'Phụ kiện'
+          href: '/products/accessories'
+    - text: 'Giới thiệu'
+      href: '/about'
+    - text: 'Liên hệ'
+      href: '/contact'
+  actions:
+    - text: 'Đăng nhập'
+      href: '/login'
+    - text: 'GitHub'
+      href: 'https://github.com'
+      target: '_blank'
+footerData:
+  links:
+    - title: 'Sản phẩm'
+      links:
+        - text: 'Điện thoại'
+          href: '/products/phones'
+        - text: 'Laptop'
+          href: '/products/laptops'
+        - text: 'Phụ kiện'
+          href: '/products/accessories'
+    - title: 'Hỗ trợ'
+      links:
+        - text: 'FAQ'
+          href: '/faq'
+        - text: 'Liên hệ'
+          href: '/contact'
+        - text: 'Chính sách'
+          href: '/policy'
+    - title: 'Công ty'
+      links:
+        - text: 'Giới thiệu'
+          href: '/about'
+        - text: 'Tuyển dụng'
+          href: '/careers'
+        - text: 'Blog'
+          href: '/blog'
+  secondaryLinks:
+    - text: 'Điều khoản'
+      href: '/terms'
+    - text: 'Quyền riêng tư'
+      href: '/privacy'
+  socialLinks:
+    - ariaLabel: 'Facebook'
+      icon: 'tabler:brand-facebook'
+      href: 'https://facebook.com'
+    - ariaLabel: 'Twitter'
+      icon: 'tabler:brand-x'
+      href: 'https://twitter.com'
+    - ariaLabel: 'GitHub'
+      icon: 'tabler:brand-github'
+      href: 'https://github.com'
+  footNote: 'Copyright 2025 - Demo Page với Custom Navigation'
 ---
 
 import Hero from '~/components/widgets/Hero.astro';
@@ -69,8 +134,137 @@ import ApiDataWidget from '~/components/widgets/ApiDataWidget.astro';
   ],
   "metadata": {
     "title": "Untitled Page",
-    "description": ""
+    "description": "",
+    "layout": "AnimationPageLayout",
+    "headerData": {
+      "links": [
+        {
+          "text": "Trang chủ",
+          "href": "/"
+        },
+        {
+          "text": "Sản phẩm",
+          "href": "/products",
+          "links": [
+            {
+              "text": "Điện thoại",
+              "href": "/products/phones"
+            },
+            {
+              "text": "Laptop",
+              "href": "/products/laptops"
+            },
+            {
+              "text": "Phụ kiện",
+              "href": "/products/accessories"
+            }
+          ]
+        },
+        {
+          "text": "Giới thiệu",
+          "href": "/about"
+        },
+        {
+          "text": "Liên hệ",
+          "href": "/contact"
+        }
+      ],
+      "actions": [
+        {
+          "text": "Đăng nhập",
+          "href": "/login"
+        },
+        {
+          "text": "GitHub",
+          "href": "https://github.com",
+          "target": "_blank"
+        }
+      ]
+    },
+    "footerData": {
+      "links": [
+        {
+          "title": "Sản phẩm",
+          "links": [
+            {
+              "text": "Điện thoại",
+              "href": "/products/phones"
+            },
+            {
+              "text": "Laptop",
+              "href": "/products/laptops"
+            },
+            {
+              "text": "Phụ kiện",
+              "href": "/products/accessories"
+            }
+          ]
+        },
+        {
+          "title": "Hỗ trợ",
+          "links": [
+            {
+              "text": "FAQ",
+              "href": "/faq"
+            },
+            {
+              "text": "Liên hệ",
+              "href": "/contact"
+            },
+            {
+              "text": "Chính sách",
+              "href": "/policy"
+            }
+          ]
+        },
+        {
+          "title": "Công ty",
+          "links": [
+            {
+              "text": "Giới thiệu",
+              "href": "/about"
+            },
+            {
+              "text": "Tuyển dụng",
+              "href": "/careers"
+            },
+            {
+              "text": "Blog",
+              "href": "/blog"
+            }
+          ]
+        }
+      ],
+      "secondaryLinks": [
+        {
+          "text": "Điều khoản",
+          "href": "/terms"
+        },
+        {
+          "text": "Quyền riêng tư",
+          "href": "/privacy"
+        }
+      ],
+      "socialLinks": [
+        {
+          "ariaLabel": "Facebook",
+          "icon": "tabler:brand-facebook",
+          "href": "https://facebook.com"
+        },
+        {
+          "ariaLabel": "Twitter",
+          "icon": "tabler:brand-x",
+          "href": "https://twitter.com"
+        },
+        {
+          "ariaLabel": "GitHub",
+          "icon": "tabler:brand-github",
+          "href": "https://github.com"
+        }
+      ],
+      "footNote": "Copyright 2025 - Demo Page với Custom Navigation"
+    }
   },
-  "savedAt": "2025-12-26T15:34:45.518Z"
+  "savedAt": "2025-12-27T11:07:21.588Z"
 }
 BUILDER_DATA_END */}

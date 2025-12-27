@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import type { BuilderBlock } from '../types';
+import type { BuilderBlock } from '../core/types';
 import { deepClone } from '../utils';
 
 interface UseBuilderHistoryReturn {
