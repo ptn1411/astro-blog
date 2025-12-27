@@ -41,6 +41,11 @@ export * from './ui';
 export * from './mobile';
 
 // ==========================================
+// AI Components (CopilotKit Integration)
+// ==========================================
+export * from './ai';
+
+// ==========================================
 // Backward Compatibility Exports
 // ==========================================
 // These exports maintain compatibility with existing imports

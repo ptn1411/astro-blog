@@ -2,6 +2,7 @@ import {
   Download,
   Film,
   Grid3X3,
+  Key,
   Layers,
   Play,
   Redo2,
@@ -32,6 +33,7 @@ interface StoryBuilderHeaderProps {
   onExportVideo: () => void;
   onOpenSettings: () => void;
   onOpenAIModal: () => void;
+  onOpenKeyStatus: () => void;
   onSave: () => void;
 }
 
@@ -51,6 +53,7 @@ export function StoryBuilderHeader({
   onExportVideo,
   onOpenSettings,
   onOpenAIModal,
+  onOpenKeyStatus,
   onSave,
 }: StoryBuilderHeaderProps) {
   return (
@@ -174,13 +177,6 @@ export function StoryBuilderHeader({
             <Upload size={16} />
           </button>
           <button
-            onClick={onOpenAIModal}
-            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
-            title="AI JSON"
-          >
-            <Sparkles size={16} />
-          </button>
-          <button
             onClick={onExportJSON}
             className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
             title="Export Story JSON"
@@ -194,6 +190,21 @@ export function StoryBuilderHeader({
           >
             <Film size={16} />
           </button>
+          <button
+            onClick={onOpenAIModal}
+            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+            title="AI JSON"
+          >
+            <Sparkles size={16} />
+          </button>
+          <button
+            onClick={onOpenKeyStatus}
+            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+            title="API Keys Status"
+          >
+            <Key size={16} />
+          </button>
+
           <button
             onClick={onOpenSettings}
             className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"

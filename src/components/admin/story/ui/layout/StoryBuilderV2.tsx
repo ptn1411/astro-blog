@@ -1,12 +1,16 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { Download, Film, Play, Plus, Redo2, Undo2 } from 'lucide-react';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useResponsive } from '~/hooks/useResponsive';
 
 // Hooks
 import { useStoryBuilder } from '../../hooks/useStoryBuilder';
 import { useStoryPlayback } from '../../hooks/useStoryPlayback';
 import { useStoryKeyboard } from '../../hooks/useStoryKeyboard';
+
+// AI Integration
+import { CopilotProvider, StoryAIChat, useStoryAI, useCopilotAuth, AIKeyStatusModal } from '../../ai';
+import type { StoryBuilderActions } from '../../ai';
 
 // Services
 import {  generateAIPrompt, parseImportedStoryFromText } from '../../services/storyExport';
@@ -39,6 +43,61 @@ interface StoryBuilderProps {
   onBack?: () => void;
 }
 
+/**
+ * StoryAIIntegration - Component that registers story context and actions with CopilotKit
+ * This component must be rendered inside CopilotProvider when authenticated
+ * It uses CopilotKit hooks which require a valid CopilotKit context
+ */
+function StoryAIIntegrationInner({ 
+  story, 
+  currentSlide, 
+  currentSlideIndex, 
+  selectedElement,
+  actions 
+}: {
+  story: Story;
+  currentSlide: Story['slides'][0];
+  currentSlideIndex: number;
+  selectedElement: Story['slides'][0]['elements'][0] | null;
+  actions: StoryBuilderActions;
+}) {
+  // Register story context and actions with CopilotKit
+  useStoryAI({
+    story,
+    currentSlide,
+    currentSlideIndex,
+    selectedElement,
+    actions,
+  });
+
+  return null;
+}
+
+/**
+ * Wrapper that only renders AI integration when authenticated
+ * This prevents CopilotKit hook errors when not in a valid context
+ */
+function StoryAIIntegration(props: {
+  story: Story;
+  currentSlide: Story['slides'][0];
+  currentSlideIndex: number;
+  selectedElement: Story['slides'][0]['elements'][0] | null;
+  actions: StoryBuilderActions;
+}) {
+  const authState = useCopilotAuth();
+  
+  // Only render the inner component when authenticated and not loading
+  // This ensures CopilotKit hooks are only called when context is available
+  if (authState.isLoading || !authState.isAuthenticated) {
+    return null;
+  }
+
+  return <StoryAIIntegrationInner {...props} />;
+}
+
+/**
+ * StoryBuilderV2 - Main Story Builder component wrapped with CopilotKit AI integration
+ */
 export function StoryBuilderV2({ initialStory, onBack }: StoryBuilderProps) {
   // Core story state
   const storyBuilder = useStoryBuilder({ initialStory });
@@ -61,6 +120,7 @@ export function StoryBuilderV2({ initialStory, onBack }: StoryBuilderProps) {
   const [previewStartIndex, setPreviewStartIndex] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
+  const [showKeyStatus, setShowKeyStatus] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportSettings, setExportSettings] = useState<ExportSettings>(DEFAULT_EXPORT_SETTINGS);
   const [leftPanelTab, setLeftPanelTab] = useState<'resources' | 'layers' | 'audio'>('resources');
@@ -201,6 +261,15 @@ export function StoryBuilderV2({ initialStory, onBack }: StoryBuilderProps) {
     if (isMobile) setShowMobileProperties(true);
   }, [isMobile, setSelectedElementIds]);
 
+  // Memoize AI actions to pass to CopilotKit
+  const aiActions: StoryBuilderActions = useMemo(() => ({
+    addElement,
+    updateElement,
+    deleteElement,
+    addSlide,
+    updateSlide,
+  }), [addElement, updateElement, deleteElement, addSlide, updateSlide]);
+
   // Early return if story not ready
   if (!story || !story.slides || story.slides.length === 0) {
     return (
@@ -214,7 +283,17 @@ export function StoryBuilderV2({ initialStory, onBack }: StoryBuilderProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 text-white">
+    <CopilotProvider>
+      {/* AI Integration - registers story context and actions with CopilotKit */}
+      <StoryAIIntegration
+        story={story}
+        currentSlide={currentSlide}
+        currentSlideIndex={currentSlideIndex}
+        selectedElement={selectedElement || null}
+        actions={aiActions}
+      />
+      
+      <div className="flex flex-col h-full bg-slate-900 text-white">
       {/* Hidden file input */}
       <input ref={fileInputRef} type="file" accept=".json" onChange={handleImportStory} className="hidden" />
 
@@ -373,6 +452,7 @@ export function StoryBuilderV2({ initialStory, onBack }: StoryBuilderProps) {
             onExportVideo={() => setShowExportModal(true)}
             onOpenSettings={() => setShowSettings(true)}
             onOpenAIModal={() => setShowAiModal(true)}
+            onOpenKeyStatus={() => setShowKeyStatus(true)}
             onSave={handleSave}
           />
 
@@ -458,6 +538,11 @@ export function StoryBuilderV2({ initialStory, onBack }: StoryBuilderProps) {
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} story={story} onUpdateStory={(updates) => setStory((prev) => prev ? { ...prev, ...updates } : prev)} />
       <ExportSettingsModal isOpen={showExportModal} onClose={() => setShowExportModal(false)} onExport={(settings) => { setExportSettings(settings); handleRenderVideo(settings); }} slideCount={story.slides.length} currentSlideIndex={currentSlideIndex} />
       <AIPromptModal isOpen={showAiModal} onClose={() => setShowAiModal(false)} aiTopic={aiTopic} setAiTopic={setAiTopic} aiPrompt={aiPrompt} setAiPrompt={setAiPrompt} aiJsonText={aiJsonText} setAiJsonText={setAiJsonText} generateAIPrompt={generateAIPrompt} onApplyJSON={handleApplyAIJSON} />
+      <AIKeyStatusModal isOpen={showKeyStatus} onClose={() => setShowKeyStatus(false)} />
+
+      {/* AI Chat Interface - positioned at bottom-right */}
+      <StoryAIChat position="bottom-right" />
     </div>
+    </CopilotProvider>
   );
 }
