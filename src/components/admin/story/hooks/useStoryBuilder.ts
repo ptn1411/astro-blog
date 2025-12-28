@@ -194,13 +194,18 @@ export function useStoryBuilder({ initialStory }: UseStoryBuilderProps) {
         ...(extra?.slider ? { slider: extra.slider as StoryElement['slider'] } : {}),
       };
 
-      updateSlide(currentSlideId, {
-        elements: [...currentSlide.elements, newElement],
+      // Support adding to a specific slide via extra.targetSlideId
+      const targetSlideId = (extra?.targetSlideId as string) || currentSlideId;
+      const targetSlide = story.slides.find(s => s.id === targetSlideId) || currentSlide;
+
+      updateSlide(targetSlideId, {
+        elements: [...targetSlide.elements, newElement],
       });
 
       setSelectedElementIds([newElement.id]);
+      return newElement.id; // Return element ID for AI actions
     },
-    [currentSlide.elements, currentSlideId, updateSlide]
+    [currentSlide, currentSlideId, story.slides, updateSlide]
   );
 
   // Delete element
@@ -287,6 +292,7 @@ export function useStoryBuilder({ initialStory }: UseStoryBuilderProps) {
     });
     setCurrentSlideId(newSlide.id);
     setSelectedElementIds([]);
+    return newSlide.id; // Return the new slide ID for AI actions
   }, [setStory]);
 
   // Delete slide

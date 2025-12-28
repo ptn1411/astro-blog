@@ -6,7 +6,7 @@
  */
 
 // Provider
-export { CopilotProvider, CopilotAuthContext, useCopilotAuth } from './CopilotProvider';
+export { CopilotProvider, CopilotAuthContext, ServerStatusContext, useCopilotAuth, useServerStatus } from './CopilotProvider';
 export type { CopilotProviderProps, AuthState } from './CopilotProvider';
 
 // Chat Component
@@ -53,3 +53,7 @@ export type {
 // API Key Status Monitoring
 export { AIKeyStatus, AIKeyStatusModal, AIKeyStatusButton } from './AIKeyStatus';
 export type { AIKeyStatusProps, AIKeyStatusModalProps, AIKeyStatusButtonProps } from './AIKeyStatus';
+
+// AI Settings
+export { useAISettings } from './useAISettings';
+export type { AISettings } from './useAISettings';

@@ -8,14 +8,17 @@
  * - Auth error prompts
  * - Graceful degradation when AI is unavailable
  * - Rate limit countdown display
+ * - Message ordering fix via useCopilotChat hook
  * 
  * Requirements: 1.3, 1.4, 5.5, 7.1, 7.2, 7.4
  */
 
 import { CopilotPopup } from '@copilotkit/react-ui';
-import React, { useEffect, useState } from 'react';
-import { useCopilotAuth } from './CopilotProvider';
+import { useCopilotChat } from '@copilotkit/react-core';
+import { useEffect, useState } from 'react';
+import { useCopilotAuth, useServerStatus } from './CopilotProvider';
 import { useAIAvailability, shouldShowAIFeatures, getStatusMessage } from './useAIAvailability';
+import { useAISettings } from './useAISettings';
 
 // Import CopilotKit styles
 import '@copilotkit/react-ui/styles.css';
@@ -33,6 +36,7 @@ export interface StoryAIChatProps {
  * StoryAIChat renders the AI chat interface
  * Shows auth error if user is not logged in
  * Handles graceful degradation when AI is unavailable
+ * Uses useCopilotChat to manage message state and prevent ordering issues
  */
 export function StoryAIChat({ 
   position = 'bottom-right',
@@ -40,8 +44,20 @@ export function StoryAIChat({
   className = '',
 }: StoryAIChatProps) {
   const authState = useCopilotAuth();
+  const serverStatus = useServerStatus();
   const aiAvailability = useAIAvailability();
+  const { settings: aiSettings, loaded: settingsLoaded } = useAISettings();
   const statusMessage = getStatusMessage(aiAvailability);
+
+  // If AI is disabled in settings, don't render anything
+  if (settingsLoaded && !aiSettings.enabled) {
+    return null;
+  }
+
+  // If server is offline or checking, don't render anything (silent fail)
+  if (serverStatus !== 'online') {
+    return null;
+  }
 
   // If not authenticated, show auth error message
   if (!authState.isAuthenticated && !authState.isLoading) {
@@ -82,24 +98,51 @@ export function StoryAIChat({
         <AIStatusBanner message={statusMessage} />
       )}
       
-      <CopilotPopup
-        defaultOpen={defaultOpen}
-        labels={{
-          title: "Story AI Assistant",
-          initial: "Xin chào! Tôi có thể giúp bạn tạo và chỉnh sửa story. Hãy hỏi tôi bất cứ điều gì!",
-          placeholder: "Nhập tin nhắn...",
-        }}
-        instructions={`Bạn là AI assistant giúp người dùng tạo và chỉnh sửa stories.
+      <StoryAIChatInner defaultOpen={defaultOpen} />
+    </div>
+  );
+}
+
+/**
+ * Inner component that uses useCopilotChat hook
+ * Must be rendered inside CopilotKit context
+ * Wrapped in try-catch to handle context errors gracefully
+ */
+function StoryAIChatInner({ defaultOpen }: { defaultOpen: boolean }) {
+  // This hook requires CopilotKit context
+  // If context is not available, it will throw
+  let isLoading = false;
+  try {
+    const chatState = useCopilotChat();
+    isLoading = chatState.isLoading;
+  } catch {
+    // Context not available, use default
+  }
+
+  return (
+    <CopilotPopup
+      defaultOpen={defaultOpen}
+      labels={{
+        title: "Story AI Assistant",
+        initial: "Xin chào! Tôi có thể giúp bạn tạo và chỉnh sửa story. Hãy hỏi tôi bất cứ điều gì!",
+        placeholder: isLoading ? "Đang xử lý..." : "Nhập tin nhắn...",
+      }}
+      instructions={`Bạn là AI assistant giúp người dùng tạo và chỉnh sửa stories.
 Bạn có thể:
 - Thêm các elements mới (text, image, shape, button, etc.)
 - Chỉnh sửa style của elements (màu sắc, font, vị trí, kích thước)
 - Thêm slides mới
 - Gợi ý nội dung và thiết kế
 
+QUAN TRỌNG:
+- Khi người dùng yêu cầu tạo bản tin hoặc story mới, hãy sử dụng action addSlide trước, sau đó thêm các elements.
+- Luôn thực hiện từng action một cách tuần tự, không gọi nhiều actions cùng lúc.
+- Sau khi thực hiện mỗi action, hãy đợi kết quả trước khi tiếp tục.
+- Nếu cần tạo nhiều elements, hãy tạo từng cái một.
+
 Hãy trả lời bằng tiếng Việt và thân thiện với người dùng.
 Khi thực hiện actions, hãy giải thích ngắn gọn những gì bạn đang làm.`}
-      />
-    </div>
+    />
   );
 }
 

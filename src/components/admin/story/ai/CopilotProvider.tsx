@@ -2,30 +2,22 @@
  * CopilotProvider - Wrapper component for CopilotKit integration
  * 
  * Wraps Story Builder with CopilotKit context and handles:
+ * - Server availability check before initializing
  * - GitHub token injection into headers
  * - Authentication error handling
- * - Connection to Worker proxy
- * - Graceful degradation when AI fails
- * - Auto-fallback from OpenRouter to Gemini
- * 
- * Requirements: 1.1, 1.5, 7.4
+ * - Graceful degradation when server is down
  */
 
 import { CopilotKit } from '@copilotkit/react-core';
 import React, { useCallback, useEffect, useState } from 'react';
-import { getGitHubToken, getCopilotKitUrl } from '../../config';
+import { getGitHubToken, AI_CONFIG } from '../../config';
 import { AIAvailabilityProvider, useAIAvailability, createAIError } from './useAIAvailability';
 import type { AIError } from './useAIAvailability';
 
-type AIProvider = 'openrouter' | 'gemini';
-
 export interface CopilotProviderProps {
   children: React.ReactNode;
-  /** Override the default worker URL */
   workerUrl?: string;
-  /** Callback when authentication fails */
   onAuthError?: (error: Error) => void;
-  /** Callback when AI becomes unavailable */
   onAIUnavailable?: (error: AIError) => void;
 }
 
@@ -35,15 +27,8 @@ export interface AuthState {
   error: string | null;
 }
 
-interface ProvidersInfo {
-  openrouter: boolean;
-  gemini: boolean;
-  primary: AIProvider;
-}
+type ServerStatus = 'checking' | 'online' | 'offline';
 
-/**
- * Inner provider that uses AI availability context
- */
 function CopilotProviderInner({ 
   children, 
   workerUrl,
@@ -55,101 +40,72 @@ function CopilotProviderInner({
     isLoading: true,
     error: null,
   });
-  const [currentProvider, setCurrentProvider] = useState<AIProvider>('gemini'); // Gemini first (higher free tier)
-  const [providers, setProviders] = useState<ProvidersInfo | null>(null);
-  const [failedProviders, setFailedProviders] = useState<Set<AIProvider>>(new Set());
+  const [serverStatus, setServerStatus] = useState<ServerStatus>('checking');
 
   const aiAvailability = useAIAvailability();
-  const baseUrl = workerUrl || getCopilotKitUrl();
-  
-  // Build runtime URL based on current provider
-  const runtimeUrl = currentProvider === 'gemini' 
-    ? `${baseUrl}/gemini`
-    : baseUrl;
+  const baseUrl = workerUrl || `${AI_CONFIG.workerUrl}${AI_CONFIG.endpoint}`;
 
-  // Fetch available providers on mount
+  // Check if server is available
   useEffect(() => {
-    const fetchProviders = async () => {
+    const checkServer = async () => {
       try {
-        const providersUrl = baseUrl.replace('/api/copilotkit', '/api/copilotkit/providers');
-        const res = await fetch(providersUrl);
+        const healthUrl = AI_CONFIG.workerUrl + '/health';
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        
+        const res = await fetch(healthUrl, { 
+          signal: controller.signal,
+          mode: 'cors',
+        });
+        clearTimeout(timeout);
+        
         if (res.ok) {
-          const data = await res.json() as ProvidersInfo;
-          setProviders(data);
-          setCurrentProvider(data.primary);
+          setServerStatus('online');
+        } else {
+          setServerStatus('offline');
         }
-      } catch (e) {
-        console.warn('Could not fetch providers info:', e);
+      } catch {
+        // Server not reachable - silently set offline
+        setServerStatus('offline');
       }
     };
-    fetchProviders();
-  }, [baseUrl]);
 
-  // Get headers with GitHub token for authentication
+    checkServer();
+  }, []);
+
+  // Get headers with GitHub token
   const getHeaders = useCallback(() => {
     const token = getGitHubToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
     return headers;
   }, []);
 
-  // Handle CopilotKit errors with fallback logic
+  // Handle CopilotKit errors silently
   const handleError = useCallback((error: unknown) => {
-    console.error('CopilotKit error:', error);
+    // Only log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('CopilotKit error (suppressed):', error);
+    }
     
-    // Extract error message properly
-    let errorMessage = 'Đã xảy ra lỗi với AI service';
+    let errorMessage = 'AI service error';
     let statusCode: number | undefined;
     
     if (error instanceof Error) {
       errorMessage = error.message;
-    } else if (typeof error === 'string') {
-      errorMessage = error;
-    } else if (error && typeof error === 'object') {
-      if ('message' in error) {
-        errorMessage = String((error as { message: unknown }).message);
-      }
-      if ('status' in error) {
-        statusCode = Number((error as { status: unknown }).status);
-      }
     }
     
-    // Check if this is a rate limit or quota error (should fallback)
-    const isQuotaError = statusCode === 429 || 
-      errorMessage.toLowerCase().includes('quota') ||
-      errorMessage.toLowerCase().includes('rate limit') ||
-      errorMessage.toLowerCase().includes('insufficient');
-    
-    if (isQuotaError && providers) {
-      // Mark current provider as failed
-      setFailedProviders(prev => new Set(prev).add(currentProvider));
-      
-      // Try to fallback to another provider
-      // Gemini → OpenRouter fallback
-      if (currentProvider === 'gemini' && providers.openrouter && !failedProviders.has('openrouter')) {
-        console.log('Gemini quota exceeded, switching to OpenRouter...');
-        setCurrentProvider('openrouter');
-        return; // Don't report as unavailable yet
-      }
-      // OpenRouter → Gemini fallback (if started with OpenRouter)
-      if (currentProvider === 'openrouter' && providers.gemini && !failedProviders.has('gemini')) {
-        console.log('OpenRouter quota exceeded, switching to Gemini...');
-        setCurrentProvider('gemini');
-        return;
-      }
+    // Don't report connection errors as they're expected when server is down
+    if (!errorMessage.includes('fetch') && !errorMessage.includes('network')) {
+      aiAvailability.reportFailure(createAIError(new Error(errorMessage), statusCode));
     }
-    
-    // Report to availability system
-    aiAvailability.reportFailure(createAIError(new Error(errorMessage), statusCode));
-  }, [aiAvailability, currentProvider, providers, failedProviders]);
+  }, [aiAvailability]);
 
-  // Check authentication on mount
+  // Check authentication
   useEffect(() => {
     const token = getGitHubToken();
     if (token) {
@@ -159,18 +115,14 @@ function CopilotProviderInner({
         error: null,
       });
     } else {
-      const error = new Error('Vui lòng đăng nhập qua CMS để sử dụng AI');
       setAuthState({
         isAuthenticated: false,
         isLoading: false,
-        error: error.message,
+        error: 'Vui lòng đăng nhập qua CMS để sử dụng AI',
       });
-      onAuthError?.(error);
-      
-      // Report auth error to availability system
-      aiAvailability.reportFailure(createAIError(error, 401));
+      onAuthError?.(new Error('Not authenticated'));
     }
-  }, [onAuthError, aiAvailability]);
+  }, [onAuthError]);
 
   // Notify when AI becomes unavailable
   useEffect(() => {
@@ -179,52 +131,39 @@ function CopilotProviderInner({
     }
   }, [aiAvailability.status, aiAvailability.error, onAIUnavailable]);
 
-  // If still loading, render children with auth context only
-  if (authState.isLoading) {
-    return (
-      <CopilotAuthContext.Provider value={authState}>
-        {children}
-      </CopilotAuthContext.Provider>
-    );
-  }
+  // Always render children with auth context
+  // Only wrap with CopilotKit if server is online and user is authenticated
+  const shouldUseCopilotKit = 
+    serverStatus === 'online' && 
+    authState.isAuthenticated && 
+    !authState.isLoading &&
+    aiAvailability.isEnabled;
 
-  // If not authenticated, render children without CopilotKit
-  if (!authState.isAuthenticated) {
+  if (!shouldUseCopilotKit) {
     return (
       <CopilotAuthContext.Provider value={authState}>
-        {children}
-      </CopilotAuthContext.Provider>
-    );
-  }
-
-  // If AI is completely disabled, render children without CopilotKit
-  if (!aiAvailability.isEnabled && aiAvailability.status === 'unavailable') {
-    return (
-      <CopilotAuthContext.Provider value={authState}>
-        {children}
+        <ServerStatusContext.Provider value={serverStatus}>
+          {children}
+        </ServerStatusContext.Provider>
       </CopilotAuthContext.Provider>
     );
   }
 
   return (
     <CopilotAuthContext.Provider value={authState}>
-      <CopilotKit
-        key={currentProvider} // Force re-mount when provider changes
-        runtimeUrl={runtimeUrl}
-        headers={getHeaders()}
-        onError={handleError}
-      >
-        {children}
-      </CopilotKit>
+      <ServerStatusContext.Provider value={serverStatus}>
+        <CopilotKit
+          runtimeUrl={baseUrl}
+          headers={getHeaders()}
+          onError={handleError}
+        >
+          {children}
+        </CopilotKit>
+      </ServerStatusContext.Provider>
     </CopilotAuthContext.Provider>
   );
 }
 
-/**
- * CopilotProvider wraps children with CopilotKit context
- * Injects GitHub token for authentication with Worker proxy
- * Provides graceful degradation when AI features fail
- */
 export function CopilotProvider(props: CopilotProviderProps) {
   return (
     <AIAvailabilityProvider>
@@ -233,20 +172,22 @@ export function CopilotProvider(props: CopilotProviderProps) {
   );
 }
 
-/**
- * Context for sharing auth state with child components
- */
+// Contexts
 export const CopilotAuthContext = React.createContext<AuthState>({
   isAuthenticated: false,
   isLoading: true,
   error: null,
 });
 
-/**
- * Hook to access CopilotKit auth state
- */
+export const ServerStatusContext = React.createContext<ServerStatus>('checking');
+
+// Hooks
 export function useCopilotAuth(): AuthState {
   return React.useContext(CopilotAuthContext);
+}
+
+export function useServerStatus(): ServerStatus {
+  return React.useContext(ServerStatusContext);
 }
 
 export default CopilotProvider;

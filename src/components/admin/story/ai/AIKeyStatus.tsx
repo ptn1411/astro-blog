@@ -59,10 +59,20 @@ export function AIKeyStatusModal({
 
   const fetchStatus = useCallback(async () => {
     try {
-      const providersRes = await fetch(`${baseUrl}/api/copilotkit/providers`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      
+      const providersRes = await fetch(`${baseUrl}/api/copilotkit/providers`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      
       if (providersRes.ok) {
         const data = await providersRes.json();
         setProviders(data);
+        setError(null);
+      } else {
+        setError('Server không phản hồi');
       }
 
       const token = getGitHubToken();
@@ -75,9 +85,9 @@ export function AIKeyStatusModal({
           setKeysStatus(data);
         }
       }
-      setError(null);
     } catch {
-      setError('Không thể kết nối server');
+      setError('Server offline');
+      setProviders(null);
     } finally {
       setLoading(false);
     }

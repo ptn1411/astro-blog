@@ -9,7 +9,7 @@ import { useStoryPlayback } from '../../hooks/useStoryPlayback';
 import { useStoryKeyboard } from '../../hooks/useStoryKeyboard';
 
 // AI Integration
-import { CopilotProvider, StoryAIChat, useStoryAI, useCopilotAuth, AIKeyStatusModal } from '../../ai';
+import { CopilotProvider, StoryAIChat, useStoryAI, useCopilotAuth, useServerStatus, AIKeyStatusModal } from '../../ai';
 import type { StoryBuilderActions } from '../../ai';
 
 // Services
@@ -74,7 +74,7 @@ function StoryAIIntegrationInner({
 }
 
 /**
- * Wrapper that only renders AI integration when authenticated
+ * Wrapper that only renders AI integration when server is online and authenticated
  * This prevents CopilotKit hook errors when not in a valid context
  */
 function StoryAIIntegration(props: {
@@ -85,10 +85,11 @@ function StoryAIIntegration(props: {
   actions: StoryBuilderActions;
 }) {
   const authState = useCopilotAuth();
+  const serverStatus = useServerStatus();
   
-  // Only render the inner component when authenticated and not loading
+  // Only render the inner component when server is online, authenticated and not loading
   // This ensures CopilotKit hooks are only called when context is available
-  if (authState.isLoading || !authState.isAuthenticated) {
+  if (serverStatus !== 'online' || authState.isLoading || !authState.isAuthenticated) {
     return null;
   }
 

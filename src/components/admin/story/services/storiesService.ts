@@ -91,12 +91,21 @@ export async function loadAllStories(): Promise<StoredStory[]> {
   }
 
   // Also load from localStorage (drafts)
-  const keys = Object.keys(localStorage).filter((key) => key.startsWith('story-'));
+  const keys = Object.keys(localStorage).filter((key) => 
+    key.startsWith('story-') && 
+    !key.includes('ai-settings') && // Exclude AI settings
+    !key.includes('builder-settings') // Exclude other settings
+  );
   keys.forEach((key) => {
     try {
       const data = localStorage.getItem(key);
       if (data) {
-        const story = JSON.parse(data) as Story;
+        const parsed = JSON.parse(data);
+        // Validate it's actually a story (has slides array)
+        if (!parsed.slides || !Array.isArray(parsed.slides)) {
+          return;
+        }
+        const story = parsed as Story;
         // Check if already loaded from file/GitHub
         const existingIndex = loadedStories.findIndex((s) => s.story.id === story.id);
         if (existingIndex === -1) {

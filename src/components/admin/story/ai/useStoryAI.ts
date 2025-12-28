@@ -734,13 +734,13 @@ export function useStoryAI(options: UseStoryAIOptions): void {
         }
       }
 
-      // Add new slide
-      actions.addSlide();
+      // Add new slide and get its ID
+      const newSlideId = actions.addSlide();
 
-      // Update slide background
-      if (template.background) {
+      // Update slide background using the new slide ID
+      if (template.background && newSlideId) {
         const bgValue = customs.backgroundColor || template.background.value || '#000000';
-        actions.updateSlide(currentSlide.id, {
+        actions.updateSlide(newSlideId, {
           duration: template.duration || 5,
           background: {
             type: template.background.type || 'color',
@@ -749,7 +749,7 @@ export function useStoryAI(options: UseStoryAIOptions): void {
         });
       }
 
-      // Add elements from template
+      // Add elements from template with targetSlideId
       const contentMap: Record<string, string> = {
         'Tiêu đề chính': customs.title || 'Tiêu đề chính',
         'Phụ đề hoặc mô tả ngắn': customs.subtitle || 'Phụ đề hoặc mô tả ngắn',
@@ -759,7 +759,10 @@ export function useStoryAI(options: UseStoryAIOptions): void {
 
       for (const el of template.elements) {
         const content = contentMap[el.content] || el.content;
-        const extra: Record<string, unknown> = { style: el.style || {} };
+        const extra: Record<string, unknown> = { 
+          style: el.style || {},
+          targetSlideId: newSlideId,
+        };
         if (el.extra) Object.assign(extra, el.extra);
         
         actions.addElement(el.type, content, extra);
@@ -871,48 +874,78 @@ export function useStoryAI(options: UseStoryAIOptions): void {
 
       let slideCount = 0;
 
-      // Slide 1: Title
-      actions.addSlide();
+      // Slide 1: Title - use returned slide ID
+      const titleSlideId = actions.addSlide();
       slideCount++;
-      // Note: We'd need to track the new slide ID, for now we work with current
       
+      // Update slide background
+      if (titleSlideId) {
+        actions.updateSlide(titleSlideId, {
+          duration: 5,
+          background: { type: 'color', value: colors.bg },
+        });
+      }
+      
+      // Add elements to title slide using targetSlideId
       actions.addElement('shape', '', { 
         style: { x: 540, y: 100, width: 1080, height: 200, backgroundColor: colors.accent },
-        shapeType: 'rectangle' 
+        shapeType: 'rectangle',
+        targetSlideId: titleSlideId,
       });
       actions.addElement('text', 'TIN TỨC', { 
-        style: { x: 540, y: 100, width: 400, height: 80, fontSize: 36, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' } 
+        style: { x: 540, y: 100, width: 400, height: 80, fontSize: 36, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
+        targetSlideId: titleSlideId,
       });
       actions.addElement('text', headline, { 
-        style: { x: 540, y: 800, width: 950, height: 200, fontSize: 48, fontWeight: 'bold', color: colors.text, textAlign: 'center' } 
+        style: { x: 540, y: 800, width: 950, height: 200, fontSize: 48, fontWeight: 'bold', color: colors.text, textAlign: 'center' },
+        targetSlideId: titleSlideId,
       });
       actions.addElement('text', summary, { 
-        style: { x: 540, y: 1050, width: 850, height: 100, fontSize: 28, color: colors.text + 'cc', textAlign: 'center' } 
+        style: { x: 540, y: 1050, width: 850, height: 100, fontSize: 28, color: colors.text + 'cc', textAlign: 'center' },
+        targetSlideId: titleSlideId,
       });
 
       // Content slides
       for (let i = 0; i < points.length; i++) {
-        actions.addSlide();
+        const contentSlideId = actions.addSlide();
         slideCount++;
         
+        if (contentSlideId) {
+          actions.updateSlide(contentSlideId, {
+            duration: 5,
+            background: { type: 'color', value: colors.bg },
+          });
+        }
+        
         actions.addElement('text', `${i + 1}/${points.length}`, { 
-          style: { x: 540, y: 200, width: 200, height: 60, fontSize: 24, color: colors.accent, textAlign: 'center' } 
+          style: { x: 540, y: 200, width: 200, height: 60, fontSize: 24, color: colors.accent, textAlign: 'center' },
+          targetSlideId: contentSlideId,
         });
         actions.addElement('text', points[i], { 
-          style: { x: 540, y: 900, width: 900, height: 400, fontSize: 36, color: colors.text, textAlign: 'center' } 
+          style: { x: 540, y: 900, width: 900, height: 400, fontSize: 36, color: colors.text, textAlign: 'center' },
+          targetSlideId: contentSlideId,
         });
       }
 
       // Conclusion slide
       if (conclusion) {
-        actions.addSlide();
+        const conclusionSlideId = actions.addSlide();
         slideCount++;
         
+        if (conclusionSlideId) {
+          actions.updateSlide(conclusionSlideId, {
+            duration: 5,
+            background: { type: 'color', value: colors.bg },
+          });
+        }
+        
         actions.addElement('text', 'KẾT LUẬN', { 
-          style: { x: 540, y: 400, width: 400, height: 80, fontSize: 32, fontWeight: 'bold', color: colors.accent, textAlign: 'center' } 
+          style: { x: 540, y: 400, width: 400, height: 80, fontSize: 32, fontWeight: 'bold', color: colors.accent, textAlign: 'center' },
+          targetSlideId: conclusionSlideId,
         });
         actions.addElement('text', conclusion, { 
-          style: { x: 540, y: 900, width: 900, height: 300, fontSize: 32, color: colors.text, textAlign: 'center' } 
+          style: { x: 540, y: 900, width: 900, height: 300, fontSize: 32, color: colors.text, textAlign: 'center' },
+          targetSlideId: conclusionSlideId,
         });
       }
 

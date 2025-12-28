@@ -1,5 +1,6 @@
 import React from 'react';
 import { resolveMediaUrl } from '~/utils/mediaUrl';
+import { useAISettings } from '../../ai/useAISettings';
 import type { Story } from '../../types';
 
 interface SettingsModalProps {
@@ -10,6 +11,8 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose, story, onUpdateStory }: SettingsModalProps) {
+  const { settings: aiSettings, updateSettings: updateAISettings } = useAISettings();
+  
   if (!isOpen) return null;
 
   return (
@@ -78,7 +81,9 @@ export function SettingsModal({ isOpen, onClose, story, onUpdateStory }: Setting
             />
           </div>
 
+          {/* Story Settings */}
           <div className="border-t border-slate-700 pt-4 space-y-4">
+            <h4 className="text-sm font-medium text-slate-200">Playback</h4>
             <label className="flex items-center justify-between">
               <span className="text-sm text-slate-300">Auto-advance slides</span>
               <input
@@ -110,6 +115,41 @@ export function SettingsModal({ isOpen, onClose, story, onUpdateStory }: Setting
                   onUpdateStory({ settings: { ...story.settings!, showProgressBar: e.target.checked } })
                 }
                 className="w-4 h-4 accent-blue-500"
+              />
+            </label>
+          </div>
+
+          {/* AI Settings */}
+          <div className="border-t border-slate-700 pt-4 space-y-4">
+            <h4 className="text-sm font-medium text-slate-200 flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-400">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+              AI Assistant
+            </h4>
+            <label className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-slate-300">Enable AI Chat</span>
+                <p className="text-xs text-slate-500">Show AI assistant button</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={aiSettings.enabled}
+                onChange={(e) => updateAISettings({ enabled: e.target.checked })}
+                className="w-4 h-4 accent-purple-500"
+              />
+            </label>
+            <label className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-slate-300">Auto-open chat</span>
+                <p className="text-xs text-slate-500">Open chat panel on load</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={aiSettings.autoOpen}
+                onChange={(e) => updateAISettings({ autoOpen: e.target.checked })}
+                disabled={!aiSettings.enabled}
+                className="w-4 h-4 accent-purple-500 disabled:opacity-50"
               />
             </label>
           </div>
