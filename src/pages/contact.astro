@@ -1,6 +1,5 @@
 ﻿---
-import Features2 from '~/components/widgets/Features2.astro';
-import HeroText from '~/components/widgets/HeroText.astro';
+import { Icon } from 'astro-icon/components';
 import Layout from '~/layouts/PageLayout.astro';
 import { getCanonical } from '~/utils/permalinks';
 import { buildContactPageSchema } from '~/utils/structured-data';
@@ -20,81 +19,277 @@ const metadata = {
     }),
   ],
 };
+
+const contactMethods = [
+  {
+    icon: 'tabler:mail',
+    title: 'Email',
+    value: 'contact@bug.edu.vn',
+    href: 'mailto:contact@bug.edu.vn',
+    description: 'Phản hồi trong 24 giờ',
+  },
+  {
+    icon: 'tabler:brand-github',
+    title: 'GitHub',
+    value: '@ptndz',
+    href: 'https://github.com/ptndz',
+    description: 'Xem các dự án của tôi',
+  },
+  {
+    icon: 'tabler:brand-telegram',
+    title: 'Telegram',
+    value: '@Ptn1411',
+    href: 'https://t.me/Ptn1411',
+    description: 'Tin nhắn trực tiếp',
+  },
+  {
+    icon: 'tabler:brand-linkedin',
+    title: 'LinkedIn',
+    value: 'Ptn1411',
+    href: 'https://linkedin.com/in/Ptn1411',
+    description: 'Kết nối chuyên nghiệp',
+  },
+];
+
+const faqs = [
+  {
+    question: 'Bạn có làm việc freelance không?',
+    answer:
+      'Có, tôi nhận các dự án freelance phù hợp với lịch trình và kỹ năng của mình. Hãy gửi chi tiết dự án qua email.',
+  },
+  {
+    question: 'Thời gian phản hồi thường là bao lâu?',
+    answer: 'Tôi thường phản hồi trong vòng 24 giờ làm việc. Nếu khẩn cấp, vui lòng ghi rõ trong tiêu đề email.',
+  },
+  {
+    question: 'Bạn có nhận tư vấn kỹ thuật không?',
+    answer: 'Có, tôi nhận tư vấn về phát triển web, kiến trúc hệ thống và các công nghệ mà tôi có kinh nghiệm.',
+  },
+];
 ---
 
 <Layout metadata={metadata}>
-  <!-- Hero -->
-  <HeroText
-    tagline="Liên hệ"
-    title="Cùng nhau tạo nên điều gì đó"
-    subtitle="Bạn có ý tưởng dự án, lời mời hợp tác hay chỉ muốn chào hỏi? Tôi luôn sẵn sàng lắng nghe."
-  />
+  <!-- Hero Section -->
+  <section
+    class="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div
+      class="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-800 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.05))]">
+    </div>
 
-  <!-- Contact Form -->
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-32">
+      <div class="text-center">
+        <div class="inline-flex items-center gap-2 rounded-full bg-blue-50 dark:bg-blue-900/20 px-4 py-2 mb-8">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+          </span>
+          <span class="text-sm font-medium text-blue-900 dark:text-blue-100">Sẵn sàng hợp tác</span>
+        </div>
 
-  <section id="form" class="py-12">
-    <div class="mx-auto max-w-3xl">
-      <h2 class="text-3xl font-bold mb-4">Gửi tôi một lời nhắn</h2>
-      <p class="text-lg mb-8">
-        Tôi thường phản hồi trong vòng 24 giờ - cứ thoải mái chia sẻ ý tưởng hoặc câu hỏi của bạn.
-      </p>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 dark:text-white mb-6">
+          Cùng nhau tạo nên<br />
+          <span class="text-blue-600 dark:text-blue-400">điều gì đó đặc biệt</span>
+        </h1>
 
-      <div class="w-full min-h-[900px] rounded-xl overflow-hidden shadow-lg">
+        <p class="mx-auto max-w-2xl text-lg sm:text-xl text-slate-600 dark:text-slate-300 mb-12">
+          Bạn có ý tưởng dự án, lời mời hợp tác hay chỉ muốn chào hỏi? Tôi luôn sẵn sàng lắng nghe và thảo luận.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="#form"
+            class="group inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all duration-200 cursor-pointer">
+            <span>Gửi tin nhắn</span>
+            <Icon name="tabler:arrow-down" class="h-5 w-5 group-hover:translate-y-0.5 transition-transform" />
+          </a>
+          <a
+            href="mailto:contact@bug.edu.vn"
+            class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-8 py-4 text-base font-semibold text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-200 cursor-pointer">
+            <Icon name="tabler:mail" class="h-5 w-5" />
+            <span>Email trực tiếp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Methods Grid -->
+  <section class="py-16 sm:py-20 bg-white dark:bg-slate-900">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">Kênh liên hệ</h2>
+        <p class="text-lg text-slate-600 dark:text-slate-300">Chọn kênh phù hợp nhất với bạn</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {
+          contactMethods.map((method) => (
+            <a
+              href={method.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group relative overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-800 p-6 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-300 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 cursor-pointer hover:shadow-lg">
+              <div class="flex flex-col gap-4">
+                <div class="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">
+                  <Icon name={method.icon} class="h-6 w-6" />
+                </div>
+
+                <div>
+                  <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-1">{method.title}</h3>
+                  <p class="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">{method.value}</p>
+                  <p class="text-sm text-slate-600 dark:text-slate-400">{method.description}</p>
+                </div>
+              </div>
+
+              <div class="absolute top-0 right-0 -mr-8 -mt-8 h-24 w-24 rounded-full bg-blue-100 dark:bg-blue-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Form Section -->
+  <section id="form" class="py-16 sm:py-20 bg-slate-50 dark:bg-slate-800">
+    <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">Gửi tôi một lời nhắn</h2>
+        <p class="text-lg text-slate-600 dark:text-slate-300">Điền form bên dưới, tôi sẽ phản hồi trong vòng 24 giờ</p>
+      </div>
+
+      <div
+        class="relative w-full rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
         <iframe
           src="https://docs.google.com/forms/d/e/1FAIpQLScQJwOpLGFrES6Ah5wg3BohZ2P4MCGj816-N8Szxvale5K2Zg/viewform?embedded=true"
           width="100%"
           height="900"
           frameborder="0"
           marginheight="0"
-          marginwidth="0">
+          marginwidth="0"
+          title="Biểu mẫu liên hệ"
+          loading="lazy">
           Đang tải…
         </iframe>
       </div>
 
-      <p class="mt-4 text-sm text-gray-500">Tin nhắn của bạn sẽ đến thẳng hộp thư của tôi.</p>
-
-      <p class="mt-2 text-sm text-gray-500">
-        Tôi chỉ sử dụng thông tin liên hệ để trả lời bạn. Không spam, không đăng ký.
-      </p>
+      <div
+        class="mt-8 flex flex-col sm:flex-row gap-4 items-center justify-center text-sm text-slate-600 dark:text-slate-400">
+        <div class="flex items-center gap-2">
+          <Icon name="tabler:shield-check" class="h-5 w-5 text-green-600 dark:text-green-400" />
+          <span>Bảo mật thông tin</span>
+        </div>
+        <div class="hidden sm:block text-slate-300 dark:text-slate-600">•</div>
+        <div class="flex items-center gap-2">
+          <Icon name="tabler:clock" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <span>Phản hồi trong 24h</span>
+        </div>
+        <div class="hidden sm:block text-slate-300 dark:text-slate-600">•</div>
+        <div class="flex items-center gap-2">
+          <Icon name="tabler:mail-off" class="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          <span>Không spam</span>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- Contact Info -->
-  <Features2
-    title="Kênh liên hệ khác"
-    tagline="Liên kết nhanh"
-    columns={3}
-    items={[
-      {
-        title: 'GitHub',
-        description: 'github.com/ptndz',
-        icon: 'tabler:brand-github',
-      },
-      {
-        title: 'Email',
-        description: 'contact@bug.edu.vn',
-        icon: 'tabler:mail',
-      },
-      {
-        title: 'Telegram',
-        description: 't.me/Ptn1411',
-        icon: 'tabler:send',
-      },
-      {
-        title: 'LinkedIn',
-        description: 'linkedin.com/in/Ptn1411',
-        icon: 'tabler:brand-linkedin',
-      },
-      {
-        title: 'Vị trí',
-        description: 'Việt Nam (GMT+7)',
-        icon: 'tabler:map-pin',
-      },
-      {
-        title: 'Portfolio',
-        description: 'bug.edu.vn',
-        icon: 'tabler:world',
-      },
-    ]}
-  />
+  <!-- FAQ Section -->
+  <section class="py-16 sm:py-20 bg-white dark:bg-slate-900">
+    <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">Câu hỏi thường gặp</h2>
+        <p class="text-lg text-slate-600 dark:text-slate-300">Một số câu hỏi phổ biến từ những người liên hệ</p>
+      </div>
+
+      <div class="space-y-6">
+        {
+          faqs.map((faq, index) => (
+            <div class="group rounded-2xl bg-slate-50 dark:bg-slate-800 p-6 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200 border border-slate-200 dark:border-slate-700">
+              <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-3 flex items-start gap-3">
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-bold flex-shrink-0">
+                  {index + 1}
+                </span>
+                <span>{faq.question}</span>
+              </h3>
+              <p class="text-slate-600 dark:text-slate-300 ml-9">{faq.answer}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Location & Availability -->
+  <section class="py-16 sm:py-20 bg-slate-50 dark:bg-slate-800">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Location Card -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 p-8 border border-slate-200 dark:border-slate-700">
+          <div class="flex items-center gap-4 mb-6">
+            <div
+              class="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+              <Icon name="tabler:map-pin" class="h-6 w-6" />
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Vị trí</h3>
+          </div>
+          <div class="space-y-3 text-slate-600 dark:text-slate-300">
+            <p class="flex items-center gap-2">
+              <Icon name="tabler:world" class="h-5 w-5 text-slate-400" />
+              <span>Việt Nam</span>
+            </p>
+            <p class="flex items-center gap-2">
+              <Icon name="tabler:clock" class="h-5 w-5 text-slate-400" />
+              <span>GMT+7 (ICT)</span>
+            </p>
+            <p class="flex items-center gap-2">
+              <Icon name="tabler:building" class="h-5 w-5 text-slate-400" />
+              <span>Làm việc từ xa</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Availability Card -->
+        <div class="rounded-2xl bg-white dark:bg-slate-900 p-8 border border-slate-200 dark:border-slate-700">
+          <div class="flex items-center gap-4 mb-6">
+            <div
+              class="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+              <Icon name="tabler:calendar" class="h-6 w-6" />
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Sẵn sàng</h3>
+          </div>
+          <div class="space-y-3 text-slate-600 dark:text-slate-300">
+            <p class="flex items-center gap-2">
+              <Icon name="tabler:briefcase" class="h-5 w-5 text-slate-400" />
+              <span>Dự án Freelance</span>
+            </p>
+            <p class="flex items-center gap-2">
+              <Icon name="tabler:users" class="h-5 w-5 text-slate-400" />
+              <span>Hợp tác kỹ thuật</span>
+            </p>
+            <p class="flex items-center gap-2">
+              <Icon name="tabler:message-circle" class="h-5 w-5 text-slate-400" />
+              <span>Tư vấn dự án</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </Layout>
+
+<style>
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .bg-grid-slate-100 {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(241 245 249)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+  }
+
+  .dark .bg-grid-slate-800 {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(30 41 59)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+  }
+</style>

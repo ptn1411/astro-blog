@@ -3,10 +3,24 @@ import Headline from '~/components/ui/Headline.astro';
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import type { Widget } from '~/types';
 
+type Column = {
+  title: string;
+  classes?: { title?: string };
+  highlight?: boolean;
+};
+
+type Row = {
+  cells: (string | boolean)[];
+};
+
 export interface Props extends Widget {
   title?: string;
   subtitle?: string;
   tagline?: string;
+  // New flexible table API
+  items?: Column[];
+  rows?: Row[];
+  // Backward compatibility with old "plans" API
   plans?: {
     name: string;
     features: { name: string; included: boolean }[];
@@ -17,6 +31,8 @@ const {
   title = '',
   subtitle = '',
   tagline = '',
+  items = [],
+  rows = [],
   plans = [],
   id,
   isDark = false,
@@ -25,8 +41,28 @@ const {
   ...rest
 } = Astro.props;
 
-// Get all unique feature names from the first plan
-const featureNames = plans[0]?.features?.map((f) => f.name) || [];
+// Normalize headers
+const normalizedHeaders: Column[] =
+  items.length > 0
+    ? items
+    : plans.length > 0
+      ? [
+          { title: 'Feature', classes: { title: 'text-left' } },
+          ...plans.map((plan) => ({ title: plan.name, classes: { title: 'text-center' } })),
+        ]
+      : [];
+
+// Normalize rows
+const normalizedRows: Row[] =
+  rows.length > 0
+    ? rows
+    : plans.length > 0
+      ? (plans[0]?.features || []).map((f) => ({
+          cells: [f.name, ...plans.map((plan) => plan.features.find((x) => x.name === f.name)?.included ?? false)],
+        }))
+      : [];
+
+const hasTable = normalizedHeaders.length > 0 && normalizedRows.length > 0;
 ---
 
 <WidgetWrapper
@@ -37,43 +73,44 @@ const featureNames = plans[0]?.features?.map((f) => f.name) || [];
   {...rest}>
   <Headline title={title} subtitle={subtitle} tagline={tagline} />
 
-  <div class="overflow-x-auto px-4">
-    <table class="w-full border-collapse">
-      <thead>
-        <tr>
-          <th class="p-4 text-left bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 dark:text-white"
-            >Feature</th
-          >
-          {
-            plans.map((plan) => (
-              <th class="p-4 text-center bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 dark:text-white">
-                {plan.name}
-              </th>
-            ))
-          }
-        </tr>
-      </thead>
-      <tbody>
-        {
-          featureNames.map((name) => (
+  {
+    hasTable ? (
+      <div class="overflow-x-auto px-4">
+        <table class="w-full border-collapse">
+          <thead>
             <tr>
-              <td class="p-4 border dark:border-slate-700 dark:text-slate-300">{name}</td>
-              {plans.map((plan) => {
-                const feature = plan.features.find((f) => f.name === name);
-                return (
-                  <td class="p-4 text-center border dark:border-slate-700">
-                    {feature?.included ? (
-                      <span class="text-green-500 text-xl font-bold">✓</span>
+              {normalizedHeaders.map((col) => (
+                <th
+                  class={`p-4 border dark:border-slate-700 bg-gray-50 dark:bg-slate-800 dark:text-white ${col.classes?.title ?? ''} ${col.highlight ? 'bg-sky-50 dark:bg-slate-800/80 font-semibold' : ''}`}>
+                  {col.title}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {normalizedRows.map((row) => (
+              <tr>
+                {row.cells.map((cell, idx) => (
+                  <td
+                    class={`p-4 border dark:border-slate-700 ${idx === 0 ? 'text-left dark:text-slate-300' : 'text-center'}`}>
+                    {typeof cell === 'boolean' ? (
+                      cell ? (
+                        <span class="text-green-500 text-xl font-bold">✓</span>
+                      ) : (
+                        <span class="text-red-500 text-xl font-bold">✕</span>
+                      )
                     ) : (
-                      <span class="text-red-500 text-xl font-bold">✕</span>
+                      <span class="dark:text-slate-300">{cell}</span>
                     )}
                   </td>
-                );
-              })}
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-  </div>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <div class="px-4 text-sm text-slate-500 dark:text-slate-400">No comparison data provided.</div>
+    )
+  }
 </WidgetWrapper>

@@ -4,9 +4,11 @@ import logo from '~/assets/favicons/logo.png';
 import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import Content from '~/components/widgets/Content.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
 import Features3 from '~/components/widgets/Features3.astro';
 import Header from '~/components/widgets/Header.astro';
 import Hero from '~/components/widgets/Hero.astro';
+import Stats from '~/components/widgets/Stats.astro';
 import Steps from '~/components/widgets/Steps.astro';
 import Testimonials from '~/components/widgets/Testimonials.astro';
 import Layout from '~/layouts/PageLayout.astro';
@@ -16,9 +18,9 @@ import { buildPersonSchema } from '~/utils/structured-data';
 const canonical = String(getCanonical(Astro.url.pathname));
 
 const metadata = {
-  title: 'Phạm Thành Nam - Lập trình viên Fullstack & Maker',
+  title: 'Phạm Thành Nam — Fullstack Developer & Creative Maker',
   description:
-    'Portfolio dự án cá nhân của Phạm Thành Nam: sản phẩm số, công cụ nội bộ và trải nghiệm sáng tạo do tôi thiết kế và triển khai.',
+    'Portfolio của Phạm Thành Nam: Fullstack Developer chuyên xây dựng ứng dụng web hiện đại, công cụ sáng tạo và kiến trúc hệ thống. React, Node.js, Go.',
   canonical,
   structuredData: [
     buildPersonSchema(canonical, {
@@ -26,7 +28,7 @@ const metadata = {
     }),
     {
       '@type': 'CollectionPage',
-      name: 'Danh mục dự án cá nhân',
+      name: 'Portfolio - Phạm Thành Nam',
       url: canonical,
       description:
         'Tổng hợp các dự án cá nhân nổi bật: công cụ nội bộ, ứng dụng web và trải nghiệm sáng tạo tôi phát triển.',
@@ -40,36 +42,45 @@ const metadata = {
   <Fragment slot="header">
     <Header
       links={[
-        { text: 'Trang chủ', href: '#' },
+        { text: 'Trang chủ', href: '/' },
+        { text: 'Giới thiệu', href: '#about' },
         { text: 'Dự án', href: '#projects' },
         { text: 'Kỹ năng', href: '#skills' },
         { text: 'Blog', href: '#blog' },
-        { text: 'GitHub', href: 'https://github.com/ptndz' },
       ]}
-      actions={[{ text: 'Liên hệ', href: getPermalink('/contact#form') }]}
+      actions={[
+        { text: 'GitHub', href: 'https://github.com/ptndz', variant: 'secondary', icon: 'tabler:brand-github' },
+        { text: 'Liên hệ', href: getPermalink('/contact#form'), variant: 'primary' },
+      ]}
       isSticky
       showToggleTheme
     />
     <script is:inline src="/particles.min.js"></script>
   </Fragment>
 
-  <!-- Hero -->
-
+  <!-- Hero Section - Motion-driven minimalist design -->
   <Hero
     id="hero"
     title="Phạm Thành Nam"
-    tagline="Lập trình viên Fullstack & Người làm cà phê ☕"
-    actions={[{ variant: 'primary', text: 'Hợp tác cùng tôi', href: getPermalink('/contact#form') }]}>
+    tagline="Fullstack Developer & Creative Maker"
+    actions={[
+      { variant: 'primary', text: 'Xem dự án', href: '#projects', icon: 'tabler:arrow-down' },
+      { variant: 'secondary', text: 'Liên hệ ngay', href: getPermalink('/contact#form'), icon: 'tabler:mail' },
+    ]}>
     <Fragment slot="subtitle">
-      Tôi là một lập trình viên web đam mê xây dựng <b>ứng dụng hiện đại, công cụ sáng tạo và kiến trúc hệ thống</b>.<br
-      />
-      Từ <b>backend Node.js</b> đến <b>frontend React</b> và <b>microservice Go</b> - tôi biến ý tưởng thành sản phẩm vận
-      hành ổn định và đẹp mắt.
+      <span class="block text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
+        Tôi xây dựng <span class="font-semibold text-primary">ứng dụng web hiện đại</span>,
+        <span class="font-semibold text-primary">công cụ sáng tạo</span> và
+        <span class="font-semibold text-primary">hệ thống có khả năng mở rộng</span>.
+      </span>
+      <span class="block mt-3 text-base sm:text-lg text-slate-500 dark:text-slate-400">
+        Từ backend Node.js đến frontend React và microservice Go — biến ý tưởng thành sản phẩm hoàn chỉnh.
+      </span>
     </Fragment>
     <Fragment slot="bg">
       <div id="hero-particles" class="absolute inset-0 pointer-events-none">
         <div
-          class="absolute inset-0 bg-gradient-to-br from-indigo-100/60 via-white/0 to-blue-200/50 dark:from-slate-900 dark:via-slate-900/30 dark:to-indigo-950">
+          class="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white/60 to-indigo-100/70 dark:from-slate-900 dark:via-slate-900/95 dark:to-indigo-950/80">
         </div>
       </div>
 
@@ -78,31 +89,23 @@ const metadata = {
         const particlesConfig = {
           particles: {
             number: {
-              value: 90,
-              density: { enable: true, value_area: 900 },
+              value: 60,
+              density: { enable: true, value_area: 1000 },
             },
-            color: { value: ['#6366f1', '#8b5cf6', '#06b6d4'] },
-            shape: {
-              type: 'circle',
-            },
-            opacity: {
-              value: 0.45,
-              random: true,
-            },
-            size: {
-              value: 3,
-              random: true,
-            },
+            color: { value: ['#3B82F6', '#6366f1', '#8B5CF6'] },
+            shape: { type: 'circle' },
+            opacity: { value: 0.4, random: true },
+            size: { value: 2.5, random: true },
             line_linked: {
               enable: true,
-              distance: 150,
-              color: '#6366f1',
-              opacity: 0.35,
+              distance: 140,
+              color: '#3B82F6',
+              opacity: 0.25,
               width: 1,
             },
             move: {
               enable: true,
-              speed: 1.2,
+              speed: 0.8,
               direction: 'none',
               random: false,
               straight: false,
@@ -113,20 +116,12 @@ const metadata = {
           interactivity: {
             detect_on: 'window',
             events: {
-              onhover: {
-                enable: true,
-                mode: 'grab',
-              },
-              onclick: {
-                enable: false,
-              },
+              onhover: { enable: true, mode: 'grab' },
+              onclick: { enable: false },
               resize: true,
             },
             modes: {
-              grab: {
-                distance: 180,
-                line_linked: { opacity: 0.5 },
-              },
+              grab: { distance: 160, line_linked: { opacity: 0.4 } },
             },
           },
           retina_detect: true,
@@ -145,10 +140,7 @@ const metadata = {
 
         const createParticles = () => {
           const container = document.getElementById(PARTICLE_CONTAINER_ID);
-          if (!container || typeof window === 'undefined' || typeof window.particlesJS !== 'function') {
-            return;
-          }
-
+          if (!container || typeof window === 'undefined' || typeof window.particlesJS !== 'function') return;
           destroyExistingInstance();
           container.innerHTML = '<div class="absolute inset-0"></div>';
           window.particlesJS(PARTICLE_CONTAINER_ID, particlesConfig);
@@ -168,167 +160,348 @@ const metadata = {
     </Fragment>
   </Hero>
 
-  <!-- About -->
+  <!-- About Section - Personal branding -->
   <Content
     id="about"
-    columns={3}
+    columns={2}
+    isReversed
     image={{
       src: logo,
-      alt: 'Phạm Thành Nam',
+      alt: 'Phạm Thành Nam - Fullstack Developer',
       loading: 'lazy',
-    }}>
+    }}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}>
     <Fragment slot="content">
-      <h2 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Về tôi</h2>
-      <p>
-        Tôi là lập trình viên fullstack với niềm vui <b>xây dựng và tối ưu ứng dụng</b>. Tôi tạo ra những hệ thống dung
-        hòa kỹ thuật và sáng tạo - từ
-        <b>trình biên tập React</b> đến <b>reverse proxy viết bằng Go</b> hay <b>nền tảng thanh toán nội bộ</b>.
+      <span
+        class="inline-flex items-center gap-2 px-3 py-1 mb-4 text-sm font-medium text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900/30 dark:text-blue-300">
+        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+        Sẵn sàng nhận dự án mới
+      </span>
+      <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl mb-4">Về tôi</h2>
+      <p class="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+        Tôi là <strong class="text-slate-900 dark:text-white">lập trình viên fullstack</strong> với niềm đam mê
+        <strong class="text-slate-900 dark:text-white">xây dựng và tối ưu ứng dụng</strong>. Tôi tạo ra những hệ thống
+        dung hòa kỹ thuật và sáng tạo — từ trình biên tập React, reverse proxy Go cho đến nền tảng thanh toán nội bộ.
       </p>
-      <br />
-      <p>
-        Ngoài việc viết code, tôi còn là một <b>người trồng cà phê</b> - sự kết hợp giữa công nghệ và cuộc sống nông trại
-        giúp tôi tạo ra quy trình hiệu quả hơn và sản phẩm tốt hơn.
+      <p class="mt-4 text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+        Ngoài việc viết code, tôi còn là một <strong class="text-slate-900 dark:text-white">người trồng cà phê</strong> —
+        sự kết hợp giữa công nghệ và cuộc sống nông trại giúp tôi tạo ra quy trình hiệu quả và sản phẩm tốt hơn.
       </p>
+      <div class="flex flex-wrap gap-3 mt-6">
+        <span
+          class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg dark:bg-slate-800 dark:text-slate-300">
+          7+ năm kinh nghiệm
+        </span>
+        <span
+          class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg dark:bg-slate-800 dark:text-slate-300">
+          20+ dự án hoàn thành
+        </span>
+        <span
+          class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg dark:bg-slate-800 dark:text-slate-300">
+          Đà Lạt, Việt Nam
+        </span>
+      </div>
     </Fragment>
   </Content>
 
-  <!-- Experience -->
+  <!-- Stats Section -->
+  <Stats
+    stats={[
+      { title: 'Năm kinh nghiệm', amount: '7+' },
+      { title: 'Dự án hoàn thành', amount: '20+' },
+      { title: 'Công nghệ thành thạo', amount: '15+' },
+      { title: 'Khách hàng hài lòng', amount: '100%' },
+    ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+  />
+
+  <!-- Experience Timeline -->
   <Steps
     id="resume"
-    title="Kinh nghiệm"
+    title="Hành trình phát triển"
+    subtitle="Từ sinh viên đam mê code đến lập trình viên fullstack chuyên nghiệp"
     items={[
       {
         title:
-          'Fullstack Developer <br /> <span class="font-normal">Freelance / Independent</span> <br /> <span class="text-sm font-normal">2017 - Hiện tại</span>',
+          'Fullstack Developer <br /> <span class="font-normal text-slate-600 dark:text-slate-400">Freelance / Independent</span> <br /> <span class="text-sm font-normal text-blue-600 dark:text-blue-400">2017 - Hiện tại</span>',
         description:
           'Thiết kế và phát triển ứng dụng web với Node.js, React, Prisma, PostgreSQL và Docker. Xây CMS tuỳ chỉnh, tích hợp thanh toán và các công cụ chỉnh sửa sáng tạo. Tư vấn kiến trúc và triển khai có khả năng mở rộng.',
-        icon: 'tabler:code',
+        icon: 'tabler:briefcase',
       },
       {
         title:
-          'System Builder <br /> <span class="font-normal">Dự án cá nhân & khởi nghiệp</span> <br /> <span class="text-sm font-normal">Liên tục</span>',
+          'System Builder <br /> <span class="font-normal text-slate-600 dark:text-slate-400">Dự án cá nhân & khởi nghiệp</span> <br /> <span class="text-sm font-normal text-blue-600 dark:text-blue-400">Liên tục</span>',
         description:
-          'Tạo ra "UI Builder" (trình dựng giao diện kéo thả bằng React), "Story Composer" (trình biên tập media với Konva + FFmpeg) và reverse proxy viết bằng Go lấy cảm hứng từ Caddy. Quản lý hạ tầng bằng PM2, Docker Compose và Nginx Proxy Manager.',
-        icon: 'tabler:terminal',
+          'Tạo ra "UI Builder" (trình dựng giao diện kéo thả bằng React), "Story Composer" (trình biên tập media với Konva + FFmpeg) và reverse proxy viết bằng Go. Quản lý hạ tầng bằng PM2, Docker Compose và Nginx Proxy Manager.',
+        icon: 'tabler:rocket',
+      },
+      {
+        title:
+          'Coffee Farmer <br /> <span class="font-normal text-slate-600 dark:text-slate-400">Nông trại cà phê Đà Lạt</span> <br /> <span class="text-sm font-normal text-blue-600 dark:text-blue-400">Song song</span>',
+        description:
+          'Kết hợp công nghệ với nông nghiệp — xây dựng hệ thống quản lý nông trại, theo dõi quy trình sản xuất và tối ưu hóa chuỗi cung ứng cà phê đặc sản.',
+        icon: 'tabler:plant',
       },
     ]}
-    classes={{ container: 'max-w-3xl' }}
+    classes={{ container: 'max-w-4xl motion-safe:md:intersect:animate-fade' }}
   />
 
-  <!-- Skills - Lazy loaded -->
+  <!-- Skills Section - Tech Stack Grid -->
   <Features3
     id="skills"
-    title="Kỹ năng kỹ thuật"
-    subtitle="Sự kết hợp giữa kỹ thuật, sáng tạo và kinh nghiệm DevOps."
+    title="Tech Stack"
+    subtitle="Công cụ và công nghệ tôi sử dụng hàng ngày để xây dựng sản phẩm"
     columns={3}
     classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
-      { title: 'Frontend', description: 'React, Next.js, Astro, TailwindCSS, Shadcn UI' },
-      { title: 'Backend', description: 'Node.js (Express/Fastify), Go, PHP, Prisma ORM' },
-      { title: 'Cơ sở dữ liệu', description: 'PostgreSQL, MySQL, Redis' },
-      { title: 'DevOps', description: 'Docker, PM2, Nginx Proxy Manager, triển khai VPS' },
-      { title: 'Công cụ sáng tạo', description: 'FFmpeg, Three.js, Konva.js, huấn luyện mô hình YOLO' },
-      { title: 'Kiến trúc', description: 'Monorepo dạng mô-đun, thiết kế API, hệ thống định tuyến mở rộng' },
-    ]}
-  />
+      {
+        title: 'Frontend',
+        description: 'React 19, Next.js, Astro, TailwindCSS, Shadcn/ui, Framer Motion',
+        icon: 'tabler:layout',
+      },
+      {
+        title: 'Backend',
+        description: 'Node.js, Express, Fastify, Go, Prisma ORM, REST/GraphQL',
+        icon: 'tabler:server',
+      },
+      {
+        title: 'Database',
+        description: 'PostgreSQL, MySQL, Redis, MongoDB, SQLite',
+        icon: 'tabler:database',
+      },
+      {
+        title: 'DevOps',
+        description: 'Docker, PM2, Nginx, GitHub Actions, VPS Management',
+        icon: 'tabler:cloud',
+      },
+      {
+        title: 'Creative Tools',
+        description: 'FFmpeg, Konva.js, Three.js, Canvas API, YOLO Training',
+        icon: 'tabler:palette',
+      },
+      {
+        title: 'Architecture',
+        description: 'Monorepo, Microservices, Event-driven, API Design',
+        icon: 'tabler:sitemap',
+      },
+    ]}>
+    <Fragment slot="bg">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-blue-50/50 to-transparent dark:via-slate-800/20">
+      </div>
+    </Fragment>
+  </Features3>
 
-  <!-- Projects -->
+  <!-- Featured Projects Section -->
   <Content
     id="projects"
     title="Dự án tiêu biểu"
-    subtitle="Những dấu ấn trong hành trình xây hệ thống mở rộng và công cụ sáng tạo."
+    subtitle="Những sản phẩm tôi tự hào xây dựng — từ ý tưởng đến triển khai"
     isReversed
     items={[
       {
         title: 'UI Builder (React)',
         description:
           'Trình biên tập kéo thả để tạo component giao diện động dựa trên JSON registry và Zustand store. Xây dựng bằng React 19, Tailwind và Shadcn UI.',
+        icon: 'tabler:drag-drop',
       },
       {
         title: 'Story Composer Pro',
         description:
           'Trình biên tập media trực quan với Node + React, sử dụng Konva.js và FFmpeg để tạo và render câu chuyện động với hiệu ứng, bộ lọc.',
+        icon: 'tabler:video',
       },
       {
         title: 'Go Reverse Proxy',
         description:
-          'Proxy server viết bằng Go, lấy cảm hứng từ Caddy - hỗ trợ cấp chứng chỉ tự động, định tuyến theo tên miền và cấu hình qua JSON.',
+          'Proxy server viết bằng Go, lấy cảm hứng từ Caddy — hỗ trợ cấp chứng chỉ tự động, định tuyến theo tên miền và cấu hình qua JSON.',
+        icon: 'tabler:arrows-right-left',
       },
     ]}
     image={{
-      src: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=870&q=80',
-      alt: 'Trình diễn dự án',
+      src: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=870&q=80',
+      alt: 'Workspace với nhiều màn hình hiển thị code',
       loading: 'lazy',
       widths: [400, 768, 870],
       sizes: '(max-width: 768px) 400px, 870px',
     }}
     callToAction={{
-      text: 'Xem thêm trên GitHub',
+      text: 'Xem trên GitHub',
       href: 'https://github.com/ptndz',
-      icon: 'tabler:chevron-right',
+      icon: 'tabler:brand-github',
     }}
-  />
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}>
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-slate-50 dark:bg-slate-900/50"></div>
+    </Fragment>
+  </Content>
 
-  <!-- Testimonials - Lazy loaded -->
+  <!-- More Projects -->
+  <Content
+    isAfterContent
+    items={[
+      {
+        title: 'Astro Blog Platform',
+        description:
+          'Blog cá nhân với Astro, MDX, và hệ thống SEO tối ưu. Hỗ trợ dark mode, tìm kiếm nhanh và phân tích lưu lượng.',
+        icon: 'tabler:writing',
+      },
+      {
+        title: 'Payment Gateway Integration',
+        description:
+          'Tích hợp đa cổng thanh toán (VNPay, Momo, ZaloPay) với hệ thống webhook và reconciliation tự động.',
+        icon: 'tabler:credit-card',
+      },
+      {
+        title: 'Farm Management System',
+        description:
+          'Hệ thống quản lý nông trại với IoT sensors, dashboard realtime và báo cáo tự động về năng suất, chi phí.',
+        icon: 'tabler:plant-2',
+      },
+    ]}
+    image={{
+      src: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=870&q=80',
+      alt: 'Code trên màn hình laptop',
+      loading: 'lazy',
+      widths: [400, 768, 870],
+      sizes: '(max-width: 768px) 400px, 870px',
+    }}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}>
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-slate-50 dark:bg-slate-900/50"></div>
+    </Fragment>
+  </Content>
+
+  <!-- Testimonials Section -->
   <Testimonials
-    title="Cộng sự nhận xét"
-    subtitle="Mọi người đánh giá cao sự rõ ràng, chính xác và tinh thần sáng tạo của tôi."
+    title="Đánh giá từ cộng sự"
+    subtitle="Những lời nhận xét từ người đã cùng tôi làm việc"
     classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     testimonials={[
       {
         testimonial:
           'Nam là sự kết hợp hiếm hoi giữa kỹ sư và nhà thiết kế — anh ấy xây dựng hệ thống vừa vững chắc về kỹ thuật vừa tinh tế trong trải nghiệm người dùng.',
-        name: 'Đồng nghiệp lập trình',
-        job: 'Kỹ sư Fullstack',
+        name: 'Minh Tuấn',
+        job: 'Fullstack Engineer',
+        image: {
+          src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop',
+          alt: 'Minh Tuấn',
+        },
       },
       {
         testimonial:
           'Làm việc với Nam rất trôi chảy — anh ấy dự đoán vấn đề sớm và bàn giao codebase có khả năng mở rộng, dễ bảo trì.',
-        name: 'Cộng sự công nghệ',
-        job: 'Kiến trúc sư phần mềm',
+        name: 'Hải Đăng',
+        job: 'Software Architect',
+        image: {
+          src: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=96&h=96&fit=crop',
+          alt: 'Hải Đăng',
+        },
       },
       {
         testimonial:
           'Khả năng tư duy hệ thống và tính tổ chức của Nam giúp đội ngũ tiết kiệm rất nhiều thời gian khi triển khai sản phẩm.',
-        name: 'Quản lý dự án',
+        name: 'Thu Hà',
         job: 'Project Manager',
+        image: {
+          src: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop',
+          alt: 'Thu Hà',
+        },
       },
       {
         testimonial:
           'Anh ấy luôn giữ thái độ cầu thị và tôn trọng mọi ý kiến — nhờ đó, các cuộc trao đổi kỹ thuật với Nam luôn mang lại kết quả tích cực.',
-        name: 'Cộng sự thiết kế',
+        name: 'Quốc Bảo',
         job: 'UI/UX Designer',
+        image: {
+          src: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop',
+          alt: 'Quốc Bảo',
+        },
       },
       {
         testimonial:
-          'Nam là người truyền cảm hứng — anh ấy thường chia sẻ kiến thức và hỗ trợ thành viên mới học hỏi nhanh chóng, bắt nhịp dự án chỉ trong vài ngày.',
-        name: 'Đồng đội phát triển',
+          'Nam là người truyền cảm hứng — anh ấy thường chia sẻ kiến thức và hỗ trợ thành viên mới học hỏi nhanh chóng.',
+        name: 'Việt Anh',
         job: 'Frontend Developer',
+        image: {
+          src: 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=96&h=96&fit=crop',
+          alt: 'Việt Anh',
+        },
       },
       {
         testimonial:
-          'Sự chuyên nghiệp và trách nhiệm của Nam khiến tôi hoàn toàn yên tâm khi giao các dự án quan trọng. Anh ấy không chỉ hoàn thành, mà luôn làm vượt mong đợi.',
-        name: 'Khách hàng hợp tác',
+          'Sự chuyên nghiệp và trách nhiệm của Nam khiến tôi hoàn toàn yên tâm khi giao các dự án quan trọng.',
+        name: 'Thanh Tùng',
         job: 'Founder & CEO',
+        image: {
+          src: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=96&h=96&fit=crop',
+          alt: 'Thanh Tùng',
+        },
+      },
+    ]}>
+    <Fragment slot="bg">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-blue-50/30 to-transparent dark:via-slate-800/10">
+      </div>
+    </Fragment>
+  </Testimonials>
+
+  <!-- FAQ Section -->
+  <FAQs
+    title="Câu hỏi thường gặp"
+    subtitle="Những thông tin hữu ích khi bạn muốn hợp tác cùng tôi"
+    classes={{ container: 'motion-safe:md:intersect:animate-fade max-w-4xl' }}
+    items={[
+      {
+        title: 'Bạn nhận những loại dự án nào?',
+        description:
+          'Tôi chuyên về ứng dụng web fullstack, từ landing page đến SaaS platform phức tạp. Các lĩnh vực mạnh: e-commerce, dashboard, content management, và các công cụ sáng tạo.',
+      },
+      {
+        title: 'Quy trình làm việc như thế nào?',
+        description:
+          'Bắt đầu với buổi discovery call để hiểu yêu cầu, sau đó là proposal chi tiết với timeline và cost breakdown. Phát triển theo sprint với demo thường xuyên và feedback loop chặt chẽ.',
+      },
+      {
+        title: 'Timeline và budget thường như thế nào?',
+        description:
+          'Tùy thuộc vào scope dự án. Landing page từ 1-2 tuần, web app từ 4-8 tuần. Tôi luôn cung cấp estimate chi tiết trước khi bắt đầu.',
+      },
+      {
+        title: 'Có hỗ trợ sau khi bàn giao không?',
+        description:
+          'Có, tôi cung cấp hỗ trợ kỹ thuật và bảo trì sau bàn giao. Các lỗi phát sinh trong scope ban đầu sẽ được fix miễn phí trong vòng 30 ngày.',
       },
     ]}
   />
 
-  <!-- Call to Action - Lazy loaded -->
+  <!-- Call to Action Section -->
   <CallToAction
-    title="Cùng xây điều tuyệt vời"
-    subtitle="Sẵn sàng cho hợp tác, tư vấn và những thử nghiệm sáng tạo."
+    title="Sẵn sàng bắt đầu dự án?"
+    subtitle="Hãy cùng biến ý tưởng của bạn thành sản phẩm thực tế. Tôi luôn sẵn sàng cho các cuộc trao đổi về công nghệ, hợp tác dự án hoặc những thử nghiệm sáng tạo."
     classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
-    actions={[{ variant: 'primary', text: 'Xem GitHub', href: 'https://github.com/ptndz' }]}
-  />
+    actions={[
+      { variant: 'primary', text: 'Liên hệ ngay', href: getPermalink('/contact#form'), icon: 'tabler:mail' },
+      { variant: 'secondary', text: 'Xem GitHub', href: 'https://github.com/ptndz', icon: 'tabler:brand-github' },
+    ]}>
+    <Fragment slot="bg">
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      </div>
+      <div
+        class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent">
+      </div>
+    </Fragment>
+  </CallToAction>
 
-  <!-- Blog -->
+  <!-- Blog Section -->
   <BlogLatestPosts
     id="blog"
-    title="Bài viết mới"
-    information="Tôi viết về JavaScript, React, Go và hành trình xây hệ thống sáng tạo - mời bạn khám phá những bài viết gần đây.">
+    title="Bài viết mới nhất"
+    information="Tôi chia sẻ kiến thức về JavaScript, React, Go, kiến trúc hệ thống và hành trình xây dựng sản phẩm. Mời bạn khám phá."
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}>
     <Fragment slot="bg">
-      <div class="absolute inset-0 bg-blue-50 dark:bg-transparent"></div>
+      <div class="absolute inset-0 bg-slate-50 dark:bg-slate-900/30"></div>
     </Fragment>
   </BlogLatestPosts>
 </Layout>

@@ -1,12 +1,17 @@
 ﻿---
-import CallToAction from "~/components/widgets/CallToAction.astro";
-import FAQs from "~/components/widgets/FAQs.astro";
-import Features3 from "~/components/widgets/Features3.astro";
-import HeroText from "~/components/widgets/HeroText.astro";
-import Prices from "~/components/widgets/Pricing.astro";
-import Layout from "~/layouts/PageLayout.astro";
-import { getCanonical } from "~/utils/permalinks";
-import { buildProfessionalServiceSchema } from "~/utils/structured-data";
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Comparison from '~/components/widgets/Comparison.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
+import Features3 from '~/components/widgets/Features3.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Note from '~/components/widgets/Note.astro';
+import Prices from '~/components/widgets/Pricing.astro';
+import Stats from '~/components/widgets/Stats.astro';
+import Steps from '~/components/widgets/Steps.astro';
+import Testimonials from '~/components/widgets/Testimonials.astro';
+import Layout from '~/layouts/PageLayout.astro';
+import { getCanonical, getPermalink } from '~/utils/permalinks';
+import { buildProfessionalServiceSchema } from '~/utils/structured-data';
 
 const canonical = String(getCanonical(Astro.url.pathname));
 
@@ -18,20 +23,14 @@ const metadata = {
   structuredData: [
     buildProfessionalServiceSchema({
       url: canonical,
-      serviceTypes: [
-        'Tư vấn và xây dựng MVP',
-        'Phát triển nền tảng fullstack',
-        'Triển khai hệ thống doanh nghiệp',
-      ],
-      description:
-        'Bảng giá nêu rõ các gói dịch vụ cho nhu cầu phát triển sản phẩm số ở nhiều quy mô.',
+      serviceTypes: ['Tư vấn và xây dựng MVP', 'Phát triển nền tảng fullstack', 'Triển khai hệ thống doanh nghiệp'],
+      description: 'Bảng giá nêu rõ các gói dịch vụ cho nhu cầu phát triển sản phẩm số ở nhiều quy mô.',
     }),
     {
       '@type': 'OfferCatalog',
       name: 'Bảng giá dịch vụ phát triển phần mềm',
       url: canonical,
-      description:
-        'Danh mục các gói dịch vụ Starter, Professional và Enterprise cho nhu cầu xây dựng sản phẩm.',
+      description: 'Danh mục các gói dịch vụ Starter, Professional và Enterprise cho nhu cầu xây dựng sản phẩm.',
       itemListElement: [
         {
           '@type': 'Offer',
@@ -73,15 +72,64 @@ const metadata = {
 ---
 
 <Layout metadata={metadata}>
-  <!-- Hero -->
-  <HeroText
-    tagline="Bảng giá"
-    title="Minh bạch và linh hoạt"
-    subtitle="Mỗi dự án đều khác nhau - nhưng triết lý định giá của tôi luôn giữ vững: công bằng, rõ ràng và chú trọng giá trị."
+  <!-- Hero - Pricing-focused with value proposition -->
+  <Hero
+    tagline="Bảng giá minh bạch"
+    title="Đầu tư thông minh cho sản phẩm số"
+    actions={[
+      { variant: 'primary', text: 'Xem gói dịch vụ', href: '#pricing', icon: 'tabler:arrow-down' },
+      {
+        variant: 'secondary',
+        text: 'Tư vấn miễn phí',
+        href: getPermalink('/contact#form'),
+        icon: 'tabler:message-circle',
+      },
+    ]}>
+    <Fragment slot="subtitle">
+      <span class="block text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl">
+        Mỗi dự án đều khác nhau — nhưng triết lý định giá của tôi luôn giữ vững:
+        <span class="font-semibold text-sky-700 dark:text-sky-400">công bằng</span>,
+        <span class="font-semibold text-sky-700 dark:text-sky-400">rõ ràng</span> và
+        <span class="font-semibold text-sky-700 dark:text-sky-400">chú trọng giá trị</span>.
+      </span>
+    </Fragment>
+    <Fragment slot="bg">
+      <div class="absolute inset-0 pointer-events-none">
+        <div
+          class="absolute inset-0 bg-gradient-to-br from-slate-50 via-sky-50/50 to-slate-100 dark:from-slate-900 dark:via-slate-900/95 dark:to-sky-950/30">
+        </div>
+        <div
+          class="absolute top-20 right-10 w-72 h-72 bg-sky-200/30 dark:bg-sky-800/20 rounded-full blur-3xl motion-safe:animate-pulse">
+        </div>
+        <div
+          class="absolute bottom-10 left-10 w-96 h-96 bg-indigo-200/20 dark:bg-indigo-900/20 rounded-full blur-3xl motion-safe:animate-pulse"
+          style="animation-delay: 1s;">
+        </div>
+      </div>
+    </Fragment>
+  </Hero>
+
+  <!-- Trust Stats -->
+  <Stats
+    stats={[
+      { title: 'Dự án hoàn thành', amount: '30+' },
+      { title: 'Khách hàng hài lòng', amount: '100%' },
+      { title: 'Năm kinh nghiệm', amount: '5+' },
+      { title: 'Tỷ lệ hoàn thành đúng hạn', amount: '95%' },
+    ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
   />
 
-  <!-- Services Pricing -->
+  <!-- Note - Value proposition -->
+  <Note
+    icon="tabler:info-circle"
+    title="Tất cả gói dịch vụ đều bao gồm tư vấn ban đầu miễn phí, báo giá chi tiết và không phí ẩn."
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+  />
+
+  <!-- Pricing Cards -->
   <Prices
+    id="pricing"
     title="Các gói phát triển"
     subtitle="Chọn gói phù hợp với nhu cầu của bạn. Không phí ẩn, không bất ngờ."
     prices={[
@@ -92,13 +140,14 @@ const metadata = {
         period: 'mỗi dự án',
         items: [
           { description: 'Frontend (React / Astro / Tailwind)' },
-          { description: 'Backend (Node.js / PHP)' },
+          { description: 'Backend đơn giản (Node.js / PHP)' },
           { description: 'Thiết lập triển khai (PM2 / Docker / Nginx)' },
+          { description: 'Responsive design' },
           { description: 'Hỗ trợ 1 tuần sau bàn giao' },
         ],
         callToAction: {
           text: 'Bắt đầu dự án',
-          href: '/contact',
+          href: getPermalink('/contact#form'),
         },
       },
       {
@@ -112,11 +161,13 @@ const metadata = {
           { description: 'Hệ thống fullstack (Next.js / Node / Prisma / Postgres)' },
           { description: 'Xác thực, dashboard quản trị, tích hợp API' },
           { description: 'Môi trường CI/CD & Docker' },
+          { description: 'SEO & Performance optimization' },
+          { description: 'Tài liệu kỹ thuật đầy đủ' },
           { description: 'Hỗ trợ 2 tuần sau khi ra mắt' },
         ],
         callToAction: {
           text: 'Cùng hợp tác',
-          href: '/contact',
+          href: getPermalink('/contact#form'),
         },
       },
       {
@@ -128,85 +179,246 @@ const metadata = {
           { description: 'Ứng dụng phức hợp hoặc nền tảng đa dịch vụ' },
           { description: 'Kiến trúc tùy chỉnh (Go, microservice, Redis, scaling)' },
           { description: 'Triển khai và bảo mật nâng cao' },
+          { description: 'Load testing & monitoring setup' },
+          { description: 'Training cho đội ngũ nội bộ' },
           { description: 'Đồng hành phát triển & tư vấn chuyên sâu' },
         ],
         callToAction: {
           text: 'Trao đổi dự án',
-          href: '/contact',
+          href: getPermalink('/contact#form'),
         },
       },
     ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
   />
 
-  <!-- Features -->
+  <!-- Feature Comparison -->
+  <Comparison
+    title="So sánh chi tiết các gói"
+    subtitle="Xem đầy đủ những gì bạn nhận được ở mỗi gói dịch vụ."
+    items={[
+      { title: 'Tính năng', classes: { title: 'text-left' } },
+      { title: 'Starter', classes: { title: 'text-center' } },
+      { title: 'Professional', classes: { title: 'text-center' }, highlight: true },
+      { title: 'Enterprise', classes: { title: 'text-center' } },
+    ]}
+    rows={[
+      { cells: ['Frontend Development', true, true, true] },
+      { cells: ['Backend Development', true, true, true] },
+      { cells: ['Database Setup', false, true, true] },
+      { cells: ['Authentication System', false, true, true] },
+      { cells: ['Admin Dashboard', false, true, true] },
+      { cells: ['CI/CD Pipeline', false, true, true] },
+      { cells: ['Docker Containerization', true, true, true] },
+      { cells: ['SEO Optimization', false, true, true] },
+      { cells: ['Performance Tuning', false, true, true] },
+      { cells: ['Load Testing', false, false, true] },
+      { cells: ['Monitoring Setup', false, false, true] },
+      { cells: ['Custom Architecture', false, false, true] },
+      { cells: ['Technical Documentation', 'Basic', 'Full', 'Comprehensive'] },
+      { cells: ['Post-launch Support', '1 tuần', '2 tuần', 'Linh hoạt'] },
+    ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+  />
+
+  <!-- Process Steps -->
+  <Steps
+    id="process"
+    tagline="Quy trình"
+    title="Cách chúng ta làm việc cùng nhau"
+    subtitle="Quy trình rõ ràng, minh bạch từ đầu đến cuối."
+    items={[
+      {
+        title: 'Bước 1: <span class="font-medium">Tư vấn miễn phí</span>',
+        description:
+          'Chúng ta trao đổi về ý tưởng, mục tiêu và ngân sách của bạn. Tôi sẽ đề xuất giải pháp và gói dịch vụ phù hợp nhất.',
+        icon: 'tabler:message-circle',
+      },
+      {
+        title: 'Bước 2: <span class="font-medium">Báo giá chi tiết</span>',
+        description: 'Bạn nhận được báo giá rõ ràng với timeline, deliverables và các mốc thanh toán. Không có phí ẩn.',
+        icon: 'tabler:file-invoice',
+      },
+      {
+        title: 'Bước 3: <span class="font-medium">Phát triển & Cập nhật</span>',
+        description:
+          'Tôi bắt đầu code và cập nhật tiến độ thường xuyên. Bạn có thể review và feedback ở mỗi milestone.',
+        icon: 'tabler:code',
+      },
+      {
+        title: 'Bước 4: <span class="font-medium">Bàn giao & Hỗ trợ</span>',
+        description: 'Sản phẩm được triển khai với tài liệu đầy đủ. Tôi hỗ trợ sau bàn giao theo gói đã chọn.',
+        icon: 'tabler:gift',
+      },
+    ]}
+    image={{
+      src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80',
+      alt: 'Quy trình làm việc chuyên nghiệp',
+    }}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+  />
+
+  <!-- Why Work With Me -->
   <Features3
+    tagline="Lợi thế"
     title="Vì sao làm việc cùng tôi"
-    subtitle="Không chỉ là code - tôi ưu tiên sự ổn định, rõ ràng và sáng tạo trong từng dự án."
-    columns={2}
+    subtitle="Không chỉ là code — tôi ưu tiên sự ổn định, rõ ràng và sáng tạo trong từng dự án."
+    columns={3}
     items={[
       {
         title: 'Chuyên môn fullstack',
         description:
-          'Từ API backend đến thiết kế giao diện, tôi bao quát toàn bộ quá trình phát triển - Node.js, Go, React và hơn thế nữa.',
+          'Từ API backend đến thiết kế giao diện, tôi bao quát toàn bộ quá trình phát triển — Node.js, Go, React và hơn thế nữa.',
         icon: 'tabler:layers-linked',
       },
       {
         title: 'Quy trình minh bạch',
-        description: 'Bạn luôn biết đang xây dựng gì, mất bao lâu và gồm những gì - không điều bất ngờ.',
+        description: 'Bạn luôn biết đang xây dựng gì, mất bao lâu và gồm những gì — không điều bất ngờ.',
         icon: 'tabler:clipboard-list',
       },
       {
-        title: 'Hợp tác thực sự',
-        description: 'Tôi xem mỗi dự án là một sự đồng hành - chúng ta cùng lặp lại, hoàn thiện và phát triển.',
-        icon: 'tabler:users',
+        title: 'Giao tiếp chủ động',
+        description: 'Cập nhật tiến độ thường xuyên, phản hồi nhanh và sẵn sàng giải thích các quyết định kỹ thuật.',
+        icon: 'tabler:message-check',
       },
       {
         title: 'Code bền vững',
         description: 'Tôi tạo ra hệ thống dễ đọc, dễ bảo trì và có thể mở rộng trong nhiều năm.',
         icon: 'tabler:code',
       },
+      {
+        title: 'Cam kết chất lượng',
+        description: 'Mỗi dự án đều được kiểm thử kỹ lưỡng trước khi bàn giao. Không có "works on my machine".',
+        icon: 'tabler:shield-check',
+      },
+      {
+        title: 'Hợp tác thực sự',
+        description: 'Tôi xem mỗi dự án là một sự đồng hành — chúng ta cùng lặp lại, hoàn thiện và phát triển.',
+        icon: 'tabler:users',
+      },
     ]}
-    classes={{ container: 'max-w-5xl' }}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+  />
+
+  <!-- Social Proof -->
+  <Testimonials
+    tagline="Phản hồi"
+    title="Khách hàng nói gì"
+    subtitle="Những đánh giá từ các dự án đã hoàn thành."
+    testimonials={[
+      {
+        testimonial:
+          'Nam làm việc rất chuyên nghiệp. Báo giá rõ ràng, timeline hợp lý và luôn cập nhật tiến độ. Sản phẩm cuối cùng vượt kỳ vọng.',
+        name: 'Khách hàng startup',
+        job: 'Founder & CEO',
+        image: {
+          src: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80',
+          alt: 'Founder & CEO',
+        },
+      },
+      {
+        testimonial:
+          'Tôi đánh giá cao cách Nam giải thích các quyết định kỹ thuật một cách dễ hiểu. Không chỉ code giỏi mà còn tư vấn đúng hướng.',
+        name: 'Đối tác kinh doanh',
+        job: 'Business Owner',
+        image: {
+          src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+          alt: 'Business Owner',
+        },
+      },
+      {
+        testimonial:
+          'Chi phí hợp lý cho chất lượng nhận được. Hệ thống chạy ổn định hơn 1 năm mà không cần bảo trì gì thêm.',
+        name: 'Khách hàng doanh nghiệp',
+        job: 'CTO',
+        image: {
+          src: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
+          alt: 'CTO',
+        },
+      },
+    ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
   />
 
   <!-- FAQs -->
   <FAQs
+    id="faqs"
+    tagline="FAQ"
     title="Câu hỏi thường gặp"
     subtitle="Vẫn còn thắc mắc về chi phí hoặc quy trình? Đây là một vài câu trả lời nhanh."
-    columns={1}
     items={[
       {
         title: 'Chúng ta có thể bắt đầu bằng dự án nhỏ không?',
         description:
           'Hoàn toàn được. Nhiều khách hàng khởi đầu bằng MVP ngắn hoặc prototype trước khi mở rộng thành sản phẩm hoàn chỉnh.',
+        icon: 'tabler:help-circle',
       },
       {
         title: 'Thanh toán diễn ra thế nào?',
-        description: 'Chi phí được chia thành các mốc rõ ràng (thường 50% đầu dự án, 50% khi bàn giao).',
+        description:
+          'Chi phí được chia thành các mốc rõ ràng (thường 50% đầu dự án, 50% khi bàn giao). Với dự án lớn có thể chia thành nhiều mốc hơn.',
+        icon: 'tabler:credit-card',
       },
       {
         title: 'Bạn có hỗ trợ vận hành lâu dài không?',
-        description: 'Có. Tôi cung cấp gói bảo trì linh hoạt hoặc hợp đồng retainer tùy quy mô dự án.',
+        description:
+          'Có. Tôi cung cấp gói bảo trì linh hoạt hoặc hợp đồng retainer tùy quy mô dự án. Chi phí được thống nhất riêng.',
+        icon: 'tabler:lifebuoy',
       },
       {
         title: 'Tôi chỉ muốn thuê tư vấn thì sao?',
-        description: 'Tất nhiên. Tôi nhận review kiến trúc, tối ưu hiệu năng hoặc mentoring cho đội ngũ nội bộ.',
+        description:
+          'Tất nhiên. Tôi nhận review kiến trúc, tối ưu hiệu năng hoặc mentoring cho đội ngũ nội bộ với mức phí tính theo giờ.',
+        icon: 'tabler:bulb',
+      },
+      {
+        title: 'Nếu dự án vượt quá timeline dự kiến thì sao?',
+        description:
+          'Tôi cam kết timeline và thông báo sớm nếu có vấn đề. Nếu delay do phía tôi, không tính thêm chi phí. Nếu do thay đổi scope, sẽ báo giá bổ sung.',
+        icon: 'tabler:clock',
+      },
+      {
+        title: 'Bạn có nhận dự án từ nước ngoài không?',
+        description:
+          'Có. Tôi đã làm việc với khách hàng từ Mỹ, Châu Âu và Đông Nam Á. Giao tiếp qua Slack/Discord và họp video khi cần.',
+        icon: 'tabler:world',
       },
     ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
   />
 
-  <!-- CTA -->
+  <!-- CTA - Dark gradient -->
   <CallToAction
-    title="Bạn đang ấp ủ ý tưởng?"
-    subtitle="Hãy biến nó thành sản phẩm thực tế - tôi sẽ đồng hành cùng bạn trong toàn bộ hành trình."
+    title="Sẵn sàng bắt đầu?"
+    subtitle="Hãy biến ý tưởng thành sản phẩm thực tế. Tư vấn ban đầu hoàn toàn miễn phí."
     actions={[
-      { variant: 'primary', text: 'Liên hệ', href: '/contact' },
-      { variant: 'secondary', text: 'Xem dự án', href: '/personal#projects' },
+      {
+        variant: 'primary',
+        text: 'Liên hệ ngay',
+        href: getPermalink('/contact#form'),
+        icon: 'tabler:mail',
+      },
+      {
+        variant: 'secondary',
+        text: 'Xem dự án',
+        href: getPermalink('/personal#projects'),
+        icon: 'tabler:briefcase',
+      },
     ]}
-  />
+    classes={{
+      container:
+        'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden',
+      title: 'text-white',
+      subtitle: 'text-slate-300',
+    }}>
+    <Fragment slot="bg">
+      <div
+        class="absolute top-0 right-0 w-96 h-96 bg-sky-600/20 rounded-full blur-3xl motion-safe:animate-pulse pointer-events-none">
+      </div>
+      <div
+        class="absolute bottom-0 left-0 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl motion-safe:animate-pulse pointer-events-none"
+        style="animation-delay: 1s;">
+      </div>
+    </Fragment>
+  </CallToAction>
 </Layout>
-
-
-
-
-

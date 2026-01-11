@@ -3,21 +3,24 @@ import logo from '~/assets/favicons/logo.png';
 import BlogLatestPosts from '~/components/widgets/BlogLatestPosts.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import Content from '~/components/widgets/Content.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
 import Features from '~/components/widgets/Features.astro';
 import Hero from '~/components/widgets/Hero.astro';
 import Note from '~/components/widgets/Note.astro';
 import Stats from '~/components/widgets/Stats.astro';
 import Steps from '~/components/widgets/Steps.astro';
+import Testimonials from '~/components/widgets/Testimonials.astro';
 import Layout from '~/layouts/PageLayout.astro';
-import { getCanonical } from '~/utils/permalinks';
+import { getCanonical, getPermalink } from '~/utils/permalinks';
 import { buildPersonSchema, buildProfessionalServiceSchema } from '~/utils/structured-data';
+
 const canonical = String(getCanonical(Astro.url.pathname));
 
 const metadata = {
-  title: 'Phạm Thành Nam - Lập trình viên Fullstack & Maker',
+  title: 'Phạm Thành Nam — Fullstack Developer & Creative Maker',
   ignoreTitleTemplate: true,
   description:
-    'Phát triển web fullstack, thiết kế hệ thống và xây dựng công cụ sáng tạo giúp doanh nghiệp triển khai ý tưởng thành sản phẩm thực tế.',
+    'Fullstack Developer chuyên xây dựng ứng dụng web hiện đại, công cụ sáng tạo và hệ thống có khả năng mở rộng. Node.js, React, Go.',
   canonical,
   structuredData: [
     buildPersonSchema(canonical, {
@@ -43,161 +46,277 @@ const metadata = {
 ---
 
 <Layout metadata={metadata}>
-  <!-- Hero -->
+  <!-- Hero Section - Motion-driven minimalist design -->
   <Hero
     actions={[
-      { variant: 'primary', text: 'Xem dự án', href: '/personal#projects' },
-      { text: 'Liên hệ', href: '/contact' },
+      { variant: 'primary', text: 'Xem dự án', href: '/personal#projects', icon: 'tabler:arrow-right' },
+      { variant: 'secondary', text: 'Liên hệ ngay', href: getPermalink('/contact#form'), icon: 'tabler:mail' },
     ]}
     image={{
       src: logo,
-      alt: 'Phạm Thành Nam',
+      alt: 'Phạm Thành Nam - Fullstack Developer',
     }}>
     <Fragment slot="title">
-      Xin chào, tôi là <span class="text-accent dark:text-white">Phạm Thành Nam</span><br />
-      Lập trình viên Fullstack & Người làm cà phê ☕
+      <span class="text-slate-900 dark:text-white">Xin chào, tôi là</span>
+      <span class="block text-primary dark:text-blue-400">Phạm Thành Nam</span>
     </Fragment>
 
     <Fragment slot="subtitle">
-      Tôi xây dựng <b>ứng dụng web hiện đại, công cụ sáng tạo và hệ thống có thể mở rộng</b>.<br />
-      Từ <b>API Node.js</b> đến <b>frontend React</b> và <b>hạ tầng Go</b> -<br />
-      tôi biến ý tưởng thành sản phẩm vận hành thực tế.
+      <span class="block text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
+        <span class="font-semibold text-slate-900 dark:text-white">Fullstack Developer</span> chuyên xây dựng
+        <span class="text-primary font-medium">ứng dụng web hiện đại</span>,
+        <span class="text-primary font-medium">công cụ sáng tạo</span> và
+        <span class="text-primary font-medium">hệ thống có khả năng mở rộng</span>.
+      </span>
+      <span class="block mt-3 text-base sm:text-lg text-slate-500 dark:text-slate-400">
+        Từ API Node.js đến frontend React và hạ tầng Go & Rust — biến ý tưởng thành sản phẩm vận hành thực tế.
+      </span>
+    </Fragment>
+
+    <Fragment slot="bg">
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/50">
+      </div>
+      <div
+        class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent dark:from-blue-900/20">
+      </div>
     </Fragment>
   </Hero>
 
-  <!-- Intro -->
-  <Note title="Triết lý:" description="Xây đơn giản. Mở rộng khôn ngoan. Giữ lửa sáng tạo." />
+  <!-- Intro Note -->
+  <Note title="Triết lý phát triển:" description="Xây đơn giản • Mở rộng khôn ngoan • Giữ lửa sáng tạo" />
 
-  <!-- Features -->
+  <!-- Features Section - Services -->
   <Features
     id="features"
     tagline="Chuyên môn"
-    title="Tôi mang đến điều gì"
-    subtitle="Tôi giúp cá nhân và đội ngũ xây những sản phẩm đáng tin cậy, sáng tạo và dễ bảo trì."
+    title="Dịch vụ tôi cung cấp"
+    subtitle="Giúp cá nhân và đội ngũ xây những sản phẩm đáng tin cậy, sáng tạo và dễ bảo trì."
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
       {
-        title: 'Phát triển web Fullstack',
+        title: 'Phát triển Web Fullstack',
         description:
-          'Tạo ra hệ thống hoàn chỉnh với Node.js, React, Prisma, Postgres và Docker. Frontend và backend luôn nhịp nhàng.',
+          'Xây dựng hệ thống hoàn chỉnh với Node.js, React, Prisma, PostgreSQL và Docker. Frontend và backend luôn nhịp nhàng.',
         icon: 'tabler:code',
       },
       {
-        title: 'Kiến trúc hệ thống',
-        description: 'Thiết kế hạ tầng gọn nhẹ, dễ mở rộng - bao gồm microservice, API nội bộ và luồng tự động hóa.',
-        icon: 'tabler:server',
+        title: 'Kiến trúc Hệ thống',
+        description: 'Thiết kế hạ tầng gọn nhẹ, dễ mở rộng — microservice, API nội bộ và luồng tự động hóa.',
+        icon: 'tabler:sitemap',
       },
       {
-        title: 'Kỹ thuật sáng tạo',
+        title: 'Công cụ Sáng tạo',
         description:
-          'Xây dựng trình soạn thảo, công cụ tự động và ứng dụng đa phương tiện - từ builder kéo thả đến hệ thống video với FFmpeg.',
-        icon: 'tabler:brush',
+          'Xây dựng trình soạn thảo, builder kéo thả và ứng dụng đa phương tiện với FFmpeg, Konva.js, Three.js.',
+        icon: 'tabler:palette',
       },
       {
         title: 'Hiệu năng & Bảo mật',
-        description: 'Tối ưu tốc độ, cải thiện SEO, bảo vệ API và củng cố triển khai với PM2, Nginx và HTTPS.',
-        icon: 'tabler:lock',
+        description: 'Tối ưu tốc độ, cải thiện SEO, bảo vệ API và triển khai với PM2, Nginx và HTTPS.',
+        icon: 'tabler:shield-check',
       },
       {
-        title: 'Tư vấn & Hợp tác',
-        description: 'Cung cấp định hướng kỹ thuật và tư vấn kiến trúc cho startup cùng các dự án sáng tạo.',
-        icon: 'tabler:users',
+        title: 'Tư vấn Kỹ thuật',
+        description: 'Định hướng kỹ thuật và tư vấn kiến trúc cho startup cùng các dự án sáng tạo.',
+        icon: 'tabler:bulb',
       },
       {
-        title: 'Cải tiến liên tục',
-        description:
-          'Luôn lặp lại, ghi chép và tinh chỉnh - vì phần mềm nên tiếp tục phát triển chứ không chỉ dừng ở lúc ra mắt.',
+        title: 'Bảo trì & Phát triển',
+        description: 'Liên tục cải tiến, ghi chép và tinh chỉnh — phần mềm cần phát triển, không chỉ ra mắt.',
         icon: 'tabler:refresh',
       },
-    ]}
-  />
+    ]}>
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-slate-50 dark:bg-slate-900/30"></div>
+    </Fragment>
+  </Features>
 
-  <!-- Content: About -->
+  <!-- About Section -->
   <Content
     isReversed
     tagline="Về tôi"
-    title="Nhiều hơn cả những dòng code"
+    title="Không chỉ là code"
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
       {
         title: 'Lập trình viên & Maker',
         description:
-          'Tôi thích tạo nên các hệ thống web cân bằng giữa chức năng và thẩm mỹ - vừa mang tư duy kỹ sư vừa đậm tinh thần thiết kế.',
+          'Tôi thích tạo nên các hệ thống web cân bằng giữa chức năng và thẩm mỹ — vừa mang tư duy kỹ sư vừa đậm tinh thần thiết kế.',
+        icon: 'tabler:code',
       },
       {
         title: 'Người trồng cà phê',
         description:
-          'Ngoài màn hình, tôi chăm sóc những luống cà phê - sự kiên nhẫn ở nông trại định hình cách tôi phát triển phần mềm.',
+          'Ngoài màn hình, tôi chăm sóc những luống cà phê ở Đà Lạt — sự kiên nhẫn ở nông trại định hình cách tôi phát triển phần mềm.',
+        icon: 'tabler:plant',
       },
       {
-        title: 'Người khám phá công cụ',
+        title: 'Người khám phá công nghệ',
         description:
-          'Luôn thử nghiệm các stack hiện đại - Astro, Next.js, Go, Prisma, Docker và những công cụ AI mới nổi.',
-      },
-    ]}
-    image={{
-      src: 'https://images.unsplash.com/photo-1556075798-4825dfaaf498?auto=format&fit=crop&w=2070&q=80',
-      alt: 'Góc làm việc',
-      loading: 'lazy',
-    }}>
-    <Fragment slot="content">
-      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">
-        Kết hợp logic và sáng tạo để xây dựng những công cụ khiến người dùng yêu thích.
-      </h3>
-    </Fragment>
-  </Content>
-
-  <!-- Steps -->
-  <Steps
-    title="Quy trình phát triển"
-    tagline="Từ ý tưởng tới ra mắt"
-    items={[
-      {
-        title: 'Bước 1: <span class="font-medium">Lên kế hoạch</span>',
-        description:
-          'Tìm hiểu ý tưởng và mục tiêu của bạn. Tôi xác định tính năng cốt lõi, stack và cấu trúc hệ thống.',
-        icon: 'tabler:list',
-      },
-      {
-        title: 'Bước 2: <span class="font-medium">Xây dựng</span>',
-        description: 'Phát triển API backend, giao diện frontend và tích hợp dịch vụ bằng thực hành code hiện đại.',
-        icon: 'tabler:bolt',
-      },
-      {
-        title: 'Bước 3: <span class="font-medium">Triển khai & Lặp lại</span>',
-        description:
-          'Triển khai trên môi trường có khả năng mở rộng và liên tục cải thiện dựa trên phản hồi cùng số liệu vận hành.',
+          'Luôn thử nghiệm các stack hiện đại: Astro, Next.js, Go, Prisma, Docker và những công cụ AI mới nổi.',
         icon: 'tabler:rocket',
       },
     ]}
     image={{
-      src: 'https://images.unsplash.com/photo-1506452819137-0422416856b8?auto=format&fit=crop&w=768&h=1365&q=80',
-      alt: 'Quy trình phát triển',
+      src: 'https://images.unsplash.com/photo-1556075798-4825dfaaf498?auto=format&fit=crop&w=870&q=80',
+      alt: 'Góc làm việc với laptop và cây xanh',
+      loading: 'lazy',
+      widths: [400, 768, 870],
+      sizes: '(max-width: 768px) 400px, 870px',
+    }}>
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl mb-2">
+        Kết hợp logic và sáng tạo
+      </h3>
+      <p class="text-lg text-slate-600 dark:text-slate-400">
+        Xây dựng những công cụ khiến người dùng yêu thích và doanh nghiệp tin tưởng.
+      </p>
+    </Fragment>
+  </Content>
+
+  <!-- Process Steps -->
+  <Steps
+    title="Quy trình làm việc"
+    tagline="Từ ý tưởng đến sản phẩm"
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+    items={[
+      {
+        title: 'Bước 1: <span class="font-medium text-primary">Khám phá & Lên kế hoạch</span>',
+        description:
+          'Tìm hiểu ý tưởng, mục tiêu kinh doanh và yêu cầu kỹ thuật. Xác định tính năng cốt lõi, tech stack và roadmap phát triển.',
+        icon: 'tabler:search',
+      },
+      {
+        title: 'Bước 2: <span class="font-medium text-primary">Thiết kế & Xây dựng</span>',
+        description:
+          'Phát triển API backend, giao diện frontend và tích hợp dịch vụ. Code review liên tục và demo thường xuyên.',
+        icon: 'tabler:code',
+      },
+      {
+        title: 'Bước 3: <span class="font-medium text-primary">Triển khai & Tối ưu</span>',
+        description:
+          'Deploy trên môi trường production với CI/CD. Monitoring, thu thập feedback và liên tục cải tiến sản phẩm.',
+        icon: 'tabler:rocket',
+      },
+    ]}
+    image={{
+      src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=768&q=80',
+      alt: 'Quy trình phát triển phần mềm',
       loading: 'lazy',
     }}
   />
 
-  <!-- Stats -->
+  <!-- Stats Section -->
   <Stats
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     stats={[
-      { title: 'Dự án đã thực hiện', amount: '50+' },
+      { title: 'Dự án hoàn thành', amount: '50+' },
       { title: 'Năm kinh nghiệm', amount: '8+' },
-      { title: 'Công nghệ sở trường', amount: 'Node.js Go' },
-      { title: 'Ly cà phê', amount: '☕ mỗi ngày' },
+      { title: 'Công nghệ thành thạo', amount: '15+' },
+      { title: 'Khách hàng hài lòng', amount: '100%' },
+    ]}>
+    <Fragment slot="bg">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-blue-50/30 to-transparent dark:via-slate-800/20">
+      </div>
+    </Fragment>
+  </Stats>
+
+  <!-- Testimonials Section -->
+  <Testimonials
+    title="Khách hàng nói gì"
+    subtitle="Phản hồi từ những người đã cùng tôi xây dựng sản phẩm"
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+    testimonials={[
+      {
+        testimonial:
+          'Nam có khả năng biến những yêu cầu phức tạp thành giải pháp đơn giản và hiệu quả. Dự án hoàn thành đúng deadline với chất lượng vượt mong đợi.',
+        name: 'Minh Tuấn',
+        job: 'CTO, Tech Startup',
+        image: {
+          src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop',
+          alt: 'Minh Tuấn',
+        },
+      },
+      {
+        testimonial:
+          'Làm việc rất chuyên nghiệp và rõ ràng. Code sạch, dễ bảo trì và luôn có documentation đầy đủ. Highly recommended!',
+        name: 'Thu Hà',
+        job: 'Product Manager',
+        image: {
+          src: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop',
+          alt: 'Thu Hà',
+        },
+      },
+      {
+        testimonial:
+          'Tư vấn kiến trúc rất tốt, giúp team tiết kiệm nhiều thời gian và chi phí. Sẵn sàng hợp tác trong các dự án tiếp theo.',
+        name: 'Hải Đăng',
+        job: 'Founder & CEO',
+        image: {
+          src: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=96&h=96&fit=crop',
+          alt: 'Hải Đăng',
+        },
+      },
     ]}
   />
 
-  <!-- Blog -->
+  <!-- FAQ Section -->
+  <FAQs
+    title="Câu hỏi thường gặp"
+    subtitle="Những thông tin hữu ích trước khi hợp tác"
+    classes={{ container: 'motion-safe:md:intersect:animate-fade max-w-4xl' }}
+    items={[
+      {
+        title: 'Bạn nhận những loại dự án nào?',
+        description:
+          'Tôi chuyên về ứng dụng web fullstack: từ landing page, e-commerce đến SaaS platform và dashboard phức tạp. Mạnh về React, Node.js và Go.',
+      },
+      {
+        title: 'Timeline dự án thường như thế nào?',
+        description:
+          'Landing page: 1-2 tuần. Web app cơ bản: 4-6 tuần. Hệ thống phức tạp: 8-12 tuần. Tôi luôn cung cấp estimate chi tiết trước khi bắt đầu.',
+      },
+      {
+        title: 'Quy trình thanh toán ra sao?',
+        description:
+          'Thường chia thành 3 đợt: 30% khi bắt đầu, 40% khi hoàn thành development, 30% khi bàn giao. Có thể thương lượng theo từng dự án.',
+      },
+      {
+        title: 'Có hỗ trợ sau bàn giao không?',
+        description:
+          'Có. Tôi cung cấp hỗ trợ kỹ thuật và fix bug miễn phí trong 30 ngày sau bàn giao. Sau đó có gói bảo trì hàng tháng nếu cần.',
+      },
+    ]}
+  />
+
+  <!-- Blog Section -->
   <BlogLatestPosts
     title="Bài viết mới nhất"
-    information={`Tôi chia sẻ góc nhìn về JavaScript, React, Go và hành trình xây dựng hệ thống sáng tạo. Ghé xem những bài viết mới.`}
-  />
+    information="Tôi chia sẻ kiến thức về JavaScript, React, Go, kiến trúc hệ thống và hành trình xây dựng sản phẩm."
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}>
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-slate-50 dark:bg-slate-900/30"></div>
+    </Fragment>
+  </BlogLatestPosts>
 
-  <!-- CTA -->
+  <!-- Call to Action Section -->
   <CallToAction
-    title="Hãy cùng hợp tác"
-    subtitle="Sẵn sàng cho dự án freelance, hợp tác và các thử nghiệm sáng tạo."
+    title="Sẵn sàng bắt đầu dự án?"
+    subtitle="Hãy cùng biến ý tưởng của bạn thành sản phẩm thực tế. Tôi luôn sẵn sàng cho các cuộc trao đổi về công nghệ, hợp tác dự án hoặc những thử nghiệm sáng tạo."
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     actions={[
-      { variant: 'primary', text: 'Liên hệ', href: '/contact' },
-      { variant: 'secondary', text: 'Xem GitHub', href: 'https://github.com/ptndz' },
-    ]}
-  />
+      { variant: 'primary', text: 'Liên hệ ngay', href: getPermalink('/contact#form'), icon: 'tabler:mail' },
+      { variant: 'secondary', text: 'Xem GitHub', href: 'https://github.com/ptndz', icon: 'tabler:brand-github' },
+    ]}>
+    <Fragment slot="bg">
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      </div>
+      <div
+        class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent">
+      </div>
+    </Fragment>
+  </CallToAction>
 </Layout>

@@ -1,14 +1,17 @@
-import { Plus } from 'lucide-react';
+import { Clock, FileText, Plus, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { useResponsive } from '../../../../../hooks/useResponsive';
-import { FloatingActionButton } from '../../mobile';
-import { isLocalEnvironment } from '../../utils/github';
 import { useStoriesManager } from '../../hooks/useStoriesManager';
+import { FloatingActionButton } from '../../mobile';
 import type { StoredStory } from '../../services/storiesService';
 import type { Story } from '../../types';
+import { isLocalEnvironment } from '../../utils/github';
 
-// Components
-import { StoriesHeader, StoriesGrid, MobileStoryActions } from './components';
+// Dashboard Components
+import { ActionButton, EmptyState, LoadingSpinner, SearchBar, StatsCard } from './DashboardComponents';
+
+// Existing Components
+import { MobileStoryActions, StoriesGrid } from './components';
 
 interface StoriesManagerProps {
   onCreateNew: () => void;
@@ -18,7 +21,6 @@ interface StoriesManagerProps {
 export function StoriesManager({ onCreateNew, onEdit }: StoriesManagerProps) {
   // Mobile responsive state
   const { isMobile, viewportWidth } = useResponsive();
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [mobileActionStory, setMobileActionStory] = useState<StoredStory | null>(null);
 
   // Stories manager hook
@@ -41,24 +43,69 @@ export function StoriesManager({ onCreateNew, onEdit }: StoriesManagerProps) {
   const isLocal = isLocalEnvironment();
 
   return (
-    <div className="h-screen flex flex-col bg-slate-900 text-white">
-      {/* Header */}
-      <StoriesHeader
-        storiesCount={stories.length}
-        filteredCount={filteredStories.length}
-        isLocal={isLocal}
-        isLoading={isLoading}
-        isMobile={isMobile}
-        searchQuery={searchQuery}
-        showMobileSearch={showMobileSearch}
-        onSearchChange={setSearchQuery}
-        onToggleMobileSearch={() => setShowMobileSearch(!showMobileSearch)}
-        onRefresh={loadStories}
-        onCreateNew={onCreateNew}
-      />
+    <div className="min-h-screen">
+      {/* Dashboard Header with Stats */}
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold font-heading text-white mb-2">Quản lý Stories</h2>
+            <p className="text-sm sm:text-base text-slate-400">Tạo và quản lý bản tin với animations và templates</p>
+          </div>
+          {!isMobile && (
+            <ActionButton
+              icon={<Plus className="w-5 h-5" />}
+              label="Tạo Story mới"
+              onClick={onCreateNew}
+              variant="primary"
+              size="md"
+            />
+          )}
+        </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+          <StatsCard
+            label="Tổng số Stories"
+            value={stories.length}
+            icon={<FileText className="w-5 h-5 text-blue-400" />}
+          />
+          <StatsCard
+            label="Đã lọc"
+            value={filteredStories.length}
+            icon={<TrendingUp className="w-5 h-5 text-purple-400" />}
+          />
+          <StatsCard
+            label="Cập nhật gần đây"
+            value={stories.length > 0 ? new Date(stories[0]?.lastModified).toLocaleDateString('vi-VN') : '-'}
+            icon={<Clock className="w-5 h-5 text-orange-400" />}
+          />
+        </div>
+
+        {/* Search Bar */}
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Tìm kiếm theo tiêu đề, mô tả..."
+          onClear={() => setSearchQuery('')}
+        />
+      </div>
+
+      {/* Stories Content */}
+      {isLoading ? (
+        <div className="py-20">
+          <LoadingSpinner size="lg" label="Đang tải stories..." />
+        </div>
+      ) : filteredStories.length === 0 ? (
+        <EmptyState
+          icon={<FileText className="w-10 h-10 text-slate-500" />}
+          title={searchQuery ? 'Không tìm thấy kết quả' : 'Chưa có story nào'}
+          description={searchQuery ? 'Thử tìm kiếm với từ khóa khác' : 'Bắt đầu tạo story đầu tiên của bạn'}
+          action={{
+            label: 'Tạo Story mới',
+            onClick: onCreateNew,
+          }}
+        />
+      ) : (
         <StoriesGrid
           stories={filteredStories}
           isLoading={isLoading}
@@ -79,7 +126,7 @@ export function StoriesManager({ onCreateNew, onEdit }: StoriesManagerProps) {
           onDelete={handleDelete}
           onCreateNew={onCreateNew}
         />
-      </div>
+      )}
 
       {/* Click outside to close menu */}
       {showMenu && <div className="fixed inset-0 z-0" onClick={() => setShowMenu(null)} />}

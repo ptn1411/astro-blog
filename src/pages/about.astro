@@ -1,26 +1,28 @@
 ﻿---
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import Content from '~/components/widgets/Content.astro';
 import Features2 from '~/components/widgets/Features2.astro';
 import Features3 from '~/components/widgets/Features3.astro';
 import Hero from '~/components/widgets/Hero.astro';
+import Stats from '~/components/widgets/Stats.astro';
 import Steps2 from '~/components/widgets/Steps2.astro';
 import Layout from '~/layouts/PageLayout.astro';
-import { getCanonical } from '~/utils/permalinks';
+import { getCanonical, getPermalink } from '~/utils/permalinks';
 import { buildPersonSchema } from '~/utils/structured-data';
 
 const canonical = String(getCanonical(Astro.url.pathname));
 
 const metadata = {
-  title: 'Giới thiệu - Phạm Thành Nam',
+  title: 'Về tôi — Phạm Thành Nam | Fullstack Developer',
   description:
-    'Chia sẻ hành trình lập trình viên Fullstack & maker, kết hợp kiến thức kỹ thuật với tinh thần sáng tạo.',
+    'Hành trình từ sinh viên đam mê code đến Fullstack Developer. Kết hợp kỹ thuật với sáng tạo để xây dựng sản phẩm có giá trị.',
   canonical,
   structuredData: [
     {
       '@type': 'AboutPage',
-      name: 'Giới thiệu Phạm Thành Nam',
+      name: 'Về Phạm Thành Nam',
       url: canonical,
-      description:
-        'Tôi giới thiệu kinh nghiệm phát triển web, kiến trúc hệ thống và triết lý xây dựng sản phẩm mang giá trị thật.',
+      description: 'Kinh nghiệm phát triển web, kiến trúc hệ thống và triết lý xây dựng sản phẩm mang giá trị thực.',
       mainEntity: buildPersonSchema(canonical),
     },
   ],
@@ -28,122 +30,253 @@ const metadata = {
 ---
 
 <Layout metadata={metadata}>
-  <!-- Hero -->
+  <!-- Hero Section - Personal Introduction -->
   <Hero
     tagline="Về tôi"
+    actions={[
+      { variant: 'primary', text: 'Xem dự án', href: '/personal#projects', icon: 'tabler:arrow-right' },
+      { variant: 'secondary', text: 'Liên hệ', href: getPermalink('/contact#form'), icon: 'tabler:mail' },
+    ]}
     image={{
-      src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80',
-      alt: 'Góc làm việc của lập trình viên',
+      src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=870&q=80',
+      alt: 'Góc làm việc của lập trình viên với laptop và cây xanh',
       loading: 'eager',
-      widths: [400, 768, 1024, 2000],
-      sizes: '(max-width: 768px) 400px, (max-width: 1024px) 768px, 2000px',
     }}>
     <Fragment slot="title">
-      <span class="text-accent dark:text-white">Phạm Thành Nam</span>
-      <br />
-      Lập trình viên Fullstack & Người làm cà phê
+      <span class="text-slate-900 dark:text-white">Xin chào, tôi là</span>
+      <span class="block text-primary dark:text-blue-400">Phạm Thành Nam</span>
     </Fragment>
 
     <Fragment slot="subtitle">
-      Tôi là một lập trình viên web và người xây dựng hệ thống, đam mê tạo ra những ứng dụng <b
-        >hiện đại, mở rộng linh hoạt và đặt con người ở trung tâm</b
-      >. Công việc của tôi kết hợp sự chính xác của kỹ thuật với tinh thần sáng tạo - từ <b>backend Node.js</b>, <b
-        >giao diện React</b
-      > cho đến
-      <b>các công cụ viết bằng Go</b> và hệ thống tự động hóa.
+      <span class="block text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
+        <span class="font-semibold text-slate-900 dark:text-white">Fullstack Developer</span> với đam mê xây dựng
+        <span class="text-primary font-medium">ứng dụng hiện đại</span>,
+        <span class="text-primary font-medium">công cụ sáng tạo</span> và
+        <span class="text-primary font-medium">hệ thống có khả năng mở rộng</span>.
+      </span>
+      <span class="block mt-3 text-base sm:text-lg text-slate-500 dark:text-slate-400">
+        Từ backend Node.js, giao diện React đến các công cụ viết bằng Go & Rust — tôi kết hợp kỹ thuật với sáng tạo.
+      </span>
+    </Fragment>
+
+    <Fragment slot="bg">
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-slate-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/50">
+      </div>
     </Fragment>
   </Hero>
 
-  <!-- Section: Overview - Lazy loaded -->
+  <!-- Stats Section -->
+  <Stats
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+    stats={[
+      { title: 'Năm kinh nghiệm', amount: '7+' },
+      { title: 'Dự án hoàn thành', amount: '50+' },
+      { title: 'Công nghệ thành thạo', amount: '15+' },
+      { title: 'Đam mê cà phê', amount: '100%' },
+    ]}
+  />
+
+  <!-- What I Do Section -->
   <Features3
-    title="Tôi làm gì"
-    subtitle="Tôi thiết kế, xây dựng và tối ưu những hệ thống số - hòa quyện công nghệ với sự sáng tạo để tạo ra giải pháp bền vững và đầy cảm hứng."
+    title="Chuyên môn của tôi"
+    subtitle="Thiết kế, xây dựng và tối ưu hệ thống số — hòa quyện công nghệ với sáng tạo để tạo ra giải pháp bền vững."
     columns={3}
     classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
       {
-        title: 'Phát triển web Fullstack',
+        title: 'Phát triển Web Fullstack',
         description:
-          'Xây dựng ứng dụng end-to-end với Node.js, React, Go và PHP. Tôi thích thiết kế API, công cụ nội bộ và giao diện tự nhiên, dễ sử dụng.',
+          'Xây dựng ứng dụng end-to-end với Node.js, React, Go và PHP. Thiết kế API, công cụ nội bộ và giao diện người dùng tự nhiên.',
         icon: 'tabler:code',
       },
       {
-        title: 'Kỹ sư sáng tạo',
+        title: 'Kỹ sư Sáng tạo',
         description:
-          'Khám phá điểm giao thoa giữa thiết kế và công nghệ - từ trình dựng giao diện kéo thả đến trình chỉnh sửa video dùng FFmpeg, Konva và Three.js.',
-        icon: 'tabler:brush',
+          'Khám phá giao thoa giữa thiết kế và công nghệ — từ trình dựng UI kéo thả đến trình biên tập video với FFmpeg, Konva và Three.js.',
+        icon: 'tabler:palette',
       },
       {
         title: 'DevOps & Hạ tầng',
         description:
-          'Triển khai hệ thống production với Docker, PM2 và Nginx Proxy Manager. Tôi muốn hạ tầng luôn gọn nhẹ nhưng đủ mạnh.',
+          'Triển khai hệ thống production với Docker, PM2 và Nginx. Hạ tầng gọn nhẹ nhưng đủ mạnh để xử lý quy mô lớn.',
         icon: 'tabler:server',
       },
-    ]}
-  />
+    ]}>
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-slate-50 dark:bg-slate-900/30"></div>
+    </Fragment>
+  </Features3>
 
-  <!-- Section: Values -->
+  <!-- My Story Section -->
+  <Content
+    isReversed
+    tagline="Câu chuyện"
+    title="Hành trình của tôi"
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+    items={[
+      {
+        title: 'Bắt đầu từ đam mê',
+        description:
+          'Năm 2017, tôi bắt đầu học lập trình với niềm đam mê tạo ra những thứ hữu ích. Từ những dòng code đầu tiên đến các hệ thống phức tạp ngày nay.',
+        icon: 'tabler:rocket',
+      },
+      {
+        title: 'Học hỏi không ngừng',
+        description:
+          'Mỗi dự án là cơ hội học công nghệ mới. Từ PHP đến Node.js, từ jQuery đến React, từ monolith đến microservices.',
+        icon: 'tabler:book',
+      },
+      {
+        title: 'Xây dựng sản phẩm thực',
+        description:
+          'Không chỉ học, tôi áp dụng kiến thức vào các sản phẩm thực: CMS, payment gateway, UI builder, media editor...',
+        icon: 'tabler:building',
+      },
+    ]}
+    image={{
+      src: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=870&q=80',
+      alt: 'Workspace với nhiều màn hình hiển thị code',
+      loading: 'lazy',
+    }}>
+    <Fragment slot="content">
+      <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl mb-2">
+        Từ sinh viên đam mê code
+      </h3>
+      <p class="text-lg text-slate-600 dark:text-slate-400">
+        đến lập trình viên fullstack với hơn 50 dự án hoàn thành.
+      </p>
+    </Fragment>
+  </Content>
+
+  <!-- Values Section -->
   <Steps2
     title="Giá trị & Tư duy"
-    subtitle="Đằng sau mỗi sản phẩm tôi tạo ra là tư duy rõ ràng, tò mò và học hỏi không ngừng."
+    subtitle="Những nguyên tắc định hình cách tôi làm việc và xây dựng sản phẩm"
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
       {
         title: 'Xây để tạo giá trị',
         description:
-          'Tôi tin công nghệ phải phục vụ con người - làm cho quy trình của họ nhanh hơn, thông minh hơn hoặc đơn giản là thú vị hơn.',
+          'Công nghệ phải phục vụ con người — làm cho quy trình nhanh hơn, thông minh hơn hoặc đơn giản là thú vị hơn. Mỗi dòng code đều có mục đích.',
+        icon: 'tabler:heart',
       },
       {
-        title: 'Luôn cải tiến',
+        title: 'Liên tục cải tiến',
         description:
-          'Mỗi dự án là một hệ sinh thái liên tục phát triển. Tôi refactor, ghi chép và cải tiến thường xuyên để đảm bảo tính bền vững.',
+          'Mỗi dự án là hệ sinh thái liên tục phát triển. Refactor, document và cải tiến thường xuyên để đảm bảo tính bền vững.',
+        icon: 'tabler:refresh',
       },
       {
-        title: 'Cân bằng cuộc sống & code',
+        title: 'Đơn giản là tốt nhất',
         description:
-          'Là người trồng cà phê, tôi tìm thấy sự bình yên từ thiên nhiên. Sự kiên nhẫn và chăm chút là cốt lõi của việc chăm cây cũng như viết code.',
+          'Giải pháp đơn giản luôn tốt hơn giải pháp phức tạp. Tôi tập trung vào những gì cần thiết và loại bỏ những gì thừa.',
+        icon: 'tabler:star',
       },
-    ]}
-  />
+      {
+        title: 'Cân bằng cuộc sống',
+        description:
+          'Là người trồng cà phê, tôi tìm thấy sự bình yên từ thiên nhiên. Kiên nhẫn và chăm chút là cốt lõi của việc chăm cây cũng như viết code.',
+        icon: 'tabler:plant',
+      },
+    ]}>
+    <Fragment slot="bg">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-blue-50/30 to-transparent dark:via-slate-800/20">
+      </div>
+    </Fragment>
+  </Steps2>
 
-  <!-- Section: Life - Lazy loaded -->
+  <!-- Beyond Code Section -->
   <Features2
     title="Ngoài lập trình"
-    tagline="Cà phê • Thiên nhiên • Sáng tạo"
+    tagline="Cuộc sống & Đam mê"
     columns={2}
     classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
       {
         title: 'Trồng cà phê',
         description:
-          'Tôi nuôi dưỡng cà phê như một đam mê và triết lý - mỗi hạt là câu chuyện về sự kiên nhẫn, môi trường và sự tỉ mỉ, giống như một đoạn code tốt.',
+          'Tôi nuôi dưỡng cà phê ở Đà Lạt như một đam mê — mỗi hạt là câu chuyện về sự kiên nhẫn và tỉ mỉ, giống như một đoạn code tốt.',
         icon: 'tabler:coffee',
       },
       {
-        title: 'Tinh thần maker',
+        title: 'Tinh thần Maker',
         description:
-          'Dù là xây dựng hệ thống UI, tự động hóa quy trình hay thiết kế mô hình, tôi yêu việc biến trí tưởng tượng thành trải nghiệm hữu hình.',
-        icon: 'tabler:cube',
+          'Dù là xây dựng hệ thống UI, tự động hóa quy trình hay thiết kế mô hình — tôi yêu việc biến ý tưởng thành trải nghiệm thực.',
+        icon: 'tabler:bulb',
       },
-    ]}
-  />
+      {
+        title: 'Học hỏi liên tục',
+        description:
+          'Công nghệ thay đổi từng ngày. Tôi dành thời gian mỗi tuần để học công cụ mới, đọc blog kỹ thuật và thử nghiệm ý tưởng.',
+        icon: 'tabler:book',
+      },
+      {
+        title: 'Chia sẻ kiến thức',
+        description:
+          'Viết blog, mentor đồng nghiệp trẻ và đóng góp open source — tôi tin rằng chia sẻ giúp cộng đồng cùng phát triển.',
+        icon: 'tabler:users',
+      },
+    ]}>
+    <Fragment slot="bg">
+      <div class="absolute inset-0 bg-slate-50 dark:bg-slate-900/30"></div>
+    </Fragment>
+  </Features2>
 
-  <!-- Mục: Liên hệ - Lazy loaded -->
+  <!-- Connect Section -->
   <Features2
-    title="Hãy kết nối"
-    tagline="Tìm tôi trên mạng"
-    columns={2}
+    title="Kết nối với tôi"
+    tagline="Mạng xã hội"
+    columns={3}
     classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
     items={[
       {
         title: 'GitHub',
-        description: 'github.com/ptndz',
+        description: 'Xem code và dự án open source',
         icon: 'tabler:brand-github',
+        callToAction: {
+          text: 'github.com/ptndz',
+          href: 'https://github.com/ptndz',
+        },
       },
       {
         title: 'Telegram',
-        description: 't.me/Ptn1411',
-        icon: 'tabler:send',
+        description: 'Liên hệ nhanh qua chat',
+        icon: 'tabler:brand-telegram',
+        callToAction: {
+          text: 't.me/Ptn1411',
+          href: 'https://t.me/Ptn1411',
+        },
+      },
+      {
+        title: 'Email',
+        description: 'Trao đổi dự án & hợp tác',
+        icon: 'tabler:mail',
+        callToAction: {
+          text: 'Gửi email',
+          href: getPermalink('/contact#form'),
+        },
       },
     ]}
   />
+
+  <!-- CTA Section -->
+  <CallToAction
+    title="Cùng xây dựng điều tuyệt vời?"
+    subtitle="Tôi luôn sẵn sàng cho các cuộc trao đổi về công nghệ, hợp tác dự án hoặc những thử nghiệm sáng tạo mới."
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+    actions={[
+      { variant: 'primary', text: 'Liên hệ ngay', href: getPermalink('/contact#form'), icon: 'tabler:mail' },
+      { variant: 'secondary', text: 'Xem dự án', href: '/personal#projects', icon: 'tabler:folder' },
+    ]}>
+    <Fragment slot="bg">
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      </div>
+      <div
+        class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent">
+      </div>
+    </Fragment>
+  </CallToAction>
 </Layout>

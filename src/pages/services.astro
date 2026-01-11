@@ -1,11 +1,15 @@
 ﻿---
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import Content from '~/components/widgets/Content.astro';
+import FAQs from '~/components/widgets/FAQs.astro';
 import Features2 from '~/components/widgets/Features2.astro';
+import Features3 from '~/components/widgets/Features3.astro';
 import Hero from '~/components/widgets/Hero.astro';
+import Stats from '~/components/widgets/Stats.astro';
+import Steps from '~/components/widgets/Steps.astro';
 import Testimonials from '~/components/widgets/Testimonials.astro';
 import Layout from '~/layouts/PageLayout.astro';
-import { getCanonical } from '~/utils/permalinks';
+import { getCanonical, getPermalink } from '~/utils/permalinks';
 import { buildProfessionalServiceSchema } from '~/utils/structured-data';
 
 const canonical = String(getCanonical(Astro.url.pathname));
@@ -31,20 +35,53 @@ const metadata = {
 ---
 
 <Layout metadata={metadata}>
-  <!-- Hero -->
+  <!-- Hero - Trust & Authority style with professional gradient -->
   <Hero
-    tagline="Dịch vụ"
-    title="Xây dựng hệ thống tin cậy và sáng tạo"
-    subtitle="Tôi thiết kế, phát triển và triển khai ứng dụng web hiện đại - từ nền tảng nội bộ đến công cụ sáng tạo. Mục tiêu là biến công nghệ thành trải nghiệm ổn định, dễ tiếp cận và truyền cảm hứng."
-    actions={[{ variant: 'primary', text: 'Xem dự án', href: '/personal#projects' }]}
-    image={{
-      src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80',
-      alt: 'Góc làm việc của lập trình viên',
-    }}
+    tagline="Dịch vụ phát triển phần mềm"
+    title="Biến ý tưởng thành sản phẩm hoàn chỉnh"
+    actions={[
+      { variant: 'primary', text: 'Bắt đầu dự án', href: getPermalink('/contact#form'), icon: 'tabler:arrow-right' },
+      { variant: 'secondary', text: 'Xem dự án', href: getPermalink('/personal#projects'), icon: 'tabler:briefcase' },
+    ]}>
+    <Fragment slot="subtitle">
+      <span class="block text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl">
+        Tôi cung cấp dịch vụ phát triển phần mềm <span class="font-semibold text-sky-700 dark:text-sky-400"
+          >end-to-end</span
+        > — từ tư vấn kiến trúc, xây dựng ứng dụng web fullstack, đến triển khai DevOps và công cụ nội bộ cho
+        <span class="font-semibold text-sky-700 dark:text-sky-400">doanh nghiệp và startup</span>.
+      </span>
+    </Fragment>
+    <Fragment slot="bg">
+      <div class="absolute inset-0 pointer-events-none">
+        <div
+          class="absolute inset-0 bg-gradient-to-br from-slate-50 via-sky-50/50 to-slate-100 dark:from-slate-900 dark:via-slate-900/95 dark:to-sky-950/30">
+        </div>
+        <div
+          class="absolute top-20 right-10 w-72 h-72 bg-sky-200/30 dark:bg-sky-800/20 rounded-full blur-3xl motion-safe:animate-pulse">
+        </div>
+        <div
+          class="absolute bottom-10 left-10 w-96 h-96 bg-indigo-200/20 dark:bg-indigo-900/20 rounded-full blur-3xl motion-safe:animate-pulse"
+          style="animation-delay: 1s;">
+        </div>
+      </div>
+    </Fragment>
+  </Hero>
+
+  <!-- Stats - Trust metrics -->
+  <Stats
+    stats={[
+      { title: 'Năm kinh nghiệm', amount: '5+' },
+      { title: 'Dự án hoàn thành', amount: '30+' },
+      { title: 'Khách hàng hài lòng', amount: '100%' },
+      { title: 'Công nghệ thành thạo', amount: '15+' },
+    ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
   />
 
-  <!-- Main Services -->
+  <!-- Main Services - 6 core services -->
   <Features2
+    id="services"
+    tagline="Dịch vụ"
     title="Tôi cung cấp gì"
     subtitle="Mỗi dịch vụ đều kết hợp chiều sâu kỹ thuật với tư duy bảo trì dài hạn và trải nghiệm người dùng tốt."
     columns={3}
@@ -52,13 +89,13 @@ const metadata = {
       {
         title: 'Phát triển Fullstack',
         description:
-          'Thiết kế ứng dụng web end-to-end với Node.js, React và Go. Từ API backend đến trải nghiệm giao diện - mọi thứ đều sạch sẽ, nhanh và hiện đại.',
+          'Thiết kế ứng dụng web end-to-end với Node.js, React và Go. Từ API backend đến trải nghiệm giao diện — mọi thứ đều sạch sẽ, nhanh và hiện đại.',
         icon: 'tabler:code',
       },
       {
         title: 'Kiến trúc hệ thống',
         description:
-          'Thiết kế kiến trúc có thể mở rộng với Docker, Nginx Proxy Manager và hạ tầng đám mây - cân bằng giữa sự đơn giản và hiệu năng.',
+          'Thiết kế kiến trúc có thể mở rộng với Docker, Nginx Proxy Manager và hạ tầng đám mây — cân bằng giữa sự đơn giản và hiệu năng.',
         icon: 'tabler:server',
       },
       {
@@ -70,7 +107,7 @@ const metadata = {
       {
         title: 'Kỹ thuật sáng tạo',
         description:
-          'Xây dựng giao diện tương tác và công cụ sáng tạo - như builder kéo thả, trình biên tập câu chuyện và công cụ thiết kế dùng Konva.js, FFmpeg.',
+          'Xây dựng giao diện tương tác và công cụ sáng tạo — như builder kéo thả, trình biên tập câu chuyện và công cụ thiết kế dùng Konva.js, FFmpeg.',
         icon: 'tabler:brush',
       },
       {
@@ -81,15 +118,60 @@ const metadata = {
       },
       {
         title: 'Tư vấn & Đồng hành',
-        description: 'Tư vấn quy trình phát triển, lựa chọn kiến trúc và chiến lược mở rộng dự án.',
+        description:
+          'Tư vấn quy trình phát triển, lựa chọn kiến trúc và chiến lược mở rộng dự án từ giai đoạn đầu đến khi triển khai.',
         icon: 'tabler:users',
       },
     ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+  />
+
+  <!-- Process - How I work -->
+  <Steps
+    id="process"
+    tagline="Quy trình"
+    title="Cách tôi làm việc"
+    subtitle="Quy trình rõ ràng, minh bạch và tập trung vào kết quả — từ ý tưởng đến sản phẩm hoàn thiện."
+    items={[
+      {
+        title: 'Bước 1: <span class="font-medium">Khám phá & Tư vấn</span>',
+        description:
+          'Lắng nghe nhu cầu, phân tích yêu cầu và đề xuất giải pháp phù hợp. Tôi sẽ giúp bạn hiểu rõ công nghệ nào phù hợp nhất với mục tiêu kinh doanh.',
+        icon: 'tabler:message-circle',
+      },
+      {
+        title: 'Bước 2: <span class="font-medium">Thiết kế & Lên kế hoạch</span>',
+        description:
+          'Xây dựng wireframe, thiết kế kiến trúc hệ thống và lập roadmap phát triển. Mọi thứ được ghi chép rõ ràng để bạn nắm được tiến độ.',
+        icon: 'tabler:layout',
+      },
+      {
+        title: 'Bước 3: <span class="font-medium">Phát triển & Kiểm thử</span>',
+        description:
+          'Code sạch, có cấu trúc và được kiểm thử kỹ lưỡng. Tôi áp dụng CI/CD để đảm bảo chất lượng và tốc độ triển khai.',
+        icon: 'tabler:code',
+      },
+      {
+        title: 'Bước 4: <span class="font-medium">Triển khai & Hỗ trợ</span>',
+        description:
+          'Triển khai sản phẩm lên môi trường production với tài liệu đầy đủ. Hỗ trợ bảo trì và nâng cấp sau khi bàn giao.',
+        icon: 'tabler:rocket',
+      },
+    ]}
+    image={{
+      src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80',
+      alt: 'Quy trình làm việc chuyên nghiệp',
+    }}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
   />
 
   <!-- Core Values -->
   <Content
+    id="values"
     isReversed
+    tagline="Giá trị cốt lõi"
+    title="Phương pháp làm việc"
+    subtitle="Những nguyên tắc tôi tuân theo để đảm bảo mọi dự án đều đạt chất lượng cao nhất."
     items={[
       {
         title: 'Đơn giản và ổn định',
@@ -109,74 +191,189 @@ const metadata = {
           'Mọi hệ thống đều cần phát triển. Tôi ghi chép, refactor và nâng cấp để dự án luôn hiện đại và dễ bảo trì.',
         icon: 'tabler:refresh',
       },
+      {
+        title: 'Giao tiếp minh bạch',
+        description:
+          'Cập nhật tiến độ thường xuyên, phản hồi nhanh và sẵn sàng giải thích các quyết định kỹ thuật một cách dễ hiểu.',
+        icon: 'tabler:message-check',
+      },
     ]}
     image={{
       src: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1740&q=80',
       alt: 'Bàn làm việc của lập trình viên',
-    }}>
-    <Fragment slot="content">
-      <h3 class="text-2xl font-bold tracking-tight dark:text-white sm:text-3xl mb-2">Phương pháp làm việc</h3>
-    </Fragment>
-  </Content>
+    }}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+  />
 
-  <!-- Testimonials -->
+  <!-- Tech Stack -->
+  <Features3
+    id="tech"
+    tagline="Công nghệ"
+    title="Stack tôi sử dụng"
+    subtitle="Các công nghệ và công cụ tôi thành thạo để xây dựng sản phẩm chất lượng cao."
+    columns={4}
+    items={[
+      { title: 'React', icon: 'tabler:brand-react', description: 'Frontend framework' },
+      { title: 'Node.js', icon: 'tabler:brand-nodejs', description: 'Backend runtime' },
+      { title: 'TypeScript', icon: 'tabler:brand-typescript', description: 'Type-safe JavaScript' },
+      { title: 'Go', icon: 'tabler:brand-golang', description: 'High-performance backend' },
+      { title: 'PostgreSQL', icon: 'tabler:database', description: 'Relational database' },
+      { title: 'Docker', icon: 'tabler:brand-docker', description: 'Containerization' },
+      { title: 'AWS', icon: 'tabler:brand-aws', description: 'Cloud infrastructure' },
+      { title: 'Astro', icon: 'tabler:rocket', description: 'Static site generation' },
+    ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+  />
+
+  <!-- Testimonials - Social proof -->
   <Testimonials
+    tagline="Phản hồi"
     title="Cộng sự nói gì"
+    subtitle="Những đánh giá từ đồng nghiệp và khách hàng tôi đã cộng tác."
     testimonials={[
       {
         testimonial:
           'Nam tiếp cận từng dự án với sự rõ ràng và tập trung. Kiến thức của anh ấy về cả backend lẫn trải nghiệm frontend giúp việc hợp tác trở nên dễ dàng.',
         name: 'Đồng nghiệp phát triển',
         job: 'Backend Engineer',
+        image: {
+          src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+          alt: 'Backend Engineer',
+        },
       },
       {
         testimonial:
-          'Anh ấy không chỉ viết code - mà tạo ra hệ thống phù hợp cho người dùng. Làm việc với Nam giống như có một đối tác thực sự quan tâm.',
+          'Anh ấy không chỉ viết code — mà tạo ra hệ thống phù hợp cho người dùng. Làm việc với Nam giống như có một đối tác thực sự quan tâm.',
         name: 'Cộng sự thiết kế',
         job: 'UI/UX Designer',
+        image: {
+          src: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+          alt: 'UI/UX Designer',
+        },
       },
       {
         testimonial:
           'Trong mỗi dự án, Nam luôn chủ động đề xuất giải pháp và tối ưu hiệu năng. Sự tỉ mỉ của anh ấy khiến cả đội tin tưởng tuyệt đối.',
         name: 'Quản lý dự án',
         job: 'Project Manager',
+        image: {
+          src: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
+          alt: 'Project Manager',
+        },
       },
       {
         testimonial:
           'Nam có khả năng kết nối kỹ thuật với mục tiêu kinh doanh rất tốt. Anh ấy luôn nhìn dự án ở góc nhìn toàn diện — không chỉ là lập trình viên, mà là người kiến tạo sản phẩm.',
         name: 'Đối tác công nghệ',
         job: 'Tech Consultant',
+        image: {
+          src: 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=200&q=80',
+          alt: 'Tech Consultant',
+        },
       },
       {
         testimonial:
           'Khả năng truyền đạt và hướng dẫn của Nam thật đáng nể. Anh ấy luôn sẵn sàng chia sẻ kiến thức, giúp các thành viên mới bắt kịp tiến độ rất nhanh.',
         name: 'Thành viên nhóm mới',
         job: 'Frontend Developer',
+        image: {
+          src: 'https://images.unsplash.com/photo-1463453091185-61582044d556?auto=format&fit=crop&w=200&q=80',
+          alt: 'Frontend Developer',
+        },
       },
       {
         testimonial:
           'Tôi đánh giá cao tinh thần trách nhiệm và khả năng giải quyết vấn đề của Nam. Anh ấy không chỉ hoàn thành công việc, mà luôn tìm cách làm tốt hơn mỗi ngày.',
         name: 'Khách hàng doanh nghiệp',
         job: 'Founder & CEO',
+        image: {
+          src: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80',
+          alt: 'Founder & CEO',
+        },
       },
     ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
   />
 
-  <!-- Call to Action -->
+  <!-- FAQs -->
+  <FAQs
+    id="faqs"
+    tagline="FAQ"
+    title="Câu hỏi thường gặp"
+    subtitle="Những thắc mắc phổ biến về dịch vụ và quy trình làm việc của tôi."
+    items={[
+      {
+        title: 'Bạn nhận dự án như thế nào?',
+        description:
+          'Tôi bắt đầu bằng cuộc gọi tư vấn miễn phí để hiểu nhu cầu của bạn. Sau đó, tôi sẽ đề xuất giải pháp, timeline và báo giá chi tiết trước khi bắt đầu.',
+        icon: 'tabler:help-circle',
+      },
+      {
+        title: 'Chi phí dự án được tính như thế nào?',
+        description:
+          'Tuỳ thuộc vào quy mô và độ phức tạp của dự án. Tôi có thể làm việc theo giờ hoặc theo gói cố định. Mọi chi phí đều được thống nhất rõ ràng từ đầu.',
+        icon: 'tabler:coin',
+      },
+      {
+        title: 'Thời gian hoàn thành dự án là bao lâu?',
+        description:
+          'Một dự án nhỏ có thể hoàn thành trong 2-4 tuần. Dự án lớn hơn như xây dựng SaaS có thể mất 2-3 tháng. Tôi sẽ đưa ra timeline cụ thể sau khi phân tích yêu cầu.',
+        icon: 'tabler:clock',
+      },
+      {
+        title: 'Bạn có hỗ trợ sau khi bàn giao không?',
+        description:
+          'Có. Tôi cung cấp gói hỗ trợ bảo trì hàng tháng hoặc hỗ trợ theo yêu cầu. Tài liệu kỹ thuật đầy đủ cũng được bàn giao để bạn có thể tự quản lý.',
+        icon: 'tabler:lifebuoy',
+      },
+      {
+        title: 'Bạn làm việc với timezone nào?',
+        description:
+          'Tôi ở GMT+7 (Việt Nam) nhưng linh hoạt với các timezone khác. Tôi đã làm việc với khách hàng từ Mỹ, Châu Âu và Đông Nam Á.',
+        icon: 'tabler:world',
+      },
+      {
+        title: 'Công nghệ nào bạn không nhận?',
+        description:
+          'Tôi tập trung vào web development (React, Node.js, Go). Tôi không nhận các dự án mobile native (Swift, Kotlin) hoặc game development.',
+        icon: 'tabler:device-mobile-off',
+      },
+    ]}
+    classes={{ container: 'motion-safe:md:intersect:animate-fade' }}
+  />
+
+  <!-- Call to Action - Dark slate gradient -->
   <CallToAction
-    title="Bạn cần một lập trình viên đáng tin?"
-    subtitle="Tôi luôn sẵn sàng cho dự án freelance, hợp tác và những thử nghiệm sáng tạo."
+    title="Sẵn sàng bắt đầu dự án?"
+    subtitle="Hãy liên hệ để nhận tư vấn miễn phí. Tôi sẽ giúp bạn tìm giải pháp phù hợp nhất với nhu cầu và ngân sách."
     actions={[
       {
         variant: 'primary',
-        text: 'Liên hệ',
-        href: '/contact',
+        text: 'Liên hệ ngay',
+        href: getPermalink('/contact#form'),
+        icon: 'tabler:mail',
       },
       {
         variant: 'secondary',
         text: 'Xem GitHub',
         href: 'https://github.com/ptndz',
+        icon: 'tabler:brand-github',
       },
     ]}
-  />
+    classes={{
+      container:
+        'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden',
+      title: 'text-white',
+      subtitle: 'text-slate-300',
+    }}>
+    <Fragment slot="bg">
+      <div
+        class="absolute top-0 right-0 w-96 h-96 bg-sky-600/20 rounded-full blur-3xl motion-safe:animate-pulse pointer-events-none">
+      </div>
+      <div
+        class="absolute bottom-0 left-0 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl motion-safe:animate-pulse pointer-events-none"
+        style="animation-delay: 1s;">
+      </div>
+    </Fragment>
+  </CallToAction>
 </Layout>
