@@ -137,6 +137,12 @@ export interface StoryBuilderActions {
   setElementAnimation?: (elementId: string, animationType: 'enter' | 'exit' | 'loop', animation: Animation | null) => void;
   /** Set slide transition */
   setSlideTransition?: (slideId: string, transition: { type: TransitionType; duration: number } | null) => void;
+  /** Update story title/description */
+  updateStoryTitle?: (title: string, description?: string) => void;
+  /** Duplicate an entire slide */
+  duplicateSlide?: (slideId: string) => string | void;
+  /** Update story settings (autoAdvance, loop, showProgressBar) */
+  updateStorySettings?: (settings: Partial<{ autoAdvance: boolean; loop: boolean; showProgressBar: boolean }>) => void;
 }
 
 /**
@@ -328,7 +334,7 @@ export function formatContextForAI(context: StoryContext): string {
   lines.push(`- Elements: ${context.currentSlide.elementCount}`);
   lines.push('');
 
-  // Elements list
+  // Elements list with full details
   if (context.currentSlide.elements.length > 0) {
     lines.push(`### Elements on this slide:`);
     context.currentSlide.elements.forEach((el, index) => {
@@ -364,6 +370,13 @@ export function formatContextForAI(context: StoryContext): string {
   } else {
     lines.push(`## No element selected`);
   }
+
+  // Canvas info
+  lines.push('');
+  lines.push(`## Canvas`);
+  lines.push(`- Size: 1080 × 1920 px (9:16)`);
+  lines.push(`- Safe zone: x(80-1000), y(80-1840)`);
+  lines.push(`- Center: (540, 960)`);
 
   // Available templates
   lines.push('');
@@ -2141,6 +2154,461 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       const result = templates.map(t => `- ${t.id}: ${t.name} (${t.category}, ${t.engine}) - ${t.description}`).join('\n');
       
       return `Available animation templates${category ? ` in ${category}` : ''}:\n${result}`;
+    },
+  });
+
+  // ==========================================
+  // Navigation & Slide Management Actions
+  // ==========================================
+
+  /**
+   * Action: goToSlide
+   * Navigate to a specific slide
+   */
+  useCopilotAction({
+    name: 'goToSlide',
+    description: 'Navigate to a specific slide by index (0-based). Use this before editing elements on a different slide.',
+    parameters: [
+      { name: 'slideIndex', type: 'number', description: 'Slide index (0-based). Use allSlides from context to know available slides.', required: true },
+    ],
+    handler: async ({ slideIndex }) => {
+      if (!actions?.goToSlide) return 'Error: goToSlide action not available';
+      if (slideIndex < 0 || slideIndex >= story.slides.length) {
+        return `Error: Invalid slide index ${slideIndex}. Valid range: 0-${story.slides.length - 1}`;
+      }
+      actions.goToSlide(slideIndex);
+      return `Navigated to slide ${slideIndex + 1} of ${story.slides.length}`;
+    },
+  });
+
+  /**
+   * Action: deleteSlide
+   * Delete a slide by ID
+   */
+  useCopilotAction({
+    name: 'deleteSlide',
+    description: 'Delete a slide from the story. Cannot delete the last remaining slide.',
+    parameters: [
+      { name: 'slideId', type: 'string', description: 'ID of the slide to delete', required: true },
+    ],
+    handler: async ({ slideId }) => {
+      if (!actions?.deleteSlide) return 'Error: deleteSlide action not available';
+      if (story.slides.length <= 1) return 'Error: Cannot delete the last slide';
+      actions.deleteSlide(slideId);
+      return `Deleted slide ${slideId}`;
+    },
+  });
+
+  /**
+   * Action: duplicateElement
+   * Duplicate an existing element
+   */
+  useCopilotAction({
+    name: 'duplicateElement',
+    description: 'Create a copy of an existing element on the current slide.',
+    parameters: [
+      { name: 'elementId', type: 'string', description: 'ID of the element to duplicate', required: true },
+    ],
+    handler: async ({ elementId }) => {
+      if (!actions?.duplicateElement) return 'Error: duplicateElement action not available';
+      const newId = actions.duplicateElement(elementId);
+      return `Duplicated element ${elementId}${newId ? ` → new ID: ${newId}` : ''}`;
+    },
+  });
+
+  /**
+   * Action: duplicateSlide
+   * Duplicate an entire slide with all its elements
+   */
+  useCopilotAction({
+    name: 'duplicateSlide',
+    description: 'Duplicate an entire slide including all its elements, background, and settings.',
+    parameters: [
+      { name: 'slideId', type: 'string', description: 'ID of the slide to duplicate', required: true },
+    ],
+    handler: async ({ slideId }) => {
+      if (!actions?.duplicateSlide) return 'Error: duplicateSlide action not available';
+      const newId = actions.duplicateSlide(slideId);
+      return `Duplicated slide ${slideId}${newId ? ` → new slide ID: ${newId}` : ''}`;
+    },
+  });
+
+  // ==========================================
+  // Audio & Settings Actions
+  // ==========================================
+
+  /**
+   * Action: setSlideAudio
+   * Set background audio for a specific slide
+   */
+  useCopilotAction({
+    name: 'setSlideAudio',
+    description: 'Set or remove background audio for a specific slide.',
+    parameters: [
+      { name: 'slideId', type: 'string', description: 'Slide ID', required: true },
+      { name: 'audioUrl', type: 'string', description: 'Audio URL. Use empty string to remove audio.', required: true },
+      { name: 'volume', type: 'number', description: 'Volume (0-1). Default: 0.8', required: false },
+    ],
+    handler: async ({ slideId, audioUrl, volume }) => {
+      if (!actions?.updateSlide) return 'Error: updateSlide action not available';
+
+      if (!audioUrl) {
+        actions.updateSlide(slideId, { audio: undefined });
+        return `Removed audio from slide ${slideId}`;
+      }
+
+      actions.updateSlide(slideId, {
+        audio: { src: audioUrl, volume: volume ?? 0.8 },
+      });
+      return `Set audio for slide ${slideId}: ${audioUrl}`;
+    },
+  });
+
+  /**
+   * Action: updateStorySettings
+   * Update story playback settings
+   */
+  useCopilotAction({
+    name: 'updateStorySettings',
+    description: 'Update story playback settings: auto-advance between slides, loop playback, show progress bar.',
+    parameters: [
+      { name: 'autoAdvance', type: 'boolean', description: 'Auto-advance to next slide. Default: true', required: false },
+      { name: 'loop', type: 'boolean', description: 'Loop back to first slide after last. Default: false', required: false },
+      { name: 'showProgressBar', type: 'boolean', description: 'Show progress bar at top. Default: true', required: false },
+    ],
+    handler: async ({ autoAdvance, loop, showProgressBar }) => {
+      if (!actions?.updateStorySettings) return 'Error: updateStorySettings action not available';
+
+      const settings: Partial<{ autoAdvance: boolean; loop: boolean; showProgressBar: boolean }> = {};
+      if (autoAdvance !== undefined) settings.autoAdvance = autoAdvance;
+      if (loop !== undefined) settings.loop = loop;
+      if (showProgressBar !== undefined) settings.showProgressBar = showProgressBar;
+
+      actions.updateStorySettings(settings);
+      return `Updated story settings: ${JSON.stringify(settings)}`;
+    },
+  });
+
+  /**
+   * Action: updateStoryTitle
+   * Update the story title and description
+   */
+  useCopilotAction({
+    name: 'updateStoryTitle',
+    description: 'Change the story title and/or description.',
+    parameters: [
+      { name: 'title', type: 'string', description: 'New story title', required: true },
+      { name: 'description', type: 'string', description: 'New story description', required: false },
+    ],
+    handler: async ({ title, description }) => {
+      if (!actions?.updateStoryTitle) return 'Error: updateStoryTitle action not available';
+      actions.updateStoryTitle(title, description);
+      return `Updated story title: "${title}"${description ? ` — ${description}` : ''}`;
+    },
+  });
+
+  // ==========================================
+  // Complex Orchestration Actions
+  // ==========================================
+
+  /**
+   * Action: generateCompleteStory
+   * Create a complete multi-slide story from a topic
+   */
+  useCopilotAction({
+    name: 'generateCompleteStory',
+    description: `Create a COMPLETE multi-slide story from a topic. This will generate:
+- Title slide with gradient background
+- 3-5 content slides with varied layouts
+- Conclusion/CTA slide
+- Animations on key elements
+- Transitions between all slides
+Use this when user asks to "create a story about..." or "tạo story về..."`,
+    parameters: [
+      { name: 'topic', type: 'string', description: 'Story topic/subject', required: true },
+      { name: 'slideCount', type: 'number', description: 'Number of content slides (2-8). Default: 4', required: false },
+      { name: 'theme', type: 'string', description: 'Color theme: dark, ocean, purple, warm, nature. Default: dark', required: false },
+      { name: 'style', type: 'string', description: 'Content style: news, educational, promotional, personal, minimal. Default: educational', required: false },
+    ],
+    handler: async ({ topic, slideCount, theme, style }) => {
+      if (!actions?.addSlide || !actions?.addElement || !actions?.updateSlide) {
+        return 'Error: Required actions not available';
+      }
+
+      const count = Math.min(Math.max(slideCount || 4, 2), 8);
+
+      // Theme palettes
+      const themes: Record<string, { bg: string; bg2: string; accent: string; accent2: string; text: string; muted: string; gradient: string }> = {
+        dark: { bg: '#0f172a', bg2: '#1e293b', accent: '#3b82f6', accent2: '#8b5cf6', text: '#ffffff', muted: '#94a3b8', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+        ocean: { bg: '#0a1628', bg2: '#0c2445', accent: '#06b6d4', accent2: '#0ea5e9', text: '#ecfeff', muted: '#67e8f9', gradient: 'linear-gradient(135deg, #0093E9 0%, #80D0C7 100%)' },
+        purple: { bg: '#1a0a2e', bg2: '#2d1b4e', accent: '#a855f7', accent2: '#d946ef', text: '#faf5ff', muted: '#c084fc', gradient: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' },
+        warm: { bg: '#1a0a0a', bg2: '#2d1515', accent: '#ef4444', accent2: '#f97316', text: '#fef2f2', muted: '#fca5a5', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+        nature: { bg: '#0d1f0d', bg2: '#1a3a1a', accent: '#22c55e', accent2: '#10b981', text: '#f0fdf4', muted: '#86efac', gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' },
+      };
+      const c = themes[theme || 'dark'] || themes.dark;
+      const contentStyle = style || 'educational';
+
+      let totalSlides = 0;
+
+      // === SLIDE 1: TITLE ===
+      const titleSlideId = actions.addSlide();
+      totalSlides++;
+      if (titleSlideId) {
+        actions.updateSlide(titleSlideId, {
+          duration: 5,
+          background: { type: 'gradient', value: c.gradient, gradient: { type: 'linear', angle: 135, colors: [{ color: c.accent, position: 0 }, { color: c.accent2, position: 100 }] } },
+        });
+      }
+      // Decorative shape
+      actions.addElement('shape', '', {
+        style: { x: 540, y: 400, width: 120, height: 4, backgroundColor: c.text, opacity: 0.5 },
+        shapeType: 'rectangle',
+        targetSlideId: titleSlideId,
+      });
+      // Title
+      actions.addElement('text', topic, {
+        style: { x: 540, y: 820, width: 920, height: 160, fontSize: 56, fontWeight: 'bold', color: c.text, textAlign: 'center' },
+        animation: { enter: { type: 'fadeInUp' as AnimationType, duration: 800, delay: 0, easing: 'ease-out' } },
+        targetSlideId: titleSlideId,
+      });
+      // Subtitle
+      actions.addElement('text', contentStyle === 'news' ? 'TIN TỨC' : contentStyle === 'promotional' ? 'KHÁM PHÁ NGAY' : 'Câu chuyện thú vị', {
+        style: { x: 540, y: 1020, width: 700, height: 60, fontSize: 28, color: c.text + 'cc', textAlign: 'center' },
+        animation: { enter: { type: 'fadeInUp' as AnimationType, duration: 600, delay: 300, easing: 'ease-out' } },
+        targetSlideId: titleSlideId,
+      });
+
+      // === CONTENT SLIDES ===
+      for (let i = 0; i < count; i++) {
+        const slideId = actions.addSlide();
+        totalSlides++;
+        if (slideId) {
+          const bgColor = i % 2 === 0 ? c.bg : c.bg2;
+          actions.updateSlide(slideId, {
+            duration: 6,
+            background: { type: 'color', value: bgColor },
+            transition: { type: 'fade' as TransitionType, duration: 500 },
+          });
+        }
+        // Slide number
+        actions.addElement('text', `${i + 1}/${count}`, {
+          style: { x: 540, y: 200, width: 150, height: 50, fontSize: 20, color: c.accent, textAlign: 'center', fontWeight: 'medium' },
+          targetSlideId: slideId,
+        });
+        // Accent line
+        actions.addElement('shape', '', {
+          style: { x: 540, y: 280, width: 60, height: 3, backgroundColor: c.accent },
+          shapeType: 'rectangle',
+          targetSlideId: slideId,
+        });
+        // Content heading placeholder
+        actions.addElement('text', `Điểm nổi bật ${i + 1}`, {
+          style: { x: 540, y: 700, width: 900, height: 100, fontSize: 42, fontWeight: 'bold', color: c.text, textAlign: 'center' },
+          animation: { enter: { type: 'fadeInUp' as AnimationType, duration: 700, delay: 0, easing: 'ease-out' } },
+          targetSlideId: slideId,
+        });
+        // Content body placeholder
+        actions.addElement('text', `Nội dung chi tiết về ${topic} - phần ${i + 1}. Hãy chỉnh sửa nội dung này.`, {
+          style: { x: 540, y: 900, width: 860, height: 200, fontSize: 28, color: c.muted, textAlign: 'center' },
+          animation: { enter: { type: 'fadeInUp' as AnimationType, duration: 600, delay: 200, easing: 'ease-out' } },
+          targetSlideId: slideId,
+        });
+      }
+
+      // === FINAL SLIDE: CTA ===
+      const ctaSlideId = actions.addSlide();
+      totalSlides++;
+      if (ctaSlideId) {
+        actions.updateSlide(ctaSlideId, {
+          duration: 5,
+          background: { type: 'gradient', value: c.gradient, gradient: { type: 'linear', angle: 135, colors: [{ color: c.accent2, position: 0 }, { color: c.accent, position: 100 }] } },
+          transition: { type: 'cube' as TransitionType, duration: 600 },
+        });
+      }
+      actions.addElement('text', 'Cảm ơn bạn đã xem!', {
+        style: { x: 540, y: 750, width: 900, height: 100, fontSize: 48, fontWeight: 'bold', color: c.text, textAlign: 'center' },
+        animation: { enter: { type: 'scaleIn' as AnimationType, duration: 800, delay: 0, easing: 'ease-out' } },
+        targetSlideId: ctaSlideId,
+      });
+      actions.addElement('text', 'Theo dõi để xem thêm nội dung', {
+        style: { x: 540, y: 900, width: 700, height: 60, fontSize: 24, color: c.text + 'cc', textAlign: 'center' },
+        animation: { enter: { type: 'fadeInUp' as AnimationType, duration: 600, delay: 300, easing: 'ease-out' } },
+        targetSlideId: ctaSlideId,
+      });
+      // Sticker
+      actions.addElement('sticker', '🌟', {
+        style: { x: 540, y: 550, width: 80, height: 80, fontSize: 64 },
+        animation: { loop: { type: 'float' as AnimationType, duration: 3000, delay: 0, easing: 'ease-in-out' } },
+        targetSlideId: ctaSlideId,
+      });
+
+      return `✅ Tạo story "${topic}" hoàn chỉnh với ${totalSlides} slides (1 title + ${count} content + 1 CTA). Theme: ${theme || 'dark'}. Style: ${contentStyle}. Tất cả slides đã có animation + transition. Bạn có thể chỉnh sửa nội dung chi tiết cho từng slide.`;
+    },
+  });
+
+  /**
+   * Action: redesignSlide
+   * Clear and recreate a slide with a fresh design
+   */
+  useCopilotAction({
+    name: 'redesignSlide',
+    description: 'Clear all elements from the current slide and create a new design. Use when user says "redesign", "thiết kế lại", or "làm lại slide này".',
+    parameters: [
+      { name: 'designStyle', type: 'string', description: 'Design style: minimal, bold, gradient, split, centered. Default: centered', required: false },
+      { name: 'backgroundColor', type: 'string', description: 'New background color (hex)', required: false },
+      { name: 'title', type: 'string', description: 'Main title text', required: false },
+      { name: 'body', type: 'string', description: 'Body text', required: false },
+    ],
+    handler: async ({ designStyle, backgroundColor, title, body }) => {
+      if (!actions?.deleteElement || !actions?.addElement || !actions?.updateSlide) {
+        return 'Error: Required actions not available';
+      }
+
+      // Clear existing elements
+      const existingElements = context.currentSlide.elements.map(el => el.id);
+      for (const id of existingElements) {
+        actions.deleteElement(id);
+      }
+
+      const style = designStyle || 'centered';
+      const bg = backgroundColor || '#0f172a';
+
+      // Update background
+      actions.updateSlide(currentSlide.id, {
+        background: { type: 'color', value: bg },
+      });
+
+      switch (style) {
+        case 'minimal':
+          if (title) {
+            actions.addElement('text', title, {
+              style: { x: 540, y: 900, width: 800, height: 80, fontSize: 36, color: '#ffffff', textAlign: 'center', fontWeight: 'medium' },
+            });
+          }
+          break;
+        case 'bold':
+          // Large accent shape
+          actions.addElement('shape', '', {
+            style: { x: 540, y: 500, width: 300, height: 300, backgroundColor: '#3b82f6', opacity: 0.15 },
+            shapeType: 'circle',
+          });
+          if (title) {
+            actions.addElement('text', title, {
+              style: { x: 540, y: 800, width: 900, height: 140, fontSize: 64, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
+            });
+          }
+          if (body) {
+            actions.addElement('text', body, {
+              style: { x: 540, y: 1050, width: 800, height: 120, fontSize: 28, color: '#94a3b8', textAlign: 'center' },
+            });
+          }
+          break;
+        case 'gradient':
+          actions.updateSlide(currentSlide.id, {
+            background: { type: 'gradient', value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+          });
+          if (title) {
+            actions.addElement('text', title, {
+              style: { x: 540, y: 850, width: 900, height: 120, fontSize: 52, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
+            });
+          }
+          if (body) {
+            actions.addElement('text', body, {
+              style: { x: 540, y: 1050, width: 800, height: 100, fontSize: 26, color: '#ffffffcc', textAlign: 'center' },
+            });
+          }
+          break;
+        case 'split':
+          // Top accent block
+          actions.addElement('shape', '', {
+            style: { x: 540, y: 400, width: 1080, height: 800, backgroundColor: '#1e293b' },
+            shapeType: 'rectangle',
+          });
+          if (title) {
+            actions.addElement('text', title, {
+              style: { x: 540, y: 400, width: 900, height: 100, fontSize: 48, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
+            });
+          }
+          if (body) {
+            actions.addElement('text', body, {
+              style: { x: 540, y: 1200, width: 860, height: 200, fontSize: 28, color: '#cbd5e1', textAlign: 'center' },
+            });
+          }
+          break;
+        default: // centered
+          // Subtle line decor
+          actions.addElement('shape', '', {
+            style: { x: 540, y: 650, width: 80, height: 3, backgroundColor: '#3b82f6' },
+            shapeType: 'rectangle',
+          });
+          if (title) {
+            actions.addElement('text', title, {
+              style: { x: 540, y: 850, width: 900, height: 120, fontSize: 48, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
+            });
+          }
+          if (body) {
+            actions.addElement('text', body, {
+              style: { x: 540, y: 1050, width: 800, height: 150, fontSize: 26, color: '#94a3b8', textAlign: 'center' },
+            });
+          }
+      }
+
+      return `Redesigned slide with "${style}" style. Cleared ${existingElements.length} old elements.`;
+    },
+  });
+
+  /**
+   * Action: applyThemeToAllSlides
+   * Apply a consistent color theme to all slides
+   */
+  useCopilotAction({
+    name: 'applyThemeToAllSlides',
+    description: 'Apply a consistent color theme across ALL slides in the story. Changes backgrounds and text colors.',
+    parameters: [
+      { name: 'theme', type: 'string', description: 'Theme name: dark, ocean, purple, warm, nature', required: true },
+      { name: 'updateTextColors', type: 'boolean', description: 'Also update text element colors to match theme. Default: true', required: false },
+    ],
+    handler: async ({ theme, updateTextColors }) => {
+      if (!actions?.updateSlide) return 'Error: updateSlide action not available';
+
+      const themes: Record<string, { bg: string; bg2: string; text: string; muted: string }> = {
+        dark: { bg: '#0f172a', bg2: '#1e293b', text: '#ffffff', muted: '#94a3b8' },
+        ocean: { bg: '#0a1628', bg2: '#0c2445', text: '#ecfeff', muted: '#67e8f9' },
+        purple: { bg: '#1a0a2e', bg2: '#2d1b4e', text: '#faf5ff', muted: '#c084fc' },
+        warm: { bg: '#1a0a0a', bg2: '#2d1515', text: '#fef2f2', muted: '#fca5a5' },
+        nature: { bg: '#0d1f0d', bg2: '#1a3a1a', text: '#f0fdf4', muted: '#86efac' },
+      };
+      const t = themes[theme];
+      if (!t) return `Error: Unknown theme "${theme}". Available: ${Object.keys(themes).join(', ')}`;
+
+      let slidesUpdated = 0;
+      let elementsUpdated = 0;
+
+      for (let i = 0; i < story.slides.length; i++) {
+        const slide = story.slides[i];
+        // Alternate backgrounds for visual interest
+        const bgColor = i % 2 === 0 ? t.bg : t.bg2;
+        // Only update non-gradient/non-image backgrounds
+        if (slide.background.type === 'color') {
+          actions.updateSlide(slide.id, {
+            background: { type: 'color', value: bgColor },
+          });
+          slidesUpdated++;
+        }
+
+        // Update text colors
+        if (updateTextColors !== false && actions?.updateElement) {
+          for (const el of slide.elements) {
+            if (el.type === 'text') {
+              const isTitle = el.style.fontSize && el.style.fontSize >= 40;
+              actions.updateElement(el.id, { color: isTitle ? t.text : t.muted });
+              elementsUpdated++;
+            }
+          }
+        }
+      }
+
+      return `Applied "${theme}" theme to ${slidesUpdated} slides and ${elementsUpdated} text elements`;
     },
   });
 }

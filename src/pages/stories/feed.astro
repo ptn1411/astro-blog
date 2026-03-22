@@ -1,0 +1,143 @@
+---
+import { getCollection } from 'astro:content';
+import { StoryFeed } from '~/components/admin/story/ui/preview/StoryFeed';
+import type { Story } from '~/components/admin/story/types';
+import Layout from '~/layouts/Layout.astro';
+
+export const prerender = true;
+
+// Load all assets using glob
+const images = import.meta.glob('/src/assets/images/**/*', {
+  eager: false,
+  import: 'default',
+});
+
+const audios = import.meta.glob('/src/assets/audio/**/*', {
+  eager: false,
+  import: 'default',
+});
+
+const videos = import.meta.glob('/src/assets/video/**/*', {
+  eager: false,
+  import: 'default',
+});
+
+// Helper function to resolve asset path
+const resolveAsset = async (assetPath: string, assetsGlob: Record<string, any>) => {
+  if (!assetPath || !assetPath.startsWith('/src/assets/')) {
+    return assetPath;
+  }
+
+  try {
+    const fileName = assetPath.split('/').pop();
+    const matchingKey = Object.keys(assetsGlob).find((key) => key.includes(fileName || ''));
+
+    if (matchingKey) {
+      const assetModule = await assetsGlob[matchingKey]();
+      return assetModule.src || assetModule;
+    }
+  } catch (error) {
+    console.error(`Failed to load asset: ${assetPath}`, error);
+  }
+
+  return assetPath;
+};
+
+// Process all stories at build time
+const storiesCollection = await getCollection('stories');
+
+const processedStories: Story[] = await Promise.all(
+  storiesCollection.map(async (story) => {
+    const storyData = JSON.parse(JSON.stringify(story.data));
+
+    // Process each slide
+    for (const slide of storyData.slides) {
+      // Process background image
+      if (slide.background?.type === 'image' && slide.background.value) {
+        slide.background.value = await resolveAsset(slide.background.value, images);
+      }
+
+      // Process background video
+      if (slide.background?.type === 'video' && slide.background.value) {
+        slide.background.value = await resolveAsset(slide.background.value, videos);
+      }
+
+      // Process slide audio
+      if (slide.audio?.src) {
+        slide.audio.src = await resolveAsset(slide.audio.src, audios);
+      }
+
+      // Process elements
+      if (slide.elements) {
+        for (const element of slide.elements) {
+          if (['image', 'sticker', 'gif', 'avatar'].includes(element.type)) {
+            if (element.content) {
+              element.content = await resolveAsset(element.content, images);
+            }
+            if (element.src) {
+              element.src = await resolveAsset(element.src, images);
+            }
+          }
+
+          if (element.type === 'video') {
+            if (element.content) {
+              element.content = await resolveAsset(element.content, videos);
+            }
+            if (element.src) {
+              element.src = await resolveAsset(element.src, videos);
+            }
+          }
+
+          if (element.type === 'audio') {
+            if (element.content) {
+              element.content = await resolveAsset(element.content, audios);
+            }
+            if (element.src) {
+              element.src = await resolveAsset(element.src, audios);
+            }
+          }
+
+          if (element.type === 'slider' && element.slider?.images) {
+            for (const img of element.slider.images) {
+              if (img.src) {
+                img.src = await resolveAsset(img.src, images);
+              }
+            }
+          }
+
+          if (element.type === 'carousel' && element.carousel?.images) {
+            for (let i = 0; i < element.carousel.images.length; i++) {
+              element.carousel.images[i] = await resolveAsset(element.carousel.images[i], images);
+            }
+          }
+        }
+      }
+    }
+
+    return storyData as Story;
+  })
+);
+
+const metadata = {
+  title: 'Stories Feed',
+  description: 'Lướt stories kiểu TikTok – trải nghiệm xem story toàn màn hình',
+  canonical: new URL(Astro.url.pathname, Astro.site).toString(),
+};
+---
+
+<Layout metadata={metadata}>
+  <div class="w-full h-screen bg-black">
+    <StoryFeed stories={processedStories} client:only="react" />
+  </div>
+  <style>
+    :global(body) {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    :global(html) {
+      overflow: hidden;
+    }
+  </style>
+</Layout>

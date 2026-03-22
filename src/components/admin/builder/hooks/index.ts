@@ -6,4 +6,6 @@ export { useWidgetRegistry, type UseWidgetRegistryReturn } from './useWidgetRegi
 export { useBuilderState, type BuilderState, type BuilderStateSetters, type BuilderMode, type ViewType, type PreviewMode } from './useBuilderState';
 export { useBuilderActions } from './useBuilderActions';
 export { useBuilderKeyboard } from './useBuilderKeyboard';
+// NOTE: useBuilderAI is NOT exported here to prevent @copilotkit from being pulled into SSR.
+// It is only used via React.lazy() in BuilderAIWrapper.tsx
 export { useNavigationEditor, type UseNavigationEditorOptions, type UseNavigationEditorReturn } from './useNavigationEditor';

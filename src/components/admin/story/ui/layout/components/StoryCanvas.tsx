@@ -42,7 +42,7 @@ export function StoryCanvas({
       >
         {/* Canvas */}
         <div
-          className="relative shadow-2xl rounded-lg overflow-hidden"
+          className="relative shadow-2xl shadow-black/40 rounded-xl overflow-hidden ring-1 ring-slate-700/30"
           style={{ width: 360, height: 640 }}
           onPointerDown={onDeselectAll}
         >
@@ -86,10 +86,7 @@ export function StoryCanvas({
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                backgroundImage: `
-                  linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
-                  linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
-                `,
+                backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)`,
                 backgroundSize: `${canvasState.gridSize}px ${canvasState.gridSize}px`,
               }}
             />
@@ -127,7 +124,7 @@ export function StoryCanvas({
 
         {/* Canvas info */}
         <div className="absolute -bottom-6 left-0 right-0 flex justify-center">
-          <span className="text-[10px] text-slate-500 font-mono">360 × 640 • 9:16 Story</span>
+          <span className="text-[10px] text-slate-400 font-mono px-3 py-1 bg-slate-800/60 backdrop-blur-md rounded-full border border-slate-700/30">360 × 640 • 9:16 Story</span>
         </div>
       </div>
     </div>

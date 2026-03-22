@@ -79,28 +79,48 @@ export function StoriesGrid({
         : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6';
 
   return (
-    <div className={`grid gap-3 ${gridCols}`}>
-      {stories.map((story) => (
-        <StoryCard
-          key={story.id}
-          story={story}
-          isSelected={selectedStory === story.id}
-          showMenu={showMenu === story.id}
-          isMobile={isMobile}
-          onSelect={() => {
-            if (isMobile) {
-              onMobileAction(story);
-            } else {
-              onSelectStory(story.id);
-            }
-          }}
-          onMenuToggle={() => onMenuToggle(showMenu === story.id ? null : story.id)}
-          onEdit={() => onEdit(story)}
-          onDuplicate={() => onDuplicate(story)}
-          onExport={() => onExport(story)}
-          onDelete={() => onDelete(story)}
-        />
-      ))}
-    </div>
+    <>
+      <style>{`
+        @keyframes storyCardFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+      <div className={`grid gap-3 ${gridCols}`}>
+        {stories.map((story, index) => (
+          <div
+            key={story.id}
+            style={{
+              animation: `storyCardFadeIn 0.4s ease-out ${Math.min(index, 11) * 60}ms both`,
+            }}
+          >
+            <StoryCard
+              story={story}
+              isSelected={selectedStory === story.id}
+              showMenu={showMenu === story.id}
+              isMobile={isMobile}
+              onSelect={() => {
+                if (isMobile) {
+                  onMobileAction(story);
+                } else {
+                  onSelectStory(story.id);
+                }
+              }}
+              onMenuToggle={() => onMenuToggle(showMenu === story.id ? null : story.id)}
+              onEdit={() => onEdit(story)}
+              onDuplicate={() => onDuplicate(story)}
+              onExport={() => onExport(story)}
+              onDelete={() => onDelete(story)}
+            />
+          </div>
+        ))}
+      </div>
+    </>
   );
 }

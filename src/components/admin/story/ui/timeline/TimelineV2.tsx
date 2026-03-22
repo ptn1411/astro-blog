@@ -108,11 +108,11 @@ const SortableSlide = ({
         {...attributes}
         {...listeners}
         onClick={onSelect}
-        className={`relative w-20 h-36 rounded-lg border-2 overflow-hidden cursor-pointer transition-all ${
+        className={`relative w-20 h-36 rounded-lg border-2 overflow-hidden cursor-pointer transition-all duration-300 ${
           isActive
-            ? 'border-blue-500 shadow-lg shadow-blue-500/20 scale-105'
-            : 'border-slate-600 hover:border-slate-500'
-        } ${isDragging ? 'opacity-50' : ''}`}
+            ? 'border-blue-500 shadow-lg shadow-blue-500/30 scale-105'
+            : 'border-slate-600/50 hover:border-slate-500 hover:shadow-md hover:shadow-slate-500/10'
+        } ${isDragging ? 'opacity-50 scale-95' : ''}`}
       >
         {/* Thumbnail Preview */}
         <div className="w-full h-full" style={getThumbnailBg()}>
@@ -295,7 +295,7 @@ const ElementTrack = ({
   };
 
   return (
-    <div className="h-8 flex items-center mb-1 group" onClick={onSelect}>
+    <div className="h-8 flex items-center mb-1 group hover:bg-slate-800/30 rounded transition-colors duration-150" onClick={onSelect}>
       {/* Element Name / Icon */}
       <div
         className={`w-32 flex-shrink-0 flex items-center gap-2 px-2 text-xs truncate ${isSelected ? 'text-blue-400 font-medium' : 'text-slate-400'}`}
@@ -314,7 +314,7 @@ const ElementTrack = ({
 
         {/* The Bar */}
         <div
-          className={`absolute top-0.5 bottom-0.5 rounded cursor-pointer group/bar ${isSelected ? 'bg-blue-600' : 'bg-slate-600 hover:bg-slate-500'}`}
+          className={`absolute top-0.5 bottom-0.5 rounded cursor-pointer transition-all duration-200 group/bar ${isSelected ? 'bg-blue-600 shadow-sm shadow-blue-500/30' : 'bg-slate-600 hover:bg-slate-500'}`}
           style={{ left: `${leftPercent}%`, width: `${widthPercent}%` }}
           onPointerDown={(e) => handlePointerDown(e, 'move')}
         >
@@ -400,22 +400,22 @@ export const TimelineV2: React.FC<TimelineProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-900 border-t border-slate-700">
+    <div className="h-full flex flex-col bg-slate-900/95 backdrop-blur-sm border-t border-slate-700/50">
       {/* Timeline header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700 h-10 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700/50 h-10 flex-shrink-0">
         <div className="flex items-center gap-2">
           {/* View Switcher */}
           <div className="flex bg-slate-800 rounded p-0.5 mr-2">
             <button
               onClick={() => setViewMode('slides')}
-              className={`p-1 rounded ${viewMode === 'slides' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`p-1 rounded transition-all duration-150 ${viewMode === 'slides' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
               title="Slides View"
             >
               <LayoutGrid size={14} />
             </button>
             <button
               onClick={() => setViewMode('elements')}
-              className={`p-1 rounded ${viewMode === 'elements' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`p-1 rounded transition-all duration-150 ${viewMode === 'elements' ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
               title="Timeline View"
             >
               <Layers size={14} />
@@ -430,7 +430,7 @@ export const TimelineV2: React.FC<TimelineProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={onTogglePlay}
-                className="p-1 rounded-full bg-slate-700 hover:bg-blue-600 hover:text-white transition-colors"
+                className="p-1 rounded-full bg-slate-700 hover:bg-blue-600 hover:text-white transition-all duration-200 hover:shadow-md hover:shadow-blue-500/20 active:scale-90"
               >
                 {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
               </button>
@@ -477,7 +477,7 @@ export const TimelineV2: React.FC<TimelineProps> = ({
             {/* Add slide button */}
             <button
               onClick={onAddSlide}
-              className="flex-shrink-0 w-20 h-36 border-2 border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center text-slate-500 hover:text-blue-400 hover:border-blue-400/50 hover:bg-slate-700/30 transition-all"
+              className="flex-shrink-0 w-20 h-36 border-2 border-dashed border-slate-600/50 rounded-lg flex flex-col items-center justify-center text-slate-500 hover:text-blue-400 hover:border-blue-400/50 hover:bg-blue-500/5 transition-all duration-300 hover:scale-105 active:scale-95"
             >
               <Plus size={20} />
               <span className="text-[10px] font-medium mt-1">Add Slide</span>
@@ -510,9 +510,9 @@ export const TimelineV2: React.FC<TimelineProps> = ({
                 {/* Playhead */}
                 <div
                   className="absolute top-0 bottom-0 w-px bg-red-500 z-20 pointer-events-none"
-                  style={{ left: `${(currentTime / slideDurationMs) * 100}%` }}
+                  style={{ left: `${(currentTime / slideDurationMs) * 100}%`, filter: 'drop-shadow(0 0 4px rgba(239, 68, 68, 0.6))' }}
                 >
-                  <div className="absolute -top-1 -left-1.5 w-3 h-3 bg-red-500 rounded-full"></div>
+                  <div className="absolute -top-1 -left-1.5 w-3 h-3 bg-red-500 rounded-full shadow-lg shadow-red-500/50"></div>
                 </div>
               </div>
             </div>

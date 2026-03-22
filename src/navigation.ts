@@ -7,12 +7,13 @@ export const headerData = {
       href: getPermalink('/'),
     },
     {
-      text: 'Giới thiệu',
-      href: getPermalink('/about'),
+      text: 'Chat',
+      href: getPermalink('/chat'),
     },
     {
       text: 'Dịch vụ',
       links: [
+        { text: 'Giới thiệu', href: getPermalink('/about') },
         { text: 'Tất cả dịch vụ', href: getPermalink('/services') },
         { text: 'Bảng giá', href: getPermalink('/pricing') },
         { text: 'Dự án', href: getPermalink('/personal#projects') },

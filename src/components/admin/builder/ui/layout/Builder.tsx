@@ -1,9 +1,13 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState, useEffect, lazy, Suspense } from 'react';
 
 // Hooks
 import { useBuilderState } from '../../hooks/useBuilderState';
 import { useBuilderActions } from '../../hooks/useBuilderActions';
 import { useBuilderKeyboard } from '../../hooks/useBuilderKeyboard';
+
+// AI Integration - Lazy loaded to prevent SSR/hydration issues with Astro
+import { AI_CONFIG } from '../../../config';
+const BuilderAIWrapper = lazy(() => import('./BuilderAIWrapper'));
 
 // Layout Components
 import { BuilderHeader, BuilderSidebar, BuilderCanvas } from './components';
@@ -27,6 +31,45 @@ import { generateAIPrompt } from '../../utils/aiPromptGenerator';
 import { parseImportedJSON } from '../../services/export/exportActions';
 
 export type { BuilderMode } from '../../hooks/useBuilderState';
+
+// --- AI CopilotKit Wrapper (lazy-loaded, checks server health) ---
+function BuilderCopilotProvider({ children, blocks, selectedId, metadata, setBlocks, setSelectedId, setMetadata, getWidget }: {
+  children: React.ReactNode;
+  blocks: import('../../core/types').BuilderBlock[];
+  selectedId: string | null;
+  metadata: import('../../core/types').PageMetadata;
+  setBlocks: React.Dispatch<React.SetStateAction<import('../../core/types').BuilderBlock[]>>;
+  setSelectedId: React.Dispatch<React.SetStateAction<string | null>>;
+  setMetadata: React.Dispatch<React.SetStateAction<import('../../core/types').PageMetadata>>;
+  getWidget: (type: string) => { defaultProps: Record<string, unknown> } | undefined;
+}) {
+  const [serverOnline, setServerOnline] = useState(false);
+
+  useEffect(() => {
+    fetch(`${AI_CONFIG.workerUrl}/health`, { mode: 'cors' })
+      .then(r => { if (r.ok) setServerOnline(true); })
+      .catch(() => {});
+  }, []);
+
+  if (!serverOnline) return <>{children}</>;
+
+  return (
+    <Suspense fallback={<>{children}</>}>
+      <BuilderAIWrapper
+        runtimeUrl={`${AI_CONFIG.workerUrl}${AI_CONFIG.endpoint}`}
+        blocks={blocks}
+        selectedId={selectedId}
+        metadata={metadata}
+        setBlocks={setBlocks}
+        setSelectedId={setSelectedId}
+        setMetadata={setMetadata}
+        getWidget={getWidget}
+      >
+        {children}
+      </BuilderAIWrapper>
+    </Suspense>
+  );
+}
 
 // --- Main Builder Component ---
 export default function BuilderApp() {
@@ -108,9 +151,21 @@ export default function BuilderApp() {
     if (result) setters.setBlocks(result);
   }, [redo, setters]);
 
+  // --- AI Props for CopilotProvider ---
+  const aiProps = {
+    blocks: state.blocks,
+    selectedId: state.selectedId,
+    metadata: state.metadata,
+    setBlocks: setters.setBlocks,
+    setSelectedId: setters.setSelectedId,
+    setMetadata: setters.setMetadata,
+    getWidget: widgetRegistry.getWidget,
+  };
+
   // --- Render Mobile Layout ---
   if (showMobileLayout) {
     return (
+      <BuilderCopilotProvider {...aiProps}>
       <div className={`h-screen ${state.isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <input type="file" ref={fileInputRef} onChange={actions.handleImportJSON} accept=".json" className="hidden" />
         
@@ -190,11 +245,13 @@ export default function BuilderApp() {
           isDarkMode={state.isDarkMode}
         />
       </div>
+      </BuilderCopilotProvider>
     );
   }
 
   // --- Desktop Layout ---
   return (
+    <BuilderCopilotProvider {...aiProps}>
     <div
       className={`flex flex-col h-screen overflow-hidden transition-colors ${state.isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-slate-800'}`}
     >
@@ -335,5 +392,6 @@ export default function BuilderApp() {
         </div>
       )}
     </div>
+    </BuilderCopilotProvider>
   );
 }

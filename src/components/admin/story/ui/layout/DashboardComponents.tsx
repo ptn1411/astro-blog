@@ -1,4 +1,4 @@
-import { Plus, RefreshCw, Search, X } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import React from 'react';
 import { cn } from '~/utils/cn';
 
@@ -14,7 +14,7 @@ interface StatsCardProps {
 
 export function StatsCard({ label, value, trend, icon }: StatsCardProps) {
   return (
-    <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800/50 rounded-xl p-4 sm:p-6 hover:border-slate-700/50 transition-colors duration-200">
+    <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800/50 rounded-xl p-4 sm:p-6 hover:border-slate-700/50 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm text-slate-400 font-medium mb-1">{label}</p>
@@ -26,7 +26,7 @@ export function StatsCard({ label, value, trend, icon }: StatsCardProps) {
           )}
         </div>
         {icon && (
-          <div className="p-3 bg-slate-800/50 rounded-lg" aria-hidden="true">
+          <div className="p-3 bg-slate-800/50 rounded-xl shadow-inner" aria-hidden="true">
             {icon}
           </div>
         )}
@@ -44,9 +44,9 @@ interface SearchBarProps {
 
 export function SearchBar({ value, onChange, placeholder = 'Tìm kiếm...', onClear }: SearchBarProps) {
   return (
-    <div className="relative">
+    <div className="relative group">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-        <Search className="w-5 h-5 text-slate-400" aria-hidden="true" />
+        <Search className="w-5 h-5 text-slate-400 transition-colors duration-200 group-focus-within:text-blue-400" aria-hidden="true" />
       </div>
       <input
         type="text"
@@ -58,8 +58,8 @@ export function SearchBar({ value, onChange, placeholder = 'Tìm kiếm...', onC
           'bg-slate-900/50 backdrop-blur-sm',
           'border border-slate-800/50 rounded-xl',
           'text-slate-100 placeholder-slate-500',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-          'transition-all duration-200',
+          'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 focus:shadow-lg focus:shadow-blue-500/10',
+          'transition-all duration-300',
           'hover:border-slate-700/50'
         )}
         aria-label={placeholder}
@@ -97,9 +97,9 @@ export function ActionButton({
 }: ActionButtonProps) {
   const variants = {
     primary:
-      'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25',
+      'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40',
     secondary: 'bg-slate-800/50 hover:bg-slate-800 text-slate-200 border border-slate-700/50 hover:border-slate-600',
-    danger: 'bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/25',
+    danger: 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-500/25 hover:shadow-red-500/40',
   };
 
   const sizes = {
@@ -119,7 +119,8 @@ export function ActionButton({
         'transition-all duration-200',
         'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-950',
         'cursor-pointer',
-        'disabled:opacity-50 disabled:cursor-not-allowed',
+        'active:scale-[0.97]',
+        'disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100',
         variants[variant],
         sizes[size]
       )}
@@ -138,14 +139,25 @@ interface LoadingSpinnerProps {
 
 export function LoadingSpinner({ size = 'md', label = 'Loading...' }: LoadingSpinnerProps) {
   const sizes = {
-    sm: 'w-4 h-4',
-    md: 'w-8 h-8',
-    lg: 'w-12 h-12',
+    sm: 16,
+    md: 32,
+    lg: 48,
   };
+
+  const s = sizes[size];
 
   return (
     <div className="flex flex-col items-center justify-center gap-3" role="status" aria-live="polite">
-      <RefreshCw className={cn(sizes[size], 'text-blue-500 animate-spin')} aria-hidden="true" />
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className="animate-spin">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="text-slate-700" />
+        <path d="M12 2a10 10 0 0 1 10 10" stroke="url(#spinner-gradient)" strokeWidth="3" strokeLinecap="round" />
+        <defs>
+          <linearGradient id="spinner-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#a855f7" />
+          </linearGradient>
+        </defs>
+      </svg>
       <span className="text-sm text-slate-400">{label}</span>
       <span className="sr-only">{label}</span>
     </div>
@@ -167,7 +179,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
     <div className="flex flex-col items-center justify-center py-12 sm:py-16 px-4 text-center">
       {icon && (
         <div
-          className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-800/50 rounded-2xl flex items-center justify-center mb-4"
+          className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-800/50 rounded-2xl flex items-center justify-center mb-4 animate-[float_3s_ease-in-out_infinite]"
           aria-hidden="true"
         >
           {icon}
@@ -184,6 +196,12 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
           size="md"
         />
       )}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -207,7 +225,7 @@ export function Badge({ children, variant = 'default' }: BadgeProps) {
       className={cn(
         'inline-flex items-center px-2.5 py-1 rounded-lg',
         'text-xs font-medium border',
-        'transition-colors duration-200',
+        'transition-all duration-200',
         variants[variant]
       )}
     >
@@ -215,3 +233,4 @@ export function Badge({ children, variant = 'default' }: BadgeProps) {
     </span>
   );
 }
+

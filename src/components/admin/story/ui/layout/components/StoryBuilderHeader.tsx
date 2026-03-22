@@ -57,12 +57,12 @@ export function StoryBuilderHeader({
   onSave,
 }: StoryBuilderHeaderProps) {
   return (
-    <header className="flex items-center justify-between px-4 py-2.5 bg-slate-800 border-b border-slate-700">
+    <header className="flex items-center justify-between px-4 py-2.5 bg-slate-800/95 backdrop-blur-sm border-b border-slate-700/50">
       <div className="flex items-center gap-4">
         {onBack && (
           <button
             onClick={onBack}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-all duration-150 active:scale-95"
             title="Quay lại danh sách"
           >
             <svg
@@ -93,11 +93,11 @@ export function StoryBuilderHeader({
 
       <div className="flex items-center gap-2">
         {/* Undo/Redo */}
-        <div className="flex items-center bg-slate-700/50 rounded-lg p-0.5 border border-slate-600">
+        <div className="flex items-center bg-slate-700/40 rounded-xl p-0.5 border border-slate-600/50 hover:border-slate-500/50 transition-colors duration-200">
           <button
             onClick={onUndo}
             disabled={!canUndo}
-            className={`p-1.5 rounded transition-colors ${
+            className={`p-1.5 rounded-lg transition-all duration-150 active:scale-90 ${
               !canUndo ? 'text-slate-600 cursor-not-allowed' : 'text-slate-300 hover:bg-slate-600 hover:text-white'
             }`}
             title="Undo (Ctrl+Z)"
@@ -107,7 +107,7 @@ export function StoryBuilderHeader({
           <button
             onClick={onRedo}
             disabled={!canRedo}
-            className={`p-1.5 rounded transition-colors ${
+            className={`p-1.5 rounded-lg transition-all duration-150 active:scale-90 ${
               !canRedo ? 'text-slate-600 cursor-not-allowed' : 'text-slate-300 hover:bg-slate-600 hover:text-white'
             }`}
             title="Redo (Ctrl+Y)"
@@ -117,10 +117,10 @@ export function StoryBuilderHeader({
         </div>
 
         {/* Zoom controls */}
-        <div className="flex items-center bg-slate-700/50 rounded-lg p-0.5 border border-slate-600">
+        <div className="flex items-center bg-slate-700/40 rounded-xl p-0.5 border border-slate-600/50 hover:border-slate-500/50 transition-colors duration-200">
           <button
             onClick={() => onCanvasStateChange({ zoom: Math.max(0.5, canvasState.zoom - 0.1) })}
-            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded-lg transition-all duration-150 active:scale-90"
             title="Zoom Out"
           >
             <ZoomOut size={16} />
@@ -130,7 +130,7 @@ export function StoryBuilderHeader({
           </span>
           <button
             onClick={() => onCanvasStateChange({ zoom: Math.min(2, canvasState.zoom + 0.1) })}
-            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded-lg transition-all duration-150 active:scale-90"
             title="Zoom In"
           >
             <ZoomIn size={16} />
@@ -138,11 +138,11 @@ export function StoryBuilderHeader({
         </div>
 
         {/* Canvas options */}
-        <div className="flex items-center bg-slate-700/50 rounded-lg p-0.5 border border-slate-600">
+        <div className="flex items-center bg-slate-700/40 rounded-xl p-0.5 border border-slate-600/50 hover:border-slate-500/50 transition-colors duration-200">
           <button
             onClick={() => onCanvasStateChange({ showGrid: !canvasState.showGrid })}
-            className={`p-1.5 rounded transition-colors ${
-              canvasState.showGrid ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-600'
+            className={`p-1.5 rounded-lg transition-all duration-150 active:scale-90 ${
+              canvasState.showGrid ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-300 hover:bg-slate-600'
             }`}
             title="Toggle Grid"
           >
@@ -150,8 +150,8 @@ export function StoryBuilderHeader({
           </button>
           <button
             onClick={() => onCanvasStateChange({ showSafeZone: !canvasState.showSafeZone })}
-            className={`p-1.5 rounded transition-colors ${
-              canvasState.showSafeZone ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-600'
+            className={`p-1.5 rounded-lg transition-all duration-150 active:scale-90 ${
+              canvasState.showSafeZone ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-300 hover:bg-slate-600'
             }`}
             title="Toggle Safe Zone"
           >
@@ -162,44 +162,44 @@ export function StoryBuilderHeader({
         {/* Actions */}
         <button
           onClick={onPreview}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-xl text-sm transition-all duration-150 active:scale-95"
           title="Preview (P)"
         >
           <Play size={16} /> Preview
         </button>
 
-        <div className="flex items-center bg-slate-700/50 rounded-lg p-0.5 border border-slate-600">
+        <div className="flex items-center bg-slate-700/40 rounded-xl p-0.5 border border-slate-600/50 hover:border-slate-500/50 transition-colors duration-200">
           <button
             onClick={onImport}
-            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded-lg transition-all duration-150 active:scale-90"
             title="Import Story"
           >
             <Upload size={16} />
           </button>
           <button
             onClick={onExportJSON}
-            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded-lg transition-all duration-150 active:scale-90"
             title="Export Story JSON"
           >
             <Download size={16} />
           </button>
           <button
             onClick={onExportVideo}
-            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded-lg transition-all duration-150 active:scale-90"
             title="Export Story as Video"
           >
             <Film size={16} />
           </button>
           <button
             onClick={onOpenAIModal}
-            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded-lg transition-all duration-150 active:scale-90"
             title="AI JSON"
           >
             <Sparkles size={16} />
           </button>
           <button
             onClick={onOpenKeyStatus}
-            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded-lg transition-all duration-150 active:scale-90"
             title="API Keys Status"
           >
             <Key size={16} />
@@ -207,7 +207,7 @@ export function StoryBuilderHeader({
 
           <button
             onClick={onOpenSettings}
-            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded transition-colors"
+            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded-lg transition-all duration-150 active:scale-90"
             title="Settings"
           >
             <Settings size={16} />
@@ -216,7 +216,7 @@ export function StoryBuilderHeader({
 
         <button
           onClick={onSave}
-          className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-pink-600 to-violet-600 hover:from-pink-500 hover:to-violet-500 rounded-lg text-sm font-medium transition-all shadow-lg shadow-pink-500/20"
+          className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-pink-600 to-violet-600 hover:from-pink-500 hover:to-violet-500 rounded-xl text-sm font-medium transition-all duration-200 shadow-lg shadow-pink-500/20 hover:shadow-pink-500/30 active:scale-95"
         >
           <Save size={16} /> Save
         </button>

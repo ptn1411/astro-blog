@@ -11,15 +11,26 @@ export function DashboardLayout({ children, activeTab = 'stories' }: DashboardLa
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       {/* Floating Navigation Bar */}
+      <style>{`
+        @keyframes navSlideDown {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes logoPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3); }
+          50% { box-shadow: 0 0 20px 4px rgba(59, 130, 246, 0.15); }
+        }
+      `}</style>
       <nav
-        className="fixed top-4 left-4 right-4 z-50 bg-slate-900/80 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl"
+        className="fixed top-4 left-4 right-4 z-50 bg-slate-900/80 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl shadow-black/20"
+        style={{ animation: 'navSlideDown 0.5s ease-out' }}
         role="navigation"
         aria-label="Main navigation"
       >
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 sm:h-20">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20" style={{ animation: 'logoPulse 3s ease-in-out infinite' }}>
               <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" aria-hidden="true" />
             </div>
             <div className="hidden sm:block">
@@ -41,7 +52,7 @@ export function DashboardLayout({ children, activeTab = 'stories' }: DashboardLa
           {/* Help Button */}
           <button
             type="button"
-            className="p-2 sm:p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 sm:p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-95"
             aria-label="Help and documentation"
           >
             <HelpCircle className="w-5 h-5 text-slate-400 hover:text-slate-300 transition-colors" aria-hidden="true" />

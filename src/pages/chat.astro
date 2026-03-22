@@ -1,0 +1,29 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import MyAssistant from '~/components/chat/MyAssistant';
+
+const metadata = {
+  title: 'AI Chat — Trợ lý AI thông minh',
+  description: 'Chat với trợ lý AI thông minh. Hỏi đáp về lập trình, viết lách, phân tích dữ liệu và nhiều hơn nữa.',
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+---
+
+<Layout metadata={metadata}>
+  <MyAssistant client:only="react" />
+</Layout>
+
+<style is:global>
+  /* Remove default main/footer spacing on chat page */
+  main:has(.chat-container) {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+  main:has(.chat-container) + footer {
+    display: none !important;
+  }
+</style>
