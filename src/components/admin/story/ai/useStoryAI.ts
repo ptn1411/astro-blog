@@ -64,6 +64,14 @@ export interface StoryContext {
     index: number;
     elementCount: number;
     duration: number;
+    background: { type: string; value: string };
+    elements: Array<{
+      id: string;
+      type: ElementType;
+      content: string;
+      position: { x: number; y: number };
+      size: { width: number; height: number };
+    }>;
   }>;
   selectedElement: {
     id: string;
@@ -292,6 +300,14 @@ export function buildStoryContext(options: UseStoryAIOptions): StoryContext {
       index,
       elementCount: slide.elements.length,
       duration: slide.duration,
+      background: { type: slide.background.type, value: slide.background.value },
+      elements: slide.elements.map((el) => ({
+        id: el.id,
+        type: el.type,
+        content: el.content.substring(0, 60),
+        position: { x: el.style.x, y: el.style.y },
+        size: { width: el.style.width, height: el.style.height },
+      })),
     })),
     selectedElement: selectedElement
       ? {
@@ -318,11 +334,21 @@ export function formatContextForAI(context: StoryContext): string {
   lines.push(`- Current slide: ${context.story.currentSlideIndex + 1} of ${context.story.slideCount}`);
   lines.push('');
 
-  // All slides overview
+  // All slides overview with element details
   lines.push(`## All Slides Overview:`);
   context.allSlides.forEach((slide) => {
     const isCurrent = slide.index === context.story.currentSlideIndex;
-    lines.push(`- Slide ${slide.index + 1}${isCurrent ? ' (current)' : ''}: ${slide.elementCount} elements, ${slide.duration}s`);
+    lines.push(`### Slide ${slide.index + 1}${isCurrent ? ' (CURRENT)' : ''} — id: ${slide.id}`);
+    lines.push(`  - Background: ${slide.background.type} (${slide.background.value})`);
+    lines.push(`  - Duration: ${slide.duration}s | Elements: ${slide.elementCount}`);
+    if (slide.elements.length > 0) {
+      slide.elements.forEach((el, i) => {
+        const preview = el.content.length > 0 ? `"${el.content}"` : '(empty)';
+        lines.push(`  ${i + 1}. [${el.type}] id:${el.id} ${preview} @ (${el.position.x},${el.position.y}) ${el.size.width}×${el.size.height}`);
+      });
+    } else {
+      lines.push(`  (no elements yet)`);
+    }
   });
   lines.push('');
 
@@ -407,6 +433,15 @@ export function formatContextForAI(context: StoryContext): string {
   lines.push(`## Available Shapes: rectangle, circle, triangle, diamond, pentagon, hexagon, octagon, star, heart, arrow, plus, cross, line, speech-bubble, cloud, moon, sun`);
   lines.push('');
   lines.push(`## Available Stickers (Emoji): 🔥⭐❤️👍🎉✨💯🚀😊😂🥰😎🤔👀💪🙌🎵🎨📸💡🏆🎯💥🌟🍕🍔☕🍩🎂🍦🥤🧁🎬📱💻🎮🎸🎤📷🖼️🎁💎👑🦋🌈☀️🌙⚡`);
+  lines.push('');
+  lines.push(`## CRITICAL: Multi-Slide Story Workflow`);
+  lines.push(`When creating a story with multiple slides, YOU MUST follow this exact pattern:`);
+  lines.push(`1. Call addSlide() → response includes "slideId: <id>". Parse and REMEMBER this ID.`);
+  lines.push(`2. Call updateSlide(slideId, ...) with the saved ID to set background/duration.`);
+  lines.push(`3. Call addElement(..., targetSlideId: <savedId>) for EVERY element on that slide.`);
+  lines.push(`4. Repeat for each slide. Never add elements without targetSlideId when building multi-slide stories.`);
+  lines.push(`Example: addSlide() → "Added new slide. slideId: slide-123-abc" → use "slide-123-abc" as targetSlideId.`);
+  lines.push(`For FASTEST story creation, prefer the built-in actions: createNewsStory, createSlideFromTemplate.`);
 
   return lines.join('\n');
 }
@@ -558,10 +593,11 @@ export function useStoryAI(options: UseStoryAIOptions): void {
    */
   useCopilotAction({
     name: 'addElement',
-    description: 'Add a new element to the current slide. Use this to create text, images, shapes, buttons, and other visual elements.',
+    description: 'Add a new element to a specific slide. IMPORTANT: When adding elements to a newly created slide, always pass targetSlideId (the ID returned by addSlide). If targetSlideId is omitted, the element is added to the currently active slide.',
     parameters: [
       { name: 'type', type: 'string', description: 'Element type: text, image, video, shape, sticker, gif, poll, link, countdown, button, divider, quote, list, avatar, rating, progress, timer, location, embed, codeblock, mention, hashtag, qrcode, carousel, slider', required: true },
       { name: 'content', type: 'string', description: 'Main content. For text: the text. For images/videos: URL. For shapes: can be empty.', required: true },
+      { name: 'targetSlideId', type: 'string', description: 'Slide ID to add element to. Use the ID returned by addSlide when building multi-slide stories. Omit to add to current slide.', required: false },
       { name: 'x', type: 'number', description: 'X position (0-1080). Default: 540 (center)', required: false },
       { name: 'y', type: 'number', description: 'Y position (0-1920). Default: 960 (center)', required: false },
       { name: 'width', type: 'number', description: 'Width in pixels', required: false },
@@ -579,7 +615,7 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     handler: async (params) => {
       if (!actions?.addElement) return 'Error: addElement action not available';
 
-      const { type, content, x, y, width, height, fontSize, color, backgroundColor, shapeType, buttonHref, fontWeight, textAlign, borderRadius, opacity } = params;
+      const { type, content, targetSlideId, x, y, width, height, fontSize, color, backgroundColor, shapeType, buttonHref, fontWeight, textAlign, borderRadius, opacity } = params;
       const elementType = type as ElementType;
       const style: Partial<ElementStyle> = {};
       
@@ -598,9 +634,10 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       const extra: Record<string, unknown> = { style };
       if (shapeType) extra.shapeType = shapeType as ShapeType;
       if (buttonHref) extra.button = { href: buttonHref, target: '_blank' as const };
+      if (targetSlideId) extra.targetSlideId = targetSlideId;
 
-      actions.addElement(elementType, content, extra);
-      return `Added ${type} element: "${content.substring(0, 30)}..."`;
+      const elementId = actions.addElement(elementType, content, extra);
+      return `Added ${type} element (id: ${elementId}) to slide ${targetSlideId || 'current'}: "${content.substring(0, 30)}"`;
     },
   });
 
@@ -674,12 +711,12 @@ export function useStoryAI(options: UseStoryAIOptions): void {
    */
   useCopilotAction({
     name: 'addSlide',
-    description: 'Add a new empty slide to the story.',
+    description: 'Add a new empty slide to the story. Returns the new slide ID — you MUST save this ID and pass it as targetSlideId when calling addElement or updateSlide for this slide.',
     parameters: [],
     handler: async () => {
       if (!actions?.addSlide) return 'Error: addSlide action not available';
-      actions.addSlide();
-      return 'Added new slide';
+      const slideId = actions.addSlide();
+      return `Added new slide. slideId: ${slideId}`;
     },
   });
 

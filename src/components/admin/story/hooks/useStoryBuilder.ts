@@ -11,13 +11,17 @@ import type {
 } from '../types';
 import { DEFAULT_ELEMENT_STYLE, DEFAULT_SLIDE } from '../types';
 
+/** Unique ID helper — timestamp + random suffix, collision-safe even at sub-ms */
+const uid = (prefix: string) =>
+  `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
 // Initial story creator
 export const createInitialStory = (): Story => ({
-  id: `story-${Date.now()}`,
+  id: uid('story'),
   title: 'Untitled Story',
   slides: [
     {
-      id: `slide-${Date.now()}`,
+      id: uid('slide'),
       ...DEFAULT_SLIDE,
     },
   ],
@@ -279,7 +283,7 @@ export function useStoryBuilder({ initialStory }: UseStoryBuilderProps) {
   // Add slide
   const addSlide = useCallback(() => {
     const newSlide: StorySlide = {
-      id: `slide-${Date.now()}`,
+      id: uid('slide'),
       ...DEFAULT_SLIDE,
     };
     setStory((prev) => {
@@ -326,10 +330,10 @@ export function useStoryBuilder({ initialStory }: UseStoryBuilderProps) {
 
       const newSlide: StorySlide = {
         ...slide,
-        id: `slide-${Date.now()}`,
+        id: uid('slide'),
         elements: slide.elements.map((el) => ({
           ...el,
-          id: `el-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: uid('el'),
         })),
       };
 
@@ -353,10 +357,10 @@ export function useStoryBuilder({ initialStory }: UseStoryBuilderProps) {
     (template: StoryTemplate) => {
       const newSlides = template.story.slides.map((slide) => ({
         ...slide,
-        id: `slide-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: uid('slide'),
         elements: slide.elements.map((el) => ({
           ...el,
-          id: `el-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: uid('el'),
         })),
       }));
 

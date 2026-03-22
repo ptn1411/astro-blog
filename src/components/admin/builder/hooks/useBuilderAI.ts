@@ -1,4 +1,4 @@
-/**
+﻿/**
  * useBuilderAI Hook
  * 
  * Integrates CopilotKit AI into the Page Builder.
@@ -12,6 +12,9 @@ import type { WidgetType } from '../config/registry';
 import { WIDGET_REGISTRY } from '../config/registry';
 import { PAGE_TEMPLATES } from '../config/templates';
 import { deepClone, generateId } from '../utils/helpers';
+import { fetchData } from '../services/apiData/ApiFetcher';
+import type { ApiAction, DynamicField } from '../core/types/apiDataWidget.types';
+import { DEFAULT_DISPLAY_CONFIG, DEFAULT_CACHE_CONFIG, DEFAULT_MESSAGE_CONFIG } from '../core/types/apiDataWidget.types';
 
 interface UseBuilderAIProps {
   blocks: BuilderBlock[];
@@ -698,6 +701,174 @@ Ví dụ: "tạo trang nhà hàng Phở Bắc", "tạo web spa An Nhiên", "webs
       return `✅ Tạo trang "${brand}" (${industry}) hoàn chỉnh với ${newBlocks.length} blocks. Bạn có thể chỉnh sửa nội dung từng section!`;
     },
   });
+
+  // ==========================================
+  // Action: fetchApiData
+  // ==========================================
+
+  useCopilotAction({
+    name: 'fetchApiData',
+    description: 'Test-fetch an external API endpoint and return a preview of the response. Always call this BEFORE addApiDataBlock to understand the response schema and field paths. Returns up to 3 items and all available field keys.',
+    parameters: [
+      { name: 'endpoint', type: 'string', description: 'Full API URL (HTTPS required in production)', required: true },
+      { name: 'method', type: 'string', description: 'GET or POST. Default: GET', required: false },
+      { name: 'rootPath', type: 'string', description: 'Dot-notation path to the items array in response. E.g. "data.products". Leave empty if root IS the array.', required: false },
+      { name: 'authType', type: 'string', description: 'Auth: none, bearer, apiKey. Default: none', required: false },
+      { name: 'authToken', type: 'string', description: 'Bearer token (for bearer auth)', required: false },
+      { name: 'bodyJson', type: 'string', description: 'JSON string for POST body', required: false },
+    ],
+    handler: async ({ endpoint, method, rootPath, authType, authToken, bodyJson }) => {
+      const action: ApiAction = {
+        endpoint,
+        method: (method as 'GET' | 'POST') || 'GET',
+        auth: authType === 'bearer' && authToken
+          ? { type: 'bearer', token: authToken }
+          : { type: 'none' },
+      };
+      if (bodyJson && action.method === 'POST') {
+        try { action.body = JSON.parse(bodyJson); } catch { return 'Error: Invalid bodyJson'; }
+      }
+      const result = await fetchData(action);
+      if (!result.success) return `Error: ${result.error.message}`;
+      let data: unknown = result.data;
+      if (rootPath) {
+        for (const part of rootPath.split('.')) {
+          data = data && typeof data === 'object' ? (data as Record<string, unknown>)[part] : undefined;
+        }
+      }
+      const items = Array.isArray(data) ? data : data ? [data] : [];
+      const preview = items.slice(0, 3);
+      const keys = preview.length > 0 ? Object.keys(preview[0] as object) : [];
+      return `✅ ${items.length} items found. Keys: [${keys.join(', ')}]\nFirst item: ${JSON.stringify(preview[0], null, 2).substring(0, 600)}`;
+    },
+  });
+
+  // ==========================================
+  // Action: addApiDataBlock
+  // ==========================================
+
+  useCopilotAction({
+    name: 'addApiDataBlock',
+    description: 'Add a fully configured ApiDataWidget block to the page. It fetches live data from an external API and renders it. Call fetchApiData first to discover field paths, then call this with fieldsJson describing how to map API fields to display fields.',
+    parameters: [
+      { name: 'endpoint', type: 'string', description: 'Full API URL', required: true },
+      { name: 'rootPath', type: 'string', description: 'Dot-notation path to items array in response', required: false },
+      { name: 'fieldsJson', type: 'string', description: 'JSON array: [{"id":"name","label":"Name","path":"title","type":"text"},{"id":"price","label":"Price","path":"price","type":"price"},{"id":"img","label":"Image","path":"thumbnail","type":"image"}]\nField types: text, image, price, link, badge, html', required: true },
+      { name: 'method', type: 'string', description: 'GET or POST. Default: GET', required: false },
+      { name: 'authType', type: 'string', description: 'Auth: none, bearer, apiKey. Default: none', required: false },
+      { name: 'authToken', type: 'string', description: 'Bearer token', required: false },
+      { name: 'apiKeyHeader', type: 'string', description: 'API key header name e.g. "X-API-Key"', required: false },
+      { name: 'apiKeyValue', type: 'string', description: 'API key value', required: false },
+      { name: 'layout', type: 'string', description: 'grid, list, or card. Default: grid', required: false },
+      { name: 'columns', type: 'number', description: '2, 3, or 4. Default: 3', required: false },
+      { name: 'title', type: 'string', description: 'Optional heading above the widget', required: false },
+      { name: 'bodyJson', type: 'string', description: 'JSON string for POST body', required: false },
+      { name: 'cacheDuration', type: 'number', description: 'Cache duration in seconds. 0 = no cache. Default: 300', required: false },
+    ],
+    handler: async ({ endpoint, rootPath, fieldsJson, method, authType, authToken, apiKeyHeader, apiKeyValue, layout, columns, title, bodyJson, cacheDuration }) => {
+      let fields: DynamicField[];
+      try {
+        fields = JSON.parse(fieldsJson);
+        if (!Array.isArray(fields) || fields.length === 0) return 'Error: fieldsJson must be a non-empty array';
+      } catch {
+        return 'Error: Invalid JSON in fieldsJson. Example: [{"id":"name","label":"Name","path":"title","type":"text"}]';
+      }
+
+      const action: ApiAction = {
+        endpoint,
+        method: (method as 'GET' | 'POST') || 'GET',
+        auth: authType === 'bearer' && authToken
+          ? { type: 'bearer', token: authToken }
+          : authType === 'apiKey' && apiKeyHeader && apiKeyValue
+          ? { type: 'apiKey', apiKeyHeader, apiKeyValue }
+          : { type: 'none' },
+      };
+      if (bodyJson && action.method === 'POST') {
+        try { action.body = JSON.parse(bodyJson); } catch { return 'Error: Invalid bodyJson'; }
+      }
+
+      const colCount = ([2, 3, 4].includes(columns!) ? columns! : 3) as 2 | 3 | 4;
+      const blockId = generateId();
+
+      const blockProps = {
+        id: blockId,
+        ...(title ? { title } : {}),
+        action,
+        dataMapper: { rootPath: rootPath || '', fields },
+        display: {
+          ...DEFAULT_DISPLAY_CONFIG,
+          layout: (layout as 'grid' | 'list' | 'card') || 'grid',
+          columns: colCount,
+          showImage: fields.some(f => f.type === 'image'),
+          showPrice: fields.some(f => f.type === 'price'),
+          showDescription: fields.some(f => f.type === 'text' && f.id !== 'name'),
+        },
+        cache: {
+          ...DEFAULT_CACHE_CONFIG,
+          enabled: (cacheDuration ?? 300) !== 0,
+          duration: cacheDuration ?? 300,
+        },
+        messages: DEFAULT_MESSAGE_CONFIG,
+      };
+
+      const newBlock: BuilderBlock = {
+        id: blockId,
+        type: 'ApiDataWidget' as WidgetType,
+        props: blockProps,
+      };
+
+      setBlocks(prev => [...prev, newBlock]);
+      setSelectedId(newBlock.id);
+      return `✅ Added ApiDataWidget (ID: ${newBlock.id}) — ${endpoint} | ${fields.length} fields: ${fields.map(f => f.label).join(', ')}`;
+    },
+  });
+
+  // ==========================================
+  // Action: configureApiDataBlock
+  // ==========================================
+
+  useCopilotAction({
+    name: 'configureApiDataBlock',
+    description: 'Update endpoint, field mappings, or display settings of an existing ApiDataWidget block. Get the block ID from context.',
+    parameters: [
+      { name: 'blockId', type: 'string', description: 'ID of the ApiDataWidget block to update', required: true },
+      { name: 'endpoint', type: 'string', description: 'New endpoint URL (omit to keep current)', required: false },
+      { name: 'rootPath', type: 'string', description: 'New dot-notation root path', required: false },
+      { name: 'fieldsJson', type: 'string', description: 'New JSON array of DynamicField definitions', required: false },
+      { name: 'layout', type: 'string', description: 'grid, list, or card', required: false },
+      { name: 'columns', type: 'number', description: '2, 3, or 4', required: false },
+      { name: 'cacheDuration', type: 'number', description: 'Cache seconds. 0 = disable', required: false },
+    ],
+    handler: async ({ blockId, endpoint, rootPath, fieldsJson, layout, columns, cacheDuration }) => {
+      const block = blocks.find(b => b.id === blockId);
+      if (!block) return `Error: Block "${blockId}" not found`;
+      if (block.type !== 'ApiDataWidget') return `Error: Block "${blockId}" is ${block.type}, not ApiDataWidget`;
+
+      const p = { ...(block.props as Record<string, unknown>) };
+
+      if (endpoint) {
+        p.action = { ...(p.action as object), endpoint };
+      }
+      if (rootPath !== undefined || fieldsJson) {
+        const dm = { ...(p.dataMapper as Record<string, unknown> || {}) };
+        if (rootPath !== undefined) dm.rootPath = rootPath;
+        if (fieldsJson) {
+          try { dm.fields = JSON.parse(fieldsJson); } catch { return 'Error: Invalid fieldsJson'; }
+        }
+        p.dataMapper = dm;
+      }
+      if (layout || columns !== undefined) {
+        p.display = { ...(p.display as object || DEFAULT_DISPLAY_CONFIG), ...(layout ? { layout } : {}), ...(columns !== undefined ? { columns } : {}) };
+      }
+      if (cacheDuration !== undefined) {
+        p.cache = { ...(p.cache as object || DEFAULT_CACHE_CONFIG), enabled: cacheDuration !== 0, duration: cacheDuration };
+      }
+
+      setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, props: p } : b));
+      return `✅ Updated ApiDataWidget "${blockId}"`;
+    },
+  });
+
 }
 
 // ==========================================
