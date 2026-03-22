@@ -41,11 +41,10 @@ export function getGitHubContentUrl(path: string): string {
  * AI Service Configuration
  * Configuration for CopilotKit integration with Cloudflare Worker backend
  */
+const PROXY_URL = import.meta.env.PUBLIC_PROXY_URL || 'http://localhost:3000';
 export const AI_CONFIG = {
-  // Worker URL - use localhost for development
-  workerUrl: typeof window !== 'undefined' && window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000' 
-    : 'https://copilotkit.bug.edu.vn',
+
+  workerUrl: PROXY_URL,
   
   // CopilotKit endpoint path
   endpoint: '/api/copilotkit',
