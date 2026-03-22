@@ -100,6 +100,16 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
     },
+    build: {
+      rollupOptions: {
+        // @ffmpeg packages contain native WASM — Rollup cannot bundle them statically.
+        // They are loaded at runtime via toBlobURL() from CDN, so marking external is safe.
+        external: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
+      },
+    },
+    ssr: {
+      external: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
+    },
     server: {
       headers: {
         'Cross-Origin-Opener-Policy': 'same-origin',

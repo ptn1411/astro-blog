@@ -1,4 +1,4 @@
-import { FFmpeg } from '@ffmpeg/ffmpeg';
+// @ffmpeg/ffmpeg is imported dynamically to prevent Rollup from bundling WASM at build time
 import { Download, Film, Play, Plus, Redo2, Undo2 } from 'lucide-react';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useResponsive } from '~/hooks/useResponsive';
@@ -138,7 +138,9 @@ export function StoryBuilderV2({ initialStory, onBack }: StoryBuilderProps) {
   const [renderProgress, setRenderProgress] = useState(0);
   const [loadingStatus, setLoadingStatus] = useState('');
   const [renderTime, setRenderTime] = useState(0);
-  const ffmpegRef = useRef(new FFmpeg());
+  // Lazy FFmpeg ref — instantiated on first use via dynamic import so Rollup never
+  // encounters the WASM binary during static bundle analysis (prevents build crash).
+  const ffmpegRef = useRef<InstanceType<typeof import('@ffmpeg/ffmpeg')['FFmpeg']> | null>(null);
 
   // Mobile state
   const { isMobile } = useResponsive();
@@ -191,16 +193,22 @@ export function StoryBuilderV2({ initialStory, onBack }: StoryBuilderProps) {
   };
 
   const handleRenderVideo = async (settings: ExportSettings) => {
+    // Lazily instantiate FFmpeg so it is never in the static module graph
+    if (!ffmpegRef.current) {
+      const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+      ffmpegRef.current = new FFmpeg();
+    }
+
     const callbacks: RenderCallbacks = {
       setIsRendering, setRenderProgress, setLoadingStatus, setRenderTime, setCurrentSlideId,
     };
 
     try {
-      await renderWithWebCodecs(story, currentSlide, settings, ffmpegRef, callbacks);
+      await renderWithWebCodecs(story, currentSlide, settings, ffmpegRef as React.MutableRefObject<InstanceType<typeof import('@ffmpeg/ffmpeg')['FFmpeg']>>, callbacks);
     } catch (err) {
       console.error('WebCodecs failed, trying FFmpeg:', err);
       try {
-        await renderWithFFmpeg(story, currentSlide, settings, ffmpegRef, callbacks);
+        await renderWithFFmpeg(story, currentSlide, settings, ffmpegRef as React.MutableRefObject<InstanceType<typeof import('@ffmpeg/ffmpeg')['FFmpeg']>>, callbacks);
       } catch (fallbackErr) {
         console.error('FFmpeg also failed:', fallbackErr);
         alert('Rendering failed. Please try again.');

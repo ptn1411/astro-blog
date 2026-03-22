@@ -1,5 +1,18 @@
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
+// @ffmpeg imports are dynamic to prevent Rollup from bundling WASM at build time
+// Local interface so we get type safety without a static import of the FFmpeg class
+interface FFmpegLike {
+  loaded: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  load: (opts: { coreURL: string; wasmURL: string }) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  writeFile: (name: string, data: Uint8Array) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readFile: (name: string) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  exec: (args: string[]) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  deleteFile: (name: string) => Promise<any>;
+}
 import html2canvas from 'html2canvas';
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import { flushSync } from 'react-dom';
@@ -21,7 +34,7 @@ export async function renderWithWebCodecs(
   story: Story,
   currentSlide: StorySlide,
   settings: ExportSettings,
-  ffmpegRef: React.MutableRefObject<FFmpeg>,
+  ffmpegRef: React.MutableRefObject<FFmpegLike | null>,
   callbacks: RenderCallbacks
 ): Promise<void> {
   const { setIsRendering, setRenderProgress, setLoadingStatus, setRenderTime, setCurrentSlideId } = callbacks;
@@ -157,11 +170,11 @@ export async function renderWithWebCodecs(
 
     try {
       const ffmpeg = ffmpegRef.current;
-
+      if (!ffmpeg) throw new Error('FFmpeg not initialized');
       if (!ffmpeg.loaded) {
         setLoadingStatus('Loading audio encoder...');
         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-
+        const { toBlobURL } = await import('@ffmpeg/util');
         await ffmpeg.load({
           coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
           wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
@@ -225,7 +238,7 @@ export async function renderWithFFmpeg(
   story: Story,
   currentSlide: StorySlide,
   settings: ExportSettings,
-  ffmpegRef: React.MutableRefObject<FFmpeg>,
+  ffmpegRef: React.MutableRefObject<unknown>,
   callbacks: RenderCallbacks
 ): Promise<void> {
   const { setIsRendering, setRenderProgress, setLoadingStatus, setRenderTime, setCurrentSlideId } = callbacks;
@@ -236,8 +249,9 @@ export async function renderWithFFmpeg(
 
   await new Promise((r) => setTimeout(r, 500));
 
-  const ffmpeg = ffmpegRef.current;
+  const ffmpeg = ffmpegRef.current as FFmpegLike;
   if (!ffmpeg.loaded) {
+    const { toBlobURL } = await import('@ffmpeg/util');
     await ffmpeg.load({
       coreURL: await toBlobURL(`/ffmpeg-core.js`, 'text/javascript'),
       wasmURL: await toBlobURL(`/ffmpeg-core.wasm`, 'application/wasm'),
@@ -304,6 +318,7 @@ export async function renderWithFFmpeg(
       if (!blob) continue;
 
       const fileName = `frame-${String(globalFrameIndex).padStart(4, '0')}.jpg`;
+      const { fetchFile } = await import('@ffmpeg/util');
       await ffmpeg.writeFile(fileName, await fetchFile(blob));
       globalFrameIndex++;
       setRenderProgress(Math.round((globalFrameIndex / totalFrames) * 100));

@@ -7,40 +7,30 @@ import Layout from '~/layouts/Layout.astro';
 
 export const prerender = true;
 
-// Load all assets using glob — must be top-level for Vite static analysis
-const images = import.meta.glob('/src/assets/images/**/*', {
-  eager: false,
-  import: 'default',
-});
-
-const audios = import.meta.glob('/src/assets/audio/**/*', {
-  eager: false,
-  import: 'default',
-});
-
-const videos = import.meta.glob('/src/assets/video/**/*', {
-  eager: false,
-  import: 'default',
-});
-
-// Helper: resolve /src/assets/... paths → hashed production URLs
-const resolveAsset = async (assetPath: string, assetsGlob: Record<string, () => Promise<unknown>>) => {
-  if (!assetPath || !assetPath.startsWith('/src/assets/')) return assetPath;
-  try {
-    const fileName = assetPath.split('/').pop() ?? '';
-    const matchingKey = Object.keys(assetsGlob).find((k) => k.includes(fileName));
-    if (matchingKey) {
-      const mod = (await assetsGlob[matchingKey]()) as { src?: string } | string;
-      return (mod as { src?: string }).src ?? (mod as string);
-    }
-  } catch {
-    // silently fall back to original path
-  }
-  return assetPath;
-};
-
 export const getStaticPaths = (async () => {
+  // import.meta.glob must appear in the source file for Vite static analysis.
+  // Keeping them inside getStaticPaths ensures they are also in scope at SSG runtime.
+  const images = import.meta.glob('/src/assets/images/**/*', { eager: false, import: 'default' });
+  const audios = import.meta.glob('/src/assets/audio/**/*', { eager: false, import: 'default' });
+  const videos = import.meta.glob('/src/assets/video/**/*', { eager: false, import: 'default' });
+
   const stories = await getCollection('stories');
+
+  // Resolve /src/assets/... path → hashed production URL
+  const resolveAsset = async (assetPath: string, assetsGlob: Record<string, () => Promise<unknown>>) => {
+    if (!assetPath || !assetPath.startsWith('/src/assets/')) return assetPath;
+    try {
+      const fileName = assetPath.split('/').pop() ?? '';
+      const matchingKey = Object.keys(assetsGlob).find((k) => k.includes(fileName));
+      if (matchingKey) {
+        const mod = (await assetsGlob[matchingKey]()) as { src?: string } | string;
+        return (mod as { src?: string }).src ?? (mod as string);
+      }
+    } catch {
+      // silently fall back to original path
+    }
+    return assetPath;
+  };
 
   return Promise.all(
     stories.map(async (story) => {
