@@ -55,9 +55,17 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   // If not visible and not selected (to allow editing), hide or reduce opacity
   // When editing (selected), show full opacity so user can see it clearly.
   // After animation has played, keep element visible even when not selected
+  //
+  // IMPORTANT: When an animation.enter is attached, GSAP saves its `from` initial
+  // values (e.g. opacity:0, rotation:-180) into element.style as a side effect.
+  // In editor mode we must ignore those values so the element remains visible.
+  const hasEnterAnimation = !!element.animation?.enter && !renderMode;
+  const editorOpacity = hasEnterAnimation ? 1 : (element.style.opacity ?? 1);
+  const editorRotation = hasEnterAnimation ? 0 : (element.style.rotation ?? 0);
+
   const opacity =
     isVisibleAtCurrentTime || (isSelected && !renderMode) || hasPlayedAnimation
-      ? (element.style.opacity ?? 1)
+      ? editorOpacity
       : renderMode
         ? 0
         : 0.1;
@@ -1468,7 +1476,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
               top: element.style.y,
               width: element.style.width,
               height: element.style.height,
-              transform: `rotate(${element.style.rotation}deg)`,
+              transform: `rotate(${editorRotation}deg)`, // use editor-safe rotation
               zIndex: element.style.zIndex,
               opacity: opacity,
               pointerEvents: pointerEvents as any,

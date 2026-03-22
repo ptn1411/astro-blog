@@ -326,6 +326,16 @@ export function buildStoryContext(options: UseStoryAIOptions): StoryContext {
 export function formatContextForAI(context: StoryContext): string {
   const lines: string[] = [];
 
+  // CRITICAL canvas info - AI must see this first
+  lines.push(`## CANVAS DIMENSIONS (REQUIRED READING)`);
+  lines.push(`- Canvas size: 360 x 640 px (NOT 1080x1920 - that is WRONG)`);
+  lines.push(`- Coordinates x,y = TOP-LEFT corner of element (NOT center)`);
+  lines.push(`- Safe range: x=0..350, y=0..610. Any x>360 or y>640 = OFF-SCREEN!`);
+  lines.push(`- To center element horizontally: x = (360 - width) / 2`);
+  lines.push(`- Font sizes: title=28-36px, subtitle=18-22px, body=14-18px`);
+  lines.push(`- Example centered title: x=40, y=200, width=280, height=60, fontSize=32`);
+  lines.push('');
+
   // Story info
   lines.push(`## Story: "${context.story.title}"`);
   lines.push(`- ID: ${context.story.id}`);

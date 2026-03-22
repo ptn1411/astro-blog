@@ -77,6 +77,10 @@ export function useStoryBuilder({ initialStory }: UseStoryBuilderProps) {
   // UI state
   const [currentSlideId, setCurrentSlideId] = useState<string>('');
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
+
+  // Ref to always have latest currentSlideId without re-creating addElement on every slide change
+  const currentSlideIdRef = useRef<string>('');
+  useEffect(() => { currentSlideIdRef.current = currentSlideId; }, [currentSlideId]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Canvas state
@@ -168,7 +172,7 @@ export function useStoryBuilder({ initialStory }: UseStoryBuilderProps) {
   const addElement = useCallback(
     (type: ElementType, content: string, extra?: Record<string, unknown>) => {
       const newElement: StoryElement = {
-        id: `el-${Date.now()}`,
+        id: `el-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         type,
         content,
         style: {
@@ -201,11 +205,16 @@ export function useStoryBuilder({ initialStory }: UseStoryBuilderProps) {
       // Use functional update to always read the latest state.
       // This prevents stale closure bugs when AI calls addElement multiple
       // times in rapid succession (e.g. after addSlide before React re-renders).
-      const targetSlideId = (extra?.targetSlideId as string) || currentSlideId;
+      // currentSlideIdRef.current is always up-to-date without causing deps change.
+      const targetSlideId = (extra?.targetSlideId as string) || currentSlideIdRef.current;
 
       setStory((prev) => {
         if (!prev?.slides) return prev;
-        const target = prev.slides.find((s) => s.id === targetSlideId) ?? prev.slides[0];
+        // If targetSlideId is given but not found (AI parse error), fall back to the LAST
+        // slide — which is always the slide just added by addSlide().
+        const target =
+          prev.slides.find((s) => s.id === targetSlideId)
+          ?? prev.slides[prev.slides.length - 1];
         if (!target) return prev;
         return {
           ...prev,
@@ -219,7 +228,7 @@ export function useStoryBuilder({ initialStory }: UseStoryBuilderProps) {
       setSelectedElementIds([newElement.id]);
       return newElement.id; // Return element ID for AI actions
     },
-    [currentSlideId, setStory]
+    [setStory] // currentSlideId removed — accessed via ref to keep addElement stable
   );
 
   // Delete element
