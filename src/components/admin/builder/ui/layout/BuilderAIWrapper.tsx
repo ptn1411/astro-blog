@@ -9,7 +9,10 @@ import { CopilotKit } from '@copilotkit/react-core';
 import { CopilotPopup } from '@copilotkit/react-ui';
 import '@copilotkit/react-ui/styles.css';
 import { useBuilderAI } from '../../hooks/useBuilderAI';
+import { getGitHubToken, isAIAuthenticated } from '../../../config';
 import type { BuilderBlock, PageMetadata } from '../../core/types';
+
+const IS_DEV = import.meta.env.DEV;
 
 interface BuilderAIWrapperProps {
   children: React.ReactNode;
@@ -40,8 +43,24 @@ export default function BuilderAIWrapper({
   setMetadata,
   getWidget,
 }: BuilderAIWrapperProps) {
+  // Dev: bypass auth entirely.
+  // Prod: require GitHub token via Sveltia CMS.
+  if (!IS_DEV && !isAIAuthenticated()) {
+    return <>{children}</>;
+  }
+
+  // Build headers at render time so token is always current.
+  const buildHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (!IS_DEV) {
+      const token = getGitHubToken();
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
   return (
-    <CopilotKit runtimeUrl={runtimeUrl}>
+    <CopilotKit runtimeUrl={runtimeUrl} headers={buildHeaders()}>
       <BuilderAIActions
         blocks={blocks}
         selectedId={selectedId}

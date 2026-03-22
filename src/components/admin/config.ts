@@ -101,3 +101,16 @@ export function getGitHubToken(): string | null {
 export function isAIAuthenticated(): boolean {
   return getGitHubToken() !== null;
 }
+
+/**
+ * Build headers for AI admin endpoint calls.
+ * In prod the server checks X-AI-Auth: 1 to allow access.
+ * Call this in any fetch() to admin AI routes.
+ *
+ * Example:
+ *   fetch('/admin/ai-endpoint', { headers: getAIAuthHeaders() })
+ */
+export function getAIAuthHeaders(): Record<string, string> {
+  if (!isAIAuthenticated()) return {};
+  return { 'X-AI-Auth': '1' };
+}

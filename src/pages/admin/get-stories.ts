@@ -12,7 +12,9 @@ interface StoryFile {
 
 // Parse YAML-like frontmatter (simple parser for our use case)
 function parseFrontmatter(content: string): Record<string, unknown> | null {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  // Normalize CRLF → LF first to handle Windows line endings
+  const normalized = content.replace(/\r\n/g, '\n');
+  const match = normalized.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return null;
 
   const frontmatterStr = match[1];

@@ -5,15 +5,19 @@
 
 // ============== Environment Checks ==============
 
-/**
- * Check if running in development mode
- */
+/** Check if running in development mode */
 export function isDev(): boolean {
   return import.meta.env.DEV;
 }
 
+/** Check if running in production mode */
+export function isProd(): boolean {
+  return import.meta.env.PROD;
+}
+
 /**
- * Return 403 response if not in dev mode
+ * Dev-only guard — blocks the route entirely in production (403).
+ * Use for builder / editor endpoints that should never be public.
  */
 export function devOnlyResponse(): Response | null {
   if (!isDev()) {
@@ -21,6 +25,32 @@ export function devOnlyResponse(): Response | null {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+  return null;
+}
+
+/**
+ * AI auth guard — two-mode behaviour:
+ *  • Dev  → bypass immediately (no auth needed)
+ *  • Prod → requires client to send `X-AI-Auth: 1` header,
+ *           which the client sets only when isAIAuthenticated() === true
+ *           (i.e. GitHub token exists in localStorage via Sveltia CMS).
+ *
+ * Returns a 401 Response if blocked, or null to allow the request through.
+ *
+ * Usage:
+ *   const guard = requireAuthOrDev(request);
+ *   if (guard) return guard;
+ */
+export function requireAuthOrDev(request: Request): Response | null {
+  if (isDev()) return null;
+
+  const aiAuth = request.headers.get('X-AI-Auth');
+  if (aiAuth !== '1') {
+    return new Response(
+      JSON.stringify({ success: false, message: 'Đăng nhập để dùng AI' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
   }
   return null;
 }

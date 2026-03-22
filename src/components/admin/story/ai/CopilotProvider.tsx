@@ -10,7 +10,9 @@
 
 import { CopilotKit } from '@copilotkit/react-core';
 import React, { useCallback, useEffect, useState } from 'react';
-import { getGitHubToken, AI_CONFIG } from '../../config';
+import { getGitHubToken, isAIAuthenticated, AI_CONFIG } from '../../config';
+
+const IS_DEV = import.meta.env.DEV;
 import { AIAvailabilityProvider, useAIAvailability, createAIError } from './useAIAvailability';
 import type { AIError } from './useAIAvailability';
 
@@ -73,17 +75,17 @@ function CopilotProviderInner({
     checkServer();
   }, []);
 
-  // Get headers with GitHub token
-  const getHeaders = useCallback(() => {
-    const token = getGitHubToken();
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+  // Build CopilotKit headers at render time (not memoized).
+  // Dev: no token needed (auth is bypassed).
+  // Prod: always attach current GitHub token as Bearer.
+  const buildHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (!IS_DEV) {
+      const token = getGitHubToken();
+      if (token) headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
-  }, []);
+  };
 
   // Handle CopilotKit errors silently
   const handleError = useCallback((error: unknown) => {
@@ -106,14 +108,11 @@ function CopilotProviderInner({
   }, [aiAvailability]);
 
   // Check authentication
+  // Dev mode: bypass auth — no login required
+  // Prod mode: require GitHub token via Sveltia CMS (isAIAuthenticated)
   useEffect(() => {
-    const token = getGitHubToken();
-    if (token) {
-      setAuthState({
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
-      });
+    if (IS_DEV || isAIAuthenticated()) {
+      setAuthState({ isAuthenticated: true, isLoading: false, error: null });
     } else {
       setAuthState({
         isAuthenticated: false,
@@ -154,7 +153,7 @@ function CopilotProviderInner({
       <ServerStatusContext.Provider value={serverStatus}>
         <CopilotKit
           runtimeUrl={baseUrl}
-          headers={getHeaders()}
+          headers={buildHeaders()}
           onError={handleError}
         >
           {children}
