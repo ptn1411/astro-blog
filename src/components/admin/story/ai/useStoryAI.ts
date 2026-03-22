@@ -410,9 +410,9 @@ export function formatContextForAI(context: StoryContext): string {
   // Canvas info
   lines.push('');
   lines.push(`## Canvas`);
-  lines.push(`- Size: 1080 × 1920 px (9:16)`);
-  lines.push(`- Safe zone: x(80-1000), y(80-1840)`);
-  lines.push(`- Center: (540, 960)`);
+  lines.push(`- Size: 360 × 640 px (9:16)`);
+  lines.push(`- Safe zone: x(20-340), y(20-620)`);
+  lines.push(`- Center: (180, 320)`);
 
   // Available templates
   lines.push('');
@@ -468,10 +468,10 @@ export function calculateLayoutPositions(
     columns = 2,
     rows = Math.ceil(count / columns),
     gap = 20,
-    startX = 100,
-    startY = 300,
-    containerWidth = 880,
-    containerHeight = 1200,
+    startX = 30,
+    startY = 100,
+    containerWidth = 300,
+    containerHeight = 400,
   } = layout;
 
   const positions: Array<{ x: number; y: number; width: number; height: number }> = [];
@@ -608,8 +608,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       { name: 'type', type: 'string', description: 'Element type: text, image, video, shape, sticker, gif, poll, link, countdown, button, divider, quote, list, avatar, rating, progress, timer, location, embed, codeblock, mention, hashtag, qrcode, carousel, slider', required: true },
       { name: 'content', type: 'string', description: 'Main content. For text: the text. For images/videos: URL. For shapes: can be empty.', required: true },
       { name: 'targetSlideId', type: 'string', description: 'Slide ID to add element to. Use the ID returned by addSlide when building multi-slide stories. Omit to add to current slide.', required: false },
-      { name: 'x', type: 'number', description: 'X position (0-1080). Default: 540 (center)', required: false },
-      { name: 'y', type: 'number', description: 'Y position (0-1920). Default: 960 (center)', required: false },
+      { name: 'x', type: 'number', description: 'X position (0-360). Default: 180 (center)', required: false },
+      { name: 'y', type: 'number', description: 'Y position (0-640). Default: 320 (center)', required: false },
       { name: 'width', type: 'number', description: 'Width in pixels', required: false },
       { name: 'height', type: 'number', description: 'Height in pixels', required: false },
       { name: 'fontSize', type: 'number', description: 'Font size for text elements', required: false },
@@ -844,10 +844,10 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       { name: 'layout', type: 'string', description: 'Layout type: grid, stack, row, column, circle, scatter. Default: stack', required: false },
       { name: 'columns', type: 'number', description: 'Number of columns for grid layout. Default: 2', required: false },
       { name: 'gap', type: 'number', description: 'Gap between elements in pixels. Default: 20', required: false },
-      { name: 'startX', type: 'number', description: 'Starting X position. Default: 100', required: false },
-      { name: 'startY', type: 'number', description: 'Starting Y position. Default: 300', required: false },
-      { name: 'containerWidth', type: 'number', description: 'Container width. Default: 880', required: false },
-      { name: 'containerHeight', type: 'number', description: 'Container height. Default: 1200', required: false },
+      { name: 'startX', type: 'number', description: 'Starting X position. Default: 30', required: false },
+      { name: 'startY', type: 'number', description: 'Starting Y position. Default: 100', required: false },
+      { name: 'containerWidth', type: 'number', description: 'Container width. Default: 300', required: false },
+      { name: 'containerHeight', type: 'number', description: 'Container height. Default: 400', required: false },
     ],
     handler: async ({ elements, layout, columns, gap, startX, startY, containerWidth, containerHeight }) => {
       if (!actions?.addElement) return 'Error: addElement action not available';
@@ -867,10 +867,10 @@ export function useStoryAI(options: UseStoryAIOptions): void {
         type: (layout as LayoutConfig['type']) || 'stack',
         columns: columns || 2,
         gap: gap || 20,
-        startX: startX || 100,
-        startY: startY || 300,
-        containerWidth: containerWidth || 880,
-        containerHeight: containerHeight || 1200,
+        startX: startX || 30,
+        startY: startY || 100,
+        containerWidth: containerWidth || 300,
+        containerHeight: containerHeight || 400,
       };
 
       const positions = calculateLayoutPositions(elementList.length, layoutConfig);
@@ -934,8 +934,13 @@ export function useStoryAI(options: UseStoryAIOptions): void {
 
       let slideCount = 0;
 
-      // Slide 1: Title - use returned slide ID
-      const titleSlideId = actions.addSlide();
+      // Slide 1: Title - reuse returned slide ID if it is the default empty slide
+      let titleSlideId: string | void;
+      if (story.slides.length === 1 && story.slides[0].elements.length === 0) {
+        titleSlideId = story.slides[0].id;
+      } else {
+        titleSlideId = actions.addSlide();
+      }
       slideCount++;
       
       // Update slide background
@@ -948,20 +953,20 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       
       // Add elements to title slide using targetSlideId
       actions.addElement('shape', '', { 
-        style: { x: 540, y: 100, width: 1080, height: 200, backgroundColor: colors.accent },
+        style: { x: 180, y: 30, width: 360, height: 65, backgroundColor: colors.accent },
         shapeType: 'rectangle',
         targetSlideId: titleSlideId,
       });
       actions.addElement('text', 'TIN TỨC', { 
-        style: { x: 540, y: 100, width: 400, height: 80, fontSize: 36, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
+        style: { x: 180, y: 30, width: 130, height: 26, fontSize: 16, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
         targetSlideId: titleSlideId,
       });
       actions.addElement('text', headline, { 
-        style: { x: 540, y: 800, width: 950, height: 200, fontSize: 48, fontWeight: 'bold', color: colors.text, textAlign: 'center' },
+        style: { x: 180, y: 260, width: 320, height: 65, fontSize: 24, fontWeight: 'bold', color: colors.text, textAlign: 'center' },
         targetSlideId: titleSlideId,
       });
       actions.addElement('text', summary, { 
-        style: { x: 540, y: 1050, width: 850, height: 100, fontSize: 28, color: colors.text + 'cc', textAlign: 'center' },
+        style: { x: 180, y: 350, width: 280, height: 35, fontSize: 14, color: colors.text + 'cc', textAlign: 'center' },
         targetSlideId: titleSlideId,
       });
 
@@ -978,11 +983,11 @@ export function useStoryAI(options: UseStoryAIOptions): void {
         }
         
         actions.addElement('text', `${i + 1}/${points.length}`, { 
-          style: { x: 540, y: 200, width: 200, height: 60, fontSize: 24, color: colors.accent, textAlign: 'center' },
+          style: { x: 180, y: 65, width: 65, height: 20, fontSize: 12, color: colors.accent, textAlign: 'center' },
           targetSlideId: contentSlideId,
         });
         actions.addElement('text', points[i], { 
-          style: { x: 540, y: 900, width: 900, height: 400, fontSize: 36, color: colors.text, textAlign: 'center' },
+          style: { x: 180, y: 300, width: 300, height: 130, fontSize: 18, color: colors.text, textAlign: 'center' },
           targetSlideId: contentSlideId,
         });
       }
@@ -1000,11 +1005,11 @@ export function useStoryAI(options: UseStoryAIOptions): void {
         }
         
         actions.addElement('text', 'KẾT LUẬN', { 
-          style: { x: 540, y: 400, width: 400, height: 80, fontSize: 32, fontWeight: 'bold', color: colors.accent, textAlign: 'center' },
+          style: { x: 180, y: 130, width: 130, height: 26, fontSize: 16, fontWeight: 'bold', color: colors.accent, textAlign: 'center' },
           targetSlideId: conclusionSlideId,
         });
         actions.addElement('text', conclusion, { 
-          style: { x: 540, y: 900, width: 900, height: 300, fontSize: 32, color: colors.text, textAlign: 'center' },
+          style: { x: 180, y: 300, width: 300, height: 100, fontSize: 16, color: colors.text, textAlign: 'center' },
           targetSlideId: conclusionSlideId,
         });
       }
@@ -1159,7 +1164,7 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     parameters: [
       { name: 'items', type: 'string', description: 'JSON array of list items: ["Item 1", "Item 2", "Item 3"]', required: true },
       { name: 'listStyle', type: 'string', description: 'List style: numbered, bullet, arrow, check, none. Default: numbered', required: false },
-      { name: 'startX', type: 'number', description: 'Starting X position. Default: 100', required: false },
+      { name: 'startX', type: 'number', description: 'Starting X position. Default: 30', required: false },
       { name: 'startY', type: 'number', description: 'Starting Y position. Default: 400', required: false },
       { name: 'fontSize', type: 'number', description: 'Font size. Default: 32', required: false },
       { name: 'color', type: 'string', description: 'Text color. Default: #ffffff', required: false },
@@ -1176,7 +1181,7 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       }
 
       const style = listStyle || 'numbered';
-      const x = startX || 100;
+      const x = startX || 30;
       const y = startY || 400;
       const size = fontSize || 32;
       const textColor = color || '#ffffff';
@@ -1196,11 +1201,11 @@ export function useStoryAI(options: UseStoryAIOptions): void {
         const content = getPrefix(i) + itemList[i];
         actions.addElement('text', content, {
           style: {
-            x: x + 400,
+            x: x + 130,
             y: y + i * spacing,
             width: 800,
             height: spacing - 10,
-            fontSize: size,
+            fontSize: Math.floor(size / 2),
             color: textColor,
             textAlign: 'left',
           },
@@ -1286,14 +1291,14 @@ export function useStoryAI(options: UseStoryAIOptions): void {
 
       // Background card
       actions.addElement('shape', '', {
-        style: { x: 540, y: 960, width: 1000, height: 1600, backgroundColor: '#1a1a1a', borderRadius: 30 },
+        style: { x: 180, y: 320, width: 330, height: 530, backgroundColor: '#1a1a1a', borderRadius: 30 },
         shapeType: 'rectangle',
       });
 
       // Avatar placeholder
       if (avatarUrl) {
         actions.addElement('image', avatarUrl, {
-          style: { x: 150, y: 300, width: 80, height: 80, borderRadius: 40 },
+          style: { x: 50, y: 100, width: 26, height: 26, borderRadius: 13 },
         });
       } else {
         actions.addElement('shape', '', {
@@ -1304,25 +1309,25 @@ export function useStoryAI(options: UseStoryAIOptions): void {
 
       // Username
       actions.addElement('text', `@${username}`, {
-        style: { x: 350, y: 300, width: 400, height: 40, fontSize: 24, fontWeight: 'bold', color: '#ffffff', textAlign: 'left' },
+        style: { x: 110, y: 100, width: 130, height: 14, fontSize: 12, fontWeight: 'bold', color: '#ffffff', textAlign: 'left' },
       });
 
       // Post image
       if (imageUrl) {
         actions.addElement('image', imageUrl, {
-          style: { x: 540, y: 750, width: 920, height: 700, borderRadius: 10 },
+          style: { x: 180, y: 250, width: 300, height: 230, borderRadius: 10 },
         });
       }
 
       // Content
       actions.addElement('text', content, {
-        style: { x: 540, y: imageUrl ? 1200 : 800, width: 900, height: 200, fontSize: 28, color: '#ffffff', textAlign: 'left' },
+        style: { x: 180, y: imageUrl ? 400 : 260, width: 300, height: 65, fontSize: 14, color: '#ffffff', textAlign: 'left' },
       });
 
       // Likes
       if (likes) {
         actions.addElement('text', `❤️ ${likes} likes`, {
-          style: { x: 200, y: 1450, width: 300, height: 40, fontSize: 22, color: '#888888', textAlign: 'left' },
+          style: { x: 65, y: 480, width: 100, height: 14, fontSize: 11, color: '#888888', textAlign: 'left' },
         });
       }
 
@@ -1357,19 +1362,19 @@ export function useStoryAI(options: UseStoryAIOptions): void {
 
       // Title
       actions.addElement('text', title, {
-        style: { x: 540, y: 400, width: 900, height: 100, fontSize: 48, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
+        style: { x: 180, y: 130, width: 300, height: 35, fontSize: 24, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
       });
 
       // Countdown element
       actions.addElement('countdown', targetDate, {
-        style: { x: 540, y: 900, width: 800, height: 200, fontSize: 72, fontWeight: 'bold', color: accent, textAlign: 'center' },
+        style: { x: 180, y: 300, width: 260, height: 65, fontSize: 36, fontWeight: 'bold', color: accent, textAlign: 'center' },
         countdown: { targetDate, label: title },
       });
 
       // Subtitle
       if (subtitle) {
         actions.addElement('text', subtitle, {
-          style: { x: 540, y: 1200, width: 800, height: 80, fontSize: 28, color: '#888888', textAlign: 'center' },
+          style: { x: 180, y: 400, width: 260, height: 26, fontSize: 14, color: '#888888', textAlign: 'center' },
         });
       }
 
@@ -1390,8 +1395,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     description: 'Add an image to the slide. Provide an image URL.',
     parameters: [
       { name: 'url', type: 'string', description: 'Image URL (https://... or local path)', required: true },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
       { name: 'width', type: 'number', description: 'Width. Default: 400', required: false },
       { name: 'height', type: 'number', description: 'Height. Default: 400', required: false },
       { name: 'borderRadius', type: 'number', description: 'Border radius. Default: 0', required: false },
@@ -1402,8 +1407,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       
       actions.addElement('image', url, {
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: width || 400,
           height: height || 400,
           borderRadius: borderRadius || 0,
@@ -1423,8 +1428,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     description: 'Add a video to the slide.',
     parameters: [
       { name: 'url', type: 'string', description: 'Video URL', required: true },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
       { name: 'width', type: 'number', description: 'Width. Default: 600', required: false },
       { name: 'height', type: 'number', description: 'Height. Default: 400', required: false },
     ],
@@ -1433,8 +1438,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       
       actions.addElement('video', url, {
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: width || 600,
           height: height || 400,
         },
@@ -1452,8 +1457,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     description: 'Add an emoji sticker to the slide. Available: 🔥⭐❤️👍🎉✨💯🚀😊😂🥰😎🤔👀💪🙌🎵🎨📸💡🏆🎯💥🌟🍕🍔☕🍩🎂🍦🥤🧁🎬📱💻🎮🎸🎤📷🖼️🎁💎👑🦋🌈☀️🌙⚡',
     parameters: [
       { name: 'emoji', type: 'string', description: 'Emoji character (e.g., 🔥, ⭐, ❤️)', required: true },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
       { name: 'size', type: 'number', description: 'Size (fontSize). Default: 64', required: false },
     ],
     handler: async ({ emoji, x, y, size }) => {
@@ -1462,8 +1467,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       const fontSize = size || 64;
       actions.addElement('sticker', emoji, {
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: fontSize + 20,
           height: fontSize + 20,
           fontSize,
@@ -1482,8 +1487,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     description: 'Add a shape to the slide. Available shapes: rectangle, circle, triangle, diamond, pentagon, hexagon, octagon, star, heart, arrow, plus, cross, line, speech-bubble, cloud, moon, sun',
     parameters: [
       { name: 'shapeType', type: 'string', description: 'Shape type: rectangle, circle, triangle, star, heart, arrow, etc.', required: true },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
       { name: 'width', type: 'number', description: 'Width. Default: 200', required: false },
       { name: 'height', type: 'number', description: 'Height. Default: 200', required: false },
       { name: 'backgroundColor', type: 'string', description: 'Fill color (hex). Default: #3b82f6', required: false },
@@ -1498,8 +1503,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       actions.addElement('shape', '', {
         shapeType: shapeType as ShapeType,
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: width || 200,
           height: height || 200,
           backgroundColor: backgroundColor || '#3b82f6',
@@ -1523,8 +1528,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     parameters: [
       { name: 'text', type: 'string', description: 'Button text', required: true },
       { name: 'href', type: 'string', description: 'URL to navigate to when clicked', required: true },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 1200', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 400', required: false },
       { name: 'width', type: 'number', description: 'Width. Default: 200', required: false },
       { name: 'height', type: 'number', description: 'Height. Default: 50', required: false },
       { name: 'backgroundColor', type: 'string', description: 'Background color. Default: #3b82f6', required: false },
@@ -1537,7 +1542,7 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       actions.addElement('button', text, {
         button: { href, target: '_blank', variant: (variant as 'primary' | 'secondary' | 'outline' | 'ghost') || 'primary' },
         style: {
-          x: x || 540,
+          x: x || 180,
           y: y || 1200,
           width: width || 200,
           height: height || 50,
@@ -1563,8 +1568,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     parameters: [
       { name: 'question', type: 'string', description: 'Poll question', required: true },
       { name: 'options', type: 'string', description: 'JSON array of options: ["Option 1", "Option 2", "Option 3"]', required: true },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
     ],
     handler: async ({ question, options, x, y }) => {
       if (!actions?.addElement) return 'Error: addElement action not available';
@@ -1579,8 +1584,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       actions.addElement('poll', '', {
         poll: { question, options: optionList },
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: 350,
           height: 250,
         },
@@ -1600,8 +1605,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       { name: 'text', type: 'string', description: 'Quote text', required: true },
       { name: 'author', type: 'string', description: 'Author name', required: false },
       { name: 'style', type: 'string', description: 'Quote style: simple, decorative, modern, minimal. Default: decorative', required: false },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
       { name: 'color', type: 'string', description: 'Text color. Default: #ffffff', required: false },
     ],
     handler: async ({ text, author, style, x, y, color }) => {
@@ -1610,8 +1615,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       actions.addElement('quote', `"${text}"`, {
         quote: { author: author || '', style: (style as 'simple' | 'decorative' | 'modern' | 'minimal') || 'decorative' },
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: 800,
           height: 200,
           color: color || '#ffffff',
@@ -1635,8 +1640,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       { name: 'value', type: 'number', description: 'Rating value (e.g., 4)', required: true },
       { name: 'max', type: 'number', description: 'Maximum rating (e.g., 5). Default: 5', required: false },
       { name: 'icon', type: 'string', description: 'Icon type: star, heart, circle. Default: star', required: false },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
     ],
     handler: async ({ value, max, icon, x, y }) => {
       if (!actions?.addElement) return 'Error: addElement action not available';
@@ -1644,8 +1649,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       actions.addElement('rating', '', {
         rating: { value, max: max || 5, icon: (icon as 'star' | 'heart' | 'circle') || 'star', showValue: true },
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: 200,
           height: 50,
         },
@@ -1663,26 +1668,26 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     description: 'Add a progress bar element.',
     parameters: [
       { name: 'value', type: 'number', description: 'Current value (e.g., 75)', required: true },
-      { name: 'max', type: 'number', description: 'Maximum value. Default: 100', required: false },
+      { name: 'max', type: 'number', description: 'Maximum value. Default: 30', required: false },
       { name: 'label', type: 'string', description: 'Label text', required: false },
       { name: 'variant', type: 'string', description: 'Variant: bar, circle, ring. Default: bar', required: false },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
-      { name: 'width', type: 'number', description: 'Width. Default: 300', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
+      { name: 'width', type: 'number', description: 'Width. Default: 100', required: false },
     ],
     handler: async ({ value, max, label, variant, x, y, width }) => {
       if (!actions?.addElement) return 'Error: addElement action not available';
       
       actions.addElement('progress', '', {
-        progress: { value, max: max || 100, label: label || '', showPercent: true, variant: (variant as 'bar' | 'circle' | 'ring') || 'bar' },
+        progress: { value, max: max || 30, label: label || '', showPercent: true, variant: (variant as 'bar' | 'circle' | 'ring') || 'bar' },
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: width || 300,
           height: 60,
         },
       });
-      return `Added progress: ${value}/${max || 100}${label ? ` (${label})` : ''}`;
+      return `Added progress: ${value}/${max || 30}${label ? ` (${label})` : ''}`;
     },
   });
 
@@ -1695,8 +1700,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     description: 'Add a QR code element.',
     parameters: [
       { name: 'data', type: 'string', description: 'Data to encode (URL, text, etc.)', required: true },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
       { name: 'size', type: 'number', description: 'Size in pixels. Default: 150', required: false },
       { name: 'color', type: 'string', description: 'QR code color. Default: #000000', required: false },
       { name: 'bgColor', type: 'string', description: 'Background color. Default: #ffffff', required: false },
@@ -1708,8 +1713,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       actions.addElement('qrcode', '', {
         qrcode: { data, size: qrSize, color: color || '#000000', bgColor: bgColor || '#ffffff' },
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: qrSize,
           height: qrSize,
         },
@@ -1729,8 +1734,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       { name: 'username', type: 'string', description: 'Username (without @)', required: true },
       { name: 'platform', type: 'string', description: 'Platform: instagram, twitter, tiktok, youtube. Default: instagram', required: false },
       { name: 'verified', type: 'boolean', description: 'Show verified badge. Default: false', required: false },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
     ],
     handler: async ({ username, platform, verified, x, y }) => {
       if (!actions?.addElement) return 'Error: addElement action not available';
@@ -1742,8 +1747,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
           verified: verified || false 
         },
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: 200,
           height: 40,
           fontSize: 18,
@@ -1762,8 +1767,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     description: 'Add hashtags element.',
     parameters: [
       { name: 'tags', type: 'string', description: 'JSON array of hashtags (without #): ["tag1", "tag2"]', required: true },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
       { name: 'color', type: 'string', description: 'Text color. Default: #3b82f6', required: false },
     ],
     handler: async ({ tags, x, y, color }) => {
@@ -1779,8 +1784,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       actions.addElement('hashtag', '', {
         hashtag: { tags: tagList, clickable: true },
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: 300,
           height: 40,
           fontSize: 16,
@@ -1802,8 +1807,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       { name: 'code', type: 'string', description: 'Code content', required: true },
       { name: 'language', type: 'string', description: 'Programming language: javascript, typescript, python, html, css, etc. Default: javascript', required: false },
       { name: 'theme', type: 'string', description: 'Theme: dark, light. Default: dark', required: false },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
       { name: 'width', type: 'number', description: 'Width. Default: 400', required: false },
     ],
     handler: async ({ code, language, theme, x, y, width }) => {
@@ -1816,8 +1821,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
           showLineNumbers: true 
         },
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: width || 400,
           height: 150,
           backgroundColor: '#1e1e1e',
@@ -1840,9 +1845,9 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     description: 'Add a divider/separator line.',
     parameters: [
       { name: 'style', type: 'string', description: 'Divider style: solid, dashed, dotted, gradient, fancy. Default: solid', required: false },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
-      { name: 'width', type: 'number', description: 'Width. Default: 300', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
+      { name: 'width', type: 'number', description: 'Width. Default: 100', required: false },
       { name: 'thickness', type: 'number', description: 'Thickness. Default: 2', required: false },
       { name: 'color', type: 'string', description: 'Color. Default: #ffffff', required: false },
     ],
@@ -1852,8 +1857,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       actions.addElement('divider', '', {
         divider: { style: (style as 'solid' | 'dashed' | 'dotted' | 'gradient' | 'fancy') || 'solid', thickness: thickness || 2 },
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: width || 300,
           height: thickness || 2,
           backgroundColor: color || '#ffffff',
@@ -1874,10 +1879,10 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     parameters: [
       { name: 'url', type: 'string', description: 'Content URL', required: true },
       { name: 'type', type: 'string', description: 'Embed type: youtube, spotify, twitter, instagram, tiktok, custom. Default: auto-detect', required: false },
-      { name: 'x', type: 'number', description: 'X position. Default: 540', required: false },
-      { name: 'y', type: 'number', description: 'Y position. Default: 960', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180', required: false },
+      { name: 'y', type: 'number', description: 'Y position. Default: 320', required: false },
       { name: 'width', type: 'number', description: 'Width. Default: 400', required: false },
-      { name: 'height', type: 'number', description: 'Height. Default: 300', required: false },
+      { name: 'height', type: 'number', description: 'Height. Default: 100', required: false },
     ],
     handler: async ({ url, type, x, y, width, height }) => {
       if (!actions?.addElement) return 'Error: addElement action not available';
@@ -1896,8 +1901,8 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       actions.addElement('embed', '', {
         embed: { type: embedType as 'youtube' | 'spotify' | 'twitter' | 'instagram' | 'tiktok' | 'custom', url },
         style: {
-          x: x || 540,
-          y: y || 960,
+          x: x || 180,
+          y: y || 320,
           width: width || 400,
           height: height || 300,
         },
@@ -2060,7 +2065,7 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       { name: 'animation', type: 'string', description: 'Animation type: fadeIn, fadeInUp, slideInLeft, slideInRight, scaleIn, bounceIn, etc.', required: true },
       { name: 'animationType', type: 'string', description: 'Animation phase: enter, exit, loop. Default: enter', required: false },
       { name: 'duration', type: 'number', description: 'Animation duration in ms. Default: 500', required: false },
-      { name: 'staggerDelay', type: 'number', description: 'Delay between each element animation in ms. Default: 100', required: false },
+      { name: 'staggerDelay', type: 'number', description: 'Delay between each element animation in ms. Default: 30', required: false },
       { name: 'easing', type: 'string', description: 'Easing function. Default: ease-out', required: false },
     ],
     handler: async ({ elementIds, animation, animationType, duration, staggerDelay, easing }) => {
@@ -2130,7 +2135,7 @@ export function useStoryAI(options: UseStoryAIOptions): void {
     parameters: [
       { name: 'text', type: 'string', description: 'Title text content', required: true },
       { name: 'animationStyle', type: 'string', description: 'Animation style: bounce, elastic, typewriter, wave, slide, fade, 3d-flip. Default: bounce', required: false },
-      { name: 'x', type: 'number', description: 'X position. Default: 540 (center)', required: false },
+      { name: 'x', type: 'number', description: 'X position. Default: 180 (center)', required: false },
       { name: 'y', type: 'number', description: 'Y position. Default: 400', required: false },
       { name: 'fontSize', type: 'number', description: 'Font size. Default: 56', required: false },
       { name: 'color', type: 'string', description: 'Text color. Default: #ffffff', required: false },
@@ -2155,7 +2160,7 @@ export function useStoryAI(options: UseStoryAIOptions): void {
 
       actions.addElement('text', text, {
         style: {
-          x: x || 540,
+          x: x || 180,
           y: y || 400,
           width: 900,
           height: 100,
@@ -2373,16 +2378,26 @@ export function useStoryAI(options: UseStoryAIOptions): void {
 Use this when user asks to "create a story about..." or "tạo story về..."`,
     parameters: [
       { name: 'topic', type: 'string', description: 'Story topic/subject', required: true },
-      { name: 'slideCount', type: 'number', description: 'Number of content slides (2-8). Default: 4', required: false },
+      { name: 'slideData', type: 'string', description: 'JSON array of slide content generated by AI: [{"title": "Slide Title", "content": "Detailed content for this slide"}]. Generate 3-6 slides.', required: true },
       { name: 'theme', type: 'string', description: 'Color theme: dark, ocean, purple, warm, nature. Default: dark', required: false },
       { name: 'style', type: 'string', description: 'Content style: news, educational, promotional, personal, minimal. Default: educational', required: false },
     ],
-    handler: async ({ topic, slideCount, theme, style }) => {
+    handler: async ({ topic, slideData, theme, style }) => {
       if (!actions?.addSlide || !actions?.addElement || !actions?.updateSlide) {
         return 'Error: Required actions not available';
       }
 
-      const count = Math.min(Math.max(slideCount || 4, 2), 8);
+      let slides: Array<{title: string, content: string}> = [];
+      try {
+        slides = JSON.parse(slideData);
+      } catch {
+        return 'Error: Invalid JSON format for slideData. Must be an array of objects with title and content.';
+      }
+      if (!Array.isArray(slides) || slides.length === 0) {
+        return 'Error: slideData must be a non-empty array';
+      }
+
+      const count = Math.min(Math.max(slides.length, 2), 8);
 
       // Theme palettes
       const themes: Record<string, { bg: string; bg2: string; accent: string; accent2: string; text: string; muted: string; gradient: string }> = {
@@ -2398,7 +2413,12 @@ Use this when user asks to "create a story about..." or "tạo story về..."`,
       let totalSlides = 0;
 
       // === SLIDE 1: TITLE ===
-      const titleSlideId = actions.addSlide();
+      let titleSlideId: string | void;
+      if (story.slides.length === 1 && story.slides[0].elements.length === 0) {
+        titleSlideId = story.slides[0].id;
+      } else {
+        titleSlideId = actions.addSlide();
+      }
       totalSlides++;
       if (titleSlideId) {
         actions.updateSlide(titleSlideId, {
@@ -2408,19 +2428,19 @@ Use this when user asks to "create a story about..." or "tạo story về..."`,
       }
       // Decorative shape
       actions.addElement('shape', '', {
-        style: { x: 540, y: 400, width: 120, height: 4, backgroundColor: c.text, opacity: 0.5 },
+        style: { x: 180, y: 130, width: 40, height: 2, backgroundColor: c.text, opacity: 0.5 },
         shapeType: 'rectangle',
         targetSlideId: titleSlideId,
       });
       // Title
       actions.addElement('text', topic, {
-        style: { x: 540, y: 820, width: 920, height: 160, fontSize: 56, fontWeight: 'bold', color: c.text, textAlign: 'center' },
+        style: { x: 180, y: 270, width: 300, height: 50, fontSize: 28, fontWeight: 'bold', color: c.text, textAlign: 'center' },
         animation: { enter: { type: 'fadeInUp' as AnimationType, duration: 800, delay: 0, easing: 'ease-out' } },
         targetSlideId: titleSlideId,
       });
       // Subtitle
       actions.addElement('text', contentStyle === 'news' ? 'TIN TỨC' : contentStyle === 'promotional' ? 'KHÁM PHÁ NGAY' : 'Câu chuyện thú vị', {
-        style: { x: 540, y: 1020, width: 700, height: 60, fontSize: 28, color: c.text + 'cc', textAlign: 'center' },
+        style: { x: 180, y: 340, width: 230, height: 20, fontSize: 14, color: c.text + 'cc', textAlign: 'center' },
         animation: { enter: { type: 'fadeInUp' as AnimationType, duration: 600, delay: 300, easing: 'ease-out' } },
         targetSlideId: titleSlideId,
       });
@@ -2439,24 +2459,26 @@ Use this when user asks to "create a story about..." or "tạo story về..."`,
         }
         // Slide number
         actions.addElement('text', `${i + 1}/${count}`, {
-          style: { x: 540, y: 200, width: 150, height: 50, fontSize: 20, color: c.accent, textAlign: 'center', fontWeight: 'medium' },
+          style: { x: 180, y: 65, width: 50, height: 16, fontSize: 12, color: c.accent, textAlign: 'center', fontWeight: 'medium' },
           targetSlideId: slideId,
         });
         // Accent line
         actions.addElement('shape', '', {
-          style: { x: 540, y: 280, width: 60, height: 3, backgroundColor: c.accent },
+          style: { x: 180, y: 90, width: 20, height: 2, backgroundColor: c.accent },
           shapeType: 'rectangle',
           targetSlideId: slideId,
         });
-        // Content heading placeholder
-        actions.addElement('text', `Điểm nổi bật ${i + 1}`, {
-          style: { x: 540, y: 700, width: 900, height: 100, fontSize: 42, fontWeight: 'bold', color: c.text, textAlign: 'center' },
+        const slideContent = slides[i] || { title: `Điểm nổi bật ${i + 1}`, content: `Nội dung chi tiết về ${topic}` };
+
+        // Content heading
+        actions.addElement('text', slideContent.title, {
+          style: { x: 180, y: 230, width: 300, height: 30, fontSize: 24, fontWeight: 'bold', color: c.text, textAlign: 'center' },
           animation: { enter: { type: 'fadeInUp' as AnimationType, duration: 700, delay: 0, easing: 'ease-out' } },
           targetSlideId: slideId,
         });
-        // Content body placeholder
-        actions.addElement('text', `Nội dung chi tiết về ${topic} - phần ${i + 1}. Hãy chỉnh sửa nội dung này.`, {
-          style: { x: 540, y: 900, width: 860, height: 200, fontSize: 28, color: c.muted, textAlign: 'center' },
+        // Content body
+        actions.addElement('text', slideContent.content, {
+          style: { x: 180, y: 300, width: 280, height: 80, fontSize: 14, color: c.muted, textAlign: 'center' },
           animation: { enter: { type: 'fadeInUp' as AnimationType, duration: 600, delay: 200, easing: 'ease-out' } },
           targetSlideId: slideId,
         });
@@ -2473,18 +2495,18 @@ Use this when user asks to "create a story about..." or "tạo story về..."`,
         });
       }
       actions.addElement('text', 'Cảm ơn bạn đã xem!', {
-        style: { x: 540, y: 750, width: 900, height: 100, fontSize: 48, fontWeight: 'bold', color: c.text, textAlign: 'center' },
+        style: { x: 180, y: 250, width: 300, height: 35, fontSize: 24, fontWeight: 'bold', color: c.text, textAlign: 'center' },
         animation: { enter: { type: 'scaleIn' as AnimationType, duration: 800, delay: 0, easing: 'ease-out' } },
         targetSlideId: ctaSlideId,
       });
       actions.addElement('text', 'Theo dõi để xem thêm nội dung', {
-        style: { x: 540, y: 900, width: 700, height: 60, fontSize: 24, color: c.text + 'cc', textAlign: 'center' },
+        style: { x: 180, y: 300, width: 230, height: 20, fontSize: 12, color: c.text + 'cc', textAlign: 'center' },
         animation: { enter: { type: 'fadeInUp' as AnimationType, duration: 600, delay: 300, easing: 'ease-out' } },
         targetSlideId: ctaSlideId,
       });
       // Sticker
       actions.addElement('sticker', '🌟', {
-        style: { x: 540, y: 550, width: 80, height: 80, fontSize: 64 },
+        style: { x: 180, y: 180, width: 26, height: 26, fontSize: 32 },
         animation: { loop: { type: 'float' as AnimationType, duration: 3000, delay: 0, easing: 'ease-in-out' } },
         targetSlideId: ctaSlideId,
       });
@@ -2529,24 +2551,24 @@ Use this when user asks to "create a story about..." or "tạo story về..."`,
         case 'minimal':
           if (title) {
             actions.addElement('text', title, {
-              style: { x: 540, y: 900, width: 800, height: 80, fontSize: 36, color: '#ffffff', textAlign: 'center', fontWeight: 'medium' },
+              style: { x: 180, y: 300, width: 260, height: 26, fontSize: 18, color: '#ffffff', textAlign: 'center', fontWeight: 'medium' },
             });
           }
           break;
         case 'bold':
           // Large accent shape
           actions.addElement('shape', '', {
-            style: { x: 540, y: 500, width: 300, height: 300, backgroundColor: '#3b82f6', opacity: 0.15 },
+            style: { x: 180, y: 160, width: 100, height: 100, backgroundColor: '#3b82f6', opacity: 0.15 },
             shapeType: 'circle',
           });
           if (title) {
             actions.addElement('text', title, {
-              style: { x: 540, y: 800, width: 900, height: 140, fontSize: 64, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
+              style: { x: 180, y: 260, width: 300, height: 46, fontSize: 32, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
             });
           }
           if (body) {
             actions.addElement('text', body, {
-              style: { x: 540, y: 1050, width: 800, height: 120, fontSize: 28, color: '#94a3b8', textAlign: 'center' },
+              style: { x: 180, y: 350, width: 260, height: 40, fontSize: 14, color: '#94a3b8', textAlign: 'center' },
             });
           }
           break;
@@ -2556,36 +2578,36 @@ Use this when user asks to "create a story about..." or "tạo story về..."`,
           });
           if (title) {
             actions.addElement('text', title, {
-              style: { x: 540, y: 850, width: 900, height: 120, fontSize: 52, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
+              style: { x: 180, y: 280, width: 300, height: 40, fontSize: 26, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
             });
           }
           if (body) {
             actions.addElement('text', body, {
-              style: { x: 540, y: 1050, width: 800, height: 100, fontSize: 26, color: '#ffffffcc', textAlign: 'center' },
+              style: { x: 180, y: 350, width: 260, height: 30, fontSize: 13, color: '#ffffffcc', textAlign: 'center' },
             });
           }
           break;
         case 'split':
           // Top accent block
           actions.addElement('shape', '', {
-            style: { x: 540, y: 400, width: 1080, height: 800, backgroundColor: '#1e293b' },
+            style: { x: 180, y: 130, width: 360, height: 260, backgroundColor: '#1e293b' },
             shapeType: 'rectangle',
           });
           if (title) {
             actions.addElement('text', title, {
-              style: { x: 540, y: 400, width: 900, height: 100, fontSize: 48, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
+              style: { x: 180, y: 130, width: 300, height: 35, fontSize: 24, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' },
             });
           }
           if (body) {
             actions.addElement('text', body, {
-              style: { x: 540, y: 1200, width: 860, height: 200, fontSize: 28, color: '#cbd5e1', textAlign: 'center' },
+              style: { x: 180, y: 400, width: 280, height: 60, fontSize: 14, color: '#cbd5e1', textAlign: 'center' },
             });
           }
           break;
         default: // centered
           // Subtle line decor
           actions.addElement('shape', '', {
-            style: { x: 540, y: 650, width: 80, height: 3, backgroundColor: '#3b82f6' },
+            style: { x: 180, y: 210, width: 26, height: 2, backgroundColor: '#3b82f6' },
             shapeType: 'rectangle',
           });
           if (title) {
