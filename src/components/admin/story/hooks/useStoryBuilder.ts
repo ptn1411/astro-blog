@@ -198,18 +198,28 @@ export function useStoryBuilder({ initialStory }: UseStoryBuilderProps) {
         ...(extra?.slider ? { slider: extra.slider as StoryElement['slider'] } : {}),
       };
 
-      // Support adding to a specific slide via extra.targetSlideId
+      // Use functional update to always read the latest state.
+      // This prevents stale closure bugs when AI calls addElement multiple
+      // times in rapid succession (e.g. after addSlide before React re-renders).
       const targetSlideId = (extra?.targetSlideId as string) || currentSlideId;
-      const targetSlide = story.slides.find(s => s.id === targetSlideId) || currentSlide;
 
-      updateSlide(targetSlideId, {
-        elements: [...targetSlide.elements, newElement],
+      setStory((prev) => {
+        if (!prev?.slides) return prev;
+        const target = prev.slides.find((s) => s.id === targetSlideId) ?? prev.slides[0];
+        if (!target) return prev;
+        return {
+          ...prev,
+          slides: prev.slides.map((s) =>
+            s.id === target.id ? { ...s, elements: [...s.elements, newElement] } : s
+          ),
+          updatedAt: new Date().toISOString(),
+        };
       });
 
       setSelectedElementIds([newElement.id]);
       return newElement.id; // Return element ID for AI actions
     },
-    [currentSlide, currentSlideId, story.slides, updateSlide]
+    [currentSlideId, setStory]
   );
 
   // Delete element
