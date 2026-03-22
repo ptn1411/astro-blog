@@ -129,7 +129,7 @@ export function StoriesManager({ onCreateNew, onEdit }: StoriesManagerProps) {
       )}
 
       {/* Click outside to close menu */}
-      {showMenu && <div className="fixed inset-0 z-0" onClick={() => setShowMenu(null)} />}
+      {showMenu && <div className="fixed inset-0 z-40" onClick={() => setShowMenu(null)} />}
 
       {/* Mobile Floating Action Button */}
       {isMobile && (

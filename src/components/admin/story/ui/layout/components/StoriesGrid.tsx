@@ -96,6 +96,7 @@ export function StoriesGrid({
         {stories.map((story, index) => (
           <div
             key={story.id}
+            className={showMenu === story.id ? "relative z-50" : "relative z-0"}
             style={{
               animation: `storyCardFadeIn 0.4s ease-out ${Math.min(index, 11) * 60}ms both`,
             }}
