@@ -9,12 +9,40 @@ import { useBuilderKeyboard } from '../../hooks/useBuilderKeyboard';
 import { AI_CONFIG } from '../../../config';
 const BuilderAIWrapper = lazy(() => import('./BuilderAIWrapper'));
 
-// Layout Components
+// Layout Components (lazy loaded to reduce initial bundle size)
+const PagesManager = lazy(() => import('./PagesManager'));
+const WidgetManager = lazy(() => import('./WidgetManager').then(m => ({ default: m.WidgetManager })));
 import { BuilderHeader, BuilderSidebar, BuilderCanvas } from './components';
-import PagesManager from './PagesManager';
-import { WidgetManager } from './WidgetManager';
 import { LayoutPanel, type HeaderData, type FooterData } from '../panels/LayoutPanel';
 import type { AstroLayoutType } from './LayoutSelector';
+
+// Skeleton fallbacks
+function PagesSkeleton({ isDark }: { isDark: boolean }) {
+  return (
+    <div className={`flex-1 p-6 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="max-w-6xl mx-auto">
+        <div className={`h-8 w-48 rounded-lg mb-6 animate-pulse ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className={`h-40 rounded-lg animate-pulse ${isDark ? 'bg-gray-800' : 'bg-white border border-gray-200'}`} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WidgetManagerSkeleton({ isDark }: { isDark: boolean }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className={`w-full max-w-4xl mx-4 rounded-lg shadow-xl h-96 flex items-center justify-center animate-pulse ${
+        isDark ? 'bg-gray-800' : 'bg-white'
+      }`}>
+        <div className={`h-6 w-32 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
+      </div>
+    </div>
+  );
+}
 
 // Modals
 import { SaveModal } from '../modals/SaveModal';
@@ -272,11 +300,13 @@ export default function BuilderApp() {
         isDarkMode={state.isDarkMode}
       />
       {state.isWidgetManagerOpen && (
-        <WidgetManager
-          registry={widgetRegistry}
-          isDarkMode={state.isDarkMode}
-          onClose={() => setters.setIsWidgetManagerOpen(false)}
-        />
+        <Suspense fallback={<WidgetManagerSkeleton isDark={state.isDarkMode} />}>
+          <WidgetManager
+            registry={widgetRegistry}
+            isDarkMode={state.isDarkMode}
+            onClose={() => setters.setIsWidgetManagerOpen(false)}
+          />
+        </Suspense>
       )}
       <PasteJSONModal
         isOpen={state.isPasteModalOpen}
@@ -335,11 +365,13 @@ export default function BuilderApp() {
 
       {/* Main Content - Pages View */}
       {state.currentView === 'pages' && (
-        <PagesManager
-          onEditPage={actions.handleEditPage}
-          onCreateNew={actions.handleCreateNew}
-          isDarkMode={state.isDarkMode}
-        />
+        <Suspense fallback={<PagesSkeleton isDark={state.isDarkMode} />}>
+          <PagesManager
+            onEditPage={actions.handleEditPage}
+            onCreateNew={actions.handleCreateNew}
+            isDarkMode={state.isDarkMode}
+          />
+        </Suspense>
       )}
 
       {/* Main Content - Builder View */}

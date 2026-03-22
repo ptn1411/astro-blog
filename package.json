@@ -21,8 +21,7 @@
     "fix:prettier": "prettier -w .",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "test:coverage": "vitest --run --coverage",
-    "ai-server": "node copilotkit-server.mjs"
+    "test:coverage": "vitest --run --coverage"
   },
   "dependencies": {
     "@assistant-ui/react": "^0.12.19",
