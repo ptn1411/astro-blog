@@ -8,6 +8,7 @@ export type ElementType =
   | 'text'
   | 'image'
   | 'video'
+  | 'audio'
   | 'shape'
   | 'sticker'
   | 'gif'

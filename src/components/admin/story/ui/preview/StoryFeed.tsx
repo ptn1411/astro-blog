@@ -13,12 +13,21 @@ interface StoryFeedProps {
  */
 export const StoryFeed = memo(function StoryFeed({ stories }: StoryFeedProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const isScrollingRef = useRef(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const itemRefs = useRef<Map<number, HTMLElement>>(new Map());
 
-  // Setup IntersectionObserver to track which story is visible
-  useEffect(() => {
+  // Create the observer only after the scroll container is mounted,
+  // so `root` is never null.
+  const setContainerRef = useCallback((el: HTMLDivElement | null) => {
+    containerRef.current = el;
+    if (!el) {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+      return;
+    }
+
     observerRef.current = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -31,12 +40,15 @@ export const StoryFeed = memo(function StoryFeed({ stories }: StoryFeedProps) {
         }
       },
       {
-        root: containerRef.current,
+        root: el,
         threshold: [0.6, 0.8],
       }
     );
 
-    return () => observerRef.current?.disconnect();
+    // Re-observe any items already registered before the container mounted
+    for (const item of itemRefs.current.values()) {
+      observerRef.current.observe(item);
+    }
   }, []);
 
   // Observe items when they mount
@@ -76,6 +88,30 @@ export const StoryFeed = memo(function StoryFeed({ stories }: StoryFeedProps) {
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  // Mouse wheel: snap to next/prev story with a cooldown to avoid multi-snap
+  const handleWheel = useCallback(
+    (e: React.WheelEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      if (isScrollingRef.current) return;
+      isScrollingRef.current = true;
+
+      if (e.deltaY > 0) {
+        // scroll down → next story
+        const next = Math.min(activeIndex + 1, stories.length - 1);
+        scrollToIndex(next);
+      } else if (e.deltaY < 0) {
+        // scroll up → prev story
+        const prev = Math.max(activeIndex - 1, 0);
+        scrollToIndex(prev);
+      }
+
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 700);
+    },
+    [activeIndex, stories.length]
+  );
+
   if (stories.length === 0) {
     return (
       <div className="h-screen w-full bg-slate-950 flex flex-col items-center justify-center text-white">
@@ -107,9 +143,15 @@ export const StoryFeed = memo(function StoryFeed({ stories }: StoryFeedProps) {
     <div className="h-screen w-full bg-black relative">
       {/* Feed scroll container */}
       <div
-        ref={containerRef}
+        ref={setContainerRef}
+        onWheel={handleWheel}
         className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
-        style={{ scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch' }}
+        style={{
+          scrollSnapType: 'y mandatory',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
+          overscrollBehavior: 'none',
+        }}
       >
         {stories.map((story, index) => (
           <div

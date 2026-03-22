@@ -1,12 +1,12 @@
 ---
 import { getCollection } from 'astro:content';
-import { StoryFeed } from '~/components/admin/story/ui/preview/StoryFeed';
 import type { Story } from '~/components/admin/story/types';
+import { StoryFeed } from '~/components/admin/story/ui/preview/StoryFeed';
 import Layout from '~/layouts/Layout.astro';
 
 export const prerender = true;
 
-// Load all assets using glob
+// Load all assets using glob — must be top-level for Vite static analysis
 const images = import.meta.glob('/src/assets/images/**/*', {
   eager: false,
   import: 'default',
@@ -22,99 +22,62 @@ const videos = import.meta.glob('/src/assets/video/**/*', {
   import: 'default',
 });
 
-// Helper function to resolve asset path
-const resolveAsset = async (assetPath: string, assetsGlob: Record<string, any>) => {
-  if (!assetPath || !assetPath.startsWith('/src/assets/')) {
-    return assetPath;
-  }
-
+// Helper: resolve /src/assets/... paths → hashed production URLs
+const resolveAsset = async (assetPath: string, assetsGlob: Record<string, () => Promise<unknown>>) => {
+  if (!assetPath || !assetPath.startsWith('/src/assets/')) return assetPath;
   try {
-    const fileName = assetPath.split('/').pop();
-    const matchingKey = Object.keys(assetsGlob).find((key) => key.includes(fileName || ''));
-
+    const fileName = assetPath.split('/').pop() ?? '';
+    const matchingKey = Object.keys(assetsGlob).find((k) => k.includes(fileName));
     if (matchingKey) {
-      const assetModule = await assetsGlob[matchingKey]();
-      return assetModule.src || assetModule;
+      const mod = (await assetsGlob[matchingKey]()) as { src?: string } | string;
+      return (mod as { src?: string }).src ?? (mod as string);
     }
-  } catch (error) {
-    console.error(`Failed to load asset: ${assetPath}`, error);
+  } catch {
+    // silently fall back to original path
   }
-
   return assetPath;
 };
 
-// Process all stories at build time
+// Fetch ALL stories — no filter, exactly like index.astro
 const storiesCollection = await getCollection('stories');
 
+// Resolve asset paths for each story in parallel
 const processedStories: Story[] = await Promise.all(
-  storiesCollection.map(async (story) => {
-    const storyData = JSON.parse(JSON.stringify(story.data));
+  storiesCollection.map(async (entry) => {
+    // Deep clone to avoid mutating the collection entry
+    const storyData = JSON.parse(JSON.stringify(entry.data)) as Story;
 
-    // Process each slide
-    for (const slide of storyData.slides) {
-      // Process background image
-      if (slide.background?.type === 'image' && slide.background.value) {
+    for (const slide of storyData.slides ?? []) {
+      if (slide.background?.type === 'image' && slide.background.value)
         slide.background.value = await resolveAsset(slide.background.value, images);
-      }
-
-      // Process background video
-      if (slide.background?.type === 'video' && slide.background.value) {
+      if (slide.background?.type === 'video' && slide.background.value)
         slide.background.value = await resolveAsset(slide.background.value, videos);
-      }
+      if (slide.audio?.src) slide.audio.src = await resolveAsset(slide.audio.src, audios);
 
-      // Process slide audio
-      if (slide.audio?.src) {
-        slide.audio.src = await resolveAsset(slide.audio.src, audios);
-      }
-
-      // Process elements
-      if (slide.elements) {
-        for (const element of slide.elements) {
-          if (['image', 'sticker', 'gif', 'avatar'].includes(element.type)) {
-            if (element.content) {
-              element.content = await resolveAsset(element.content, images);
-            }
-            if (element.src) {
-              element.src = await resolveAsset(element.src, images);
-            }
-          }
-
-          if (element.type === 'video') {
-            if (element.content) {
-              element.content = await resolveAsset(element.content, videos);
-            }
-            if (element.src) {
-              element.src = await resolveAsset(element.src, videos);
-            }
-          }
-
-          if (element.type === 'audio') {
-            if (element.content) {
-              element.content = await resolveAsset(element.content, audios);
-            }
-            if (element.src) {
-              element.src = await resolveAsset(element.src, audios);
-            }
-          }
-
-          if (element.type === 'slider' && element.slider?.images) {
-            for (const img of element.slider.images) {
-              if (img.src) {
-                img.src = await resolveAsset(img.src, images);
-              }
-            }
-          }
-
-          if (element.type === 'carousel' && element.carousel?.images) {
-            for (let i = 0; i < element.carousel.images.length; i++) {
-              element.carousel.images[i] = await resolveAsset(element.carousel.images[i], images);
-            }
-          }
+      for (const el of slide.elements ?? []) {
+        if (['image', 'sticker', 'gif', 'avatar'].includes(el.type)) {
+          if (el.content) el.content = await resolveAsset(el.content, images);
+          if (el.src) el.src = await resolveAsset(el.src, images);
+        }
+        if (el.type === 'video') {
+          if (el.content) el.content = await resolveAsset(el.content, videos);
+          if (el.src) el.src = await resolveAsset(el.src, videos);
+        }
+        if (el.type === 'audio') {
+          if (el.content) el.content = await resolveAsset(el.content, audios);
+          if (el.src) el.src = await resolveAsset(el.src, audios);
+        }
+        if (el.type === 'slider') {
+          for (const img of el.slider?.images ?? []) if (img.src) img.src = await resolveAsset(img.src, images);
+        }
+        if (el.type === 'carousel') {
+          const imgs: string[] = el.carousel?.images ?? [];
+          for (let i = 0; i < imgs.length; i++) imgs[i] = await resolveAsset(imgs[i], images);
         }
       }
     }
 
-    return storyData as Story;
+    return storyData;
   })
 );
 
@@ -126,18 +89,34 @@ const metadata = {
 ---
 
 <Layout metadata={metadata}>
-  <div class="w-full h-screen bg-black">
+  <div class="fixed inset-0 w-full h-full bg-black" style="z-index:1; touch-action: pan-y;">
     <StoryFeed stories={processedStories} client:only="react" />
   </div>
   <style>
+    /* Reset body/html scroll so only the StoryFeed container scrolls */
+    :global(html) {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+      /* Use dynamic viewport height so iOS Safari URL bar doesn't cut off content */
+      height: 100dvh;
+    }
     :global(body) {
       margin: 0;
       padding: 0;
       overflow: hidden;
       background: #000;
+      height: 100%;
+      /* Prevent iOS rubber-band scroll on body from breaking inner snap */
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: auto;
     }
-    :global(html) {
-      overflow: hidden;
+    /* Make astro-island fill its parent so h-full works correctly */
+    :global(astro-island) {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
   </style>
 </Layout>

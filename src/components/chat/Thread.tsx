@@ -55,17 +55,17 @@ const ThreadWelcome: FC = () => {
         Hỏi bất cứ điều gì — lập trình, viết lách, phân tích, hay sáng tạo.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl w-full">
-        <ThreadPrimitive.Suggestion prompt="Giải thích React hooks cho người mới" method="replace" autoSend>
-          <SuggestionCard icon="💡" text="Giải thích React hooks" />
+        <ThreadPrimitive.Suggestion prompt="Astro là gì và tại sao nên dùng cho blog cá nhân?" method="replace" autoSend>
+          <SuggestionCard icon="🚀" text="Tại sao chọn Astro cho blog?" />
         </ThreadPrimitive.Suggestion>
-        <ThreadPrimitive.Suggestion prompt="Viết một đoạn code Python sắp xếp mảng" method="replace" autoSend>
-          <SuggestionCard icon="🐍" text="Code Python sắp xếp mảng" />
+        <ThreadPrimitive.Suggestion prompt="Viết cho tôi một bài blog về lập trình Rust cho người mới bắt đầu" method="replace" autoSend>
+          <SuggestionCard icon="🦀" text="Viết bài blog về Rust" />
         </ThreadPrimitive.Suggestion>
-        <ThreadPrimitive.Suggestion prompt="So sánh Rust và Go cho backend" method="replace" autoSend>
-          <SuggestionCard icon="⚡" text="So sánh Rust vs Go" />
+        <ThreadPrimitive.Suggestion prompt="Giải thích cách hoạt động của WebAssembly (WASM) và ứng dụng thực tế" method="replace" autoSend>
+          <SuggestionCard icon="⚙️" text="WebAssembly là gì?" />
         </ThreadPrimitive.Suggestion>
-        <ThreadPrimitive.Suggestion prompt="Tạo kế hoạch học lập trình 30 ngày" method="replace" autoSend>
-          <SuggestionCard icon="📚" text="Kế hoạch học 30 ngày" />
+        <ThreadPrimitive.Suggestion prompt="Gợi ý ý tưởng bài viết cho blog lập trình và công nghệ" method="replace" autoSend>
+          <SuggestionCard icon="✍️" text="Ý tưởng bài viết mới" />
         </ThreadPrimitive.Suggestion>
       </div>
     </div>
