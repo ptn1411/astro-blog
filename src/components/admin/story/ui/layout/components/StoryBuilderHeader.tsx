@@ -12,6 +12,7 @@ import {
   Upload,
   ZoomIn,
   ZoomOut,
+  Database,
 } from 'lucide-react';
 import type { CanvasState, Story } from '../../../types';
 
@@ -29,6 +30,7 @@ interface StoryBuilderHeaderProps {
   onImport: () => void;
   onExportJSON: () => void;
   onExportVideo: () => void;
+  onExportDataset: () => void;
   onOpenSettings: () => void;
   onOpenAIModal: () => void;
 
@@ -49,6 +51,7 @@ export function StoryBuilderHeader({
   onImport,
   onExportJSON,
   onExportVideo,
+  onExportDataset,
   onOpenSettings,
   onOpenAIModal,
 
@@ -191,6 +194,13 @@ export function StoryBuilderHeader({
             title="Export Story as Video"
           >
             <Film size={16} />
+          </button>
+          <button
+            onClick={onExportDataset}
+            className="p-1.5 text-blue-400 hover:bg-slate-600 hover:text-blue-300 rounded-lg transition-all duration-150 active:scale-90"
+            title="Export current slide + prompt to Dataset"
+          >
+            <Database size={16} />
           </button>
           <button
             onClick={onOpenAIModal}

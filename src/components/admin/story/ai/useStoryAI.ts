@@ -26,6 +26,7 @@ import type {
   TransitionType,
 } from '../types';
 import { ALL_ANIMATION_TEMPLATES, getTemplateById } from '../animations/templates/animationTemplates';
+import { SLIDE_TEMPLATES, STORY_BLUEPRINTS, FEW_SHOT_EXAMPLES } from './aiTemplates';
 
 // ==========================================
 // Types & Interfaces
@@ -170,93 +171,9 @@ export interface UseStoryAIOptions {
 }
 
 // ==========================================
-// Predefined Templates
+// Predefined Templates (Moved to aiTemplates.ts)
 // ==========================================
 
-const SLIDE_TEMPLATES: Record<string, SlideTemplate> = {
-  'title-slide': {
-    name: 'Title Slide',
-    background: { type: 'gradient', value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
-    elements: [
-      { type: 'text', content: 'Tiêu đề chính', x: 40, y: 260, width: 280, height: 40, style: { fontSize: 32, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' } },
-      { type: 'text', content: 'Phụ đề hoặc mô tả ngắn', x: 60, y: 310, width: 240, height: 40, style: { fontSize: 16, color: '#ffffffcc', textAlign: 'center' } },
-    ],
-    duration: 5,
-  },
-  'news-headline': {
-    name: 'News Headline',
-    background: { type: 'color', value: '#1a1a2e' },
-    elements: [
-      { type: 'shape', content: '', x: 0, y: 0, width: 360, height: 70, extra: { shapeType: 'rectangle' }, style: { backgroundColor: '#e94560' } },
-      { type: 'text', content: 'TIN NÓNG', x: 80, y: 20, width: 200, height: 40, style: { fontSize: 24, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' } },
-      { type: 'text', content: 'Nội dung tin tức chính ở đây', x: 20, y: 300, width: 320, height: 80, style: { fontSize: 20, fontWeight: 'semibold', color: '#ffffff', textAlign: 'center' } },
-    ],
-    duration: 7,
-  },
-  'quote-card': {
-    name: 'Quote Card',
-    background: { type: 'gradient', value: 'linear-gradient(180deg, #2c3e50 0%, #1a1a2e 100%)' },
-    elements: [
-      { type: 'text', content: '"', x: 20, y: 220, width: 40, height: 80, style: { fontSize: 80, color: '#e94560', fontWeight: 'bold' } },
-      { type: 'text', content: 'Câu trích dẫn đáng nhớ của bạn ở đây', x: 30, y: 300, width: 300, height: 120, style: { fontSize: 18, color: '#ffffff', textAlign: 'center', fontStyle: 'italic' } },
-      { type: 'text', content: '— Tác giả', x: 80, y: 430, width: 200, height: 30, style: { fontSize: 14, color: '#888888', textAlign: 'center' } },
-    ],
-    duration: 6,
-  },
-  'image-with-caption': {
-    name: 'Image with Caption',
-    background: { type: 'color', value: '#000000' },
-    elements: [
-      { type: 'image', content: '', x: 20, y: 200, width: 320, height: 280, style: { borderRadius: 12 } },
-      { type: 'text', content: 'Chú thích hình ảnh', x: 30, y: 500, width: 300, height: 40, style: { fontSize: 16, color: '#ffffff', textAlign: 'center' } },
-    ],
-    duration: 5,
-  },
-  'stats-card': {
-    name: 'Statistics Card',
-    background: { type: 'gradient', value: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' },
-    elements: [
-      { type: 'text', content: '1,234', x: 60, y: 240, width: 240, height: 80, style: { fontSize: 56, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' } },
-      { type: 'text', content: 'Số liệu thống kê', x: 60, y: 330, width: 240, height: 30, style: { fontSize: 18, color: '#ffffffcc', textAlign: 'center' } },
-      { type: 'shape', content: '', x: 130, y: 370, width: 100, height: 3, extra: { shapeType: 'rectangle' }, style: { backgroundColor: '#ffffff' } },
-      { type: 'text', content: 'Mô tả chi tiết về số liệu', x: 30, y: 385, width: 300, height: 50, style: { fontSize: 14, color: '#ffffffaa', textAlign: 'center' } },
-    ],
-    duration: 5,
-  },
-  'comparison': {
-    name: 'Comparison Slide',
-    background: { type: 'color', value: '#1a1a2e' },
-    elements: [
-      { type: 'text', content: 'VS', x: 155, y: 300, width: 50, height: 40, style: { fontSize: 24, fontWeight: 'bold', color: '#e94560', textAlign: 'center' } },
-      { type: 'shape', content: '', x: 10, y: 280, width: 140, height: 200, extra: { shapeType: 'rectangle' }, style: { backgroundColor: '#16213e', borderRadius: 12 } },
-      { type: 'shape', content: '', x: 210, y: 280, width: 140, height: 200, extra: { shapeType: 'rectangle' }, style: { backgroundColor: '#16213e', borderRadius: 12 } },
-      { type: 'text', content: 'Lựa chọn A', x: 10, y: 240, width: 140, height: 35, style: { fontSize: 18, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' } },
-      { type: 'text', content: 'Lựa chọn B', x: 210, y: 240, width: 140, height: 35, style: { fontSize: 18, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' } },
-    ],
-    duration: 7,
-  },
-  'list-slide': {
-    name: 'List Slide',
-    background: { type: 'gradient', value: 'linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%)' },
-    elements: [
-      { type: 'text', content: 'Danh sách', x: 30, y: 80, width: 300, height: 40, style: { fontSize: 26, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' } },
-      { type: 'text', content: '1. Mục đầu tiên', x: 30, y: 160, width: 300, height: 30, style: { fontSize: 18, color: '#ffffff', textAlign: 'left' } },
-      { type: 'text', content: '2. Mục thứ hai', x: 30, y: 200, width: 300, height: 30, style: { fontSize: 18, color: '#ffffff', textAlign: 'left' } },
-      { type: 'text', content: '3. Mục thứ ba', x: 30, y: 240, width: 300, height: 30, style: { fontSize: 18, color: '#ffffff', textAlign: 'left' } },
-    ],
-    duration: 6,
-  },
-  'cta-slide': {
-    name: 'Call to Action',
-    background: { type: 'gradient', value: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
-    elements: [
-      { type: 'text', content: 'Hành động ngay!', x: 30, y: 240, width: 300, height: 50, style: { fontSize: 28, fontWeight: 'bold', color: '#ffffff', textAlign: 'center' } },
-      { type: 'text', content: 'Mô tả ngắn về lời kêu gọi hành động', x: 40, y: 300, width: 280, height: 40, style: { fontSize: 16, color: '#ffffffcc', textAlign: 'center' } },
-      { type: 'button', content: 'Bắt đầu', x: 100, y: 380, width: 160, height: 48, extra: { button: { href: '#', target: '_blank', variant: 'primary' } }, style: { fontSize: 16, backgroundColor: '#ffffff', color: '#f5576c', borderRadius: 24 } },
-    ],
-    duration: 5,
-  },
-};
 
 // ==========================================
 // Helper Functions
@@ -420,6 +337,15 @@ export function formatContextForAI(context: StoryContext): string {
   Object.keys(SLIDE_TEMPLATES).forEach((key) => {
     lines.push(`- ${key}: ${SLIDE_TEMPLATES[key].name}`);
   });
+  
+  lines.push('');
+  lines.push(`## Available Story Blueprints (For Full Multi-Slide Stories):`);
+  Object.keys(STORY_BLUEPRINTS).forEach((key) => {
+    lines.push(`- ${key}: ${STORY_BLUEPRINTS[key].name} - ${STORY_BLUEPRINTS[key].description}`);
+  });
+  
+  lines.push('');
+  lines.push(FEW_SHOT_EXAMPLES);
 
   // Available animation templates
   lines.push('');
@@ -819,8 +745,16 @@ export function useStoryAI(options: UseStoryAIOptions): void {
 
       for (const el of template.elements) {
         const content = contentMap[el.content] || el.content;
+        
+        // Merge root-level layout coordinates into style
+        const style = { ...(el.style || {}) };
+        if (el.x !== undefined) style.x = el.x;
+        if (el.y !== undefined) style.y = el.y;
+        if (el.width !== undefined) style.width = el.width;
+        if (el.height !== undefined) style.height = el.height;
+
         const extra: Record<string, unknown> = { 
-          style: el.style || {},
+          style,
           targetSlideId: newSlideId,
         };
         if (el.extra) Object.assign(extra, el.extra);
@@ -829,6 +763,41 @@ export function useStoryAI(options: UseStoryAIOptions): void {
       }
 
       return `Created slide from template "${templateName}" with ${template.elements.length} elements`;
+    },
+  });
+
+  /**
+   * Action: createStoryFromBlueprint
+   * Generate an entire multi-slide story from an advanced blueprint
+   */
+  useCopilotAction({
+    name: 'createStoryFromBlueprint',
+    description: 'Create an entire multi-slide story from a sophisticated blueprint. Extremely useful for quick, high-quality, professional stories. Available blueprints: ' + Object.keys(STORY_BLUEPRINTS).join(', '),
+    parameters: [
+      { name: 'blueprintId', type: 'string', description: 'ID of the blueprint (' + Object.keys(STORY_BLUEPRINTS).join(', ') + ')', required: true },
+      { name: 'contentData', type: 'string', description: 'JSON string containing data for the blueprint. e.g. {"title":"My News", "points": [{"title":"A","detail":"B"}]}', required: true },
+    ],
+    handler: async ({ blueprintId, contentData }) => {
+      if (!actions?.addSlide || !actions?.addElement || !actions?.updateSlide) {
+        return 'Error: Required actions not available';
+      }
+
+      const blueprint = STORY_BLUEPRINTS[blueprintId];
+      if (!blueprint) {
+        return `Error: Blueprint "${blueprintId}" not found.`;
+      }
+
+      let parsedData: Record<string, unknown> = {};
+      try {
+        parsedData = JSON.parse(contentData);
+      } catch {
+        return 'Error: Invalid JSON format for contentData';
+      }
+
+      // Execute the blueprint generator
+      blueprint.generate(actions, parsedData);
+
+      return `Successfully created multi-slide story from blueprint "${blueprintId}". You can now apply further custom elements using addElement if you wish!`;
     },
   });
 

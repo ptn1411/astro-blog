@@ -319,6 +319,34 @@ export function StoryBuilderV2({ initialStory, onBack }: StoryBuilderProps) {
     [setStory, setCurrentSlideId, setSelectedElementIds]
   );
 
+  const handleExportDataset = useCallback(async () => {
+    if (!currentSlide || currentSlide.elements.length === 0) {
+      alert('Slide hiện tại không có dữ liệu để lưu!');
+      return;
+    }
+    
+    const promptText = window.prompt('Nhập câu lệnh (prompt) đã sử dụng để tạo slide này:');
+    if (!promptText) return;
+
+    try {
+      const res = await fetch('/admin/save-dataset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: promptText,
+          slide: currentSlide
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to save dataset');
+      
+      const data = await res.json();
+      alert(`Đã lưu dataset thành công!\nĐường dẫn: ${data.path}`);
+    } catch (err) {
+      alert('Lỗi lưu dataset: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    }
+  }, [currentSlide]);
+
   // Mobile handlers
   const handleSwipeLeft = useCallback(() => {
     if (currentSlideIndex < story.slides.length - 1) {
@@ -694,6 +722,7 @@ export function StoryBuilderV2({ initialStory, onBack }: StoryBuilderProps) {
               onImport={() => fileInputRef.current?.click()}
               onExportJSON={() => exportStoryAsJSON(story)}
               onExportVideo={() => setShowExportModal(true)}
+              onExportDataset={handleExportDataset}
               onOpenSettings={() => setShowSettings(true)}
               onOpenAIModal={() => setShowAiModal(true)}
               onSave={handleSave}
