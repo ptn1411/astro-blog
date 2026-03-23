@@ -89,18 +89,19 @@ export const StoryFeed = memo(function StoryFeed({ stories }: StoryFeedProps) {
   };
 
   // Mouse wheel: snap to next/prev story with a cooldown to avoid multi-snap
-  const handleWheel = useCallback(
-    (e: React.WheelEvent<HTMLDivElement>) => {
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       if (isScrollingRef.current) return;
       isScrollingRef.current = true;
 
       if (e.deltaY > 0) {
-        // scroll down → next story
         const next = Math.min(activeIndex + 1, stories.length - 1);
         scrollToIndex(next);
       } else if (e.deltaY < 0) {
-        // scroll up → prev story
         const prev = Math.max(activeIndex - 1, 0);
         scrollToIndex(prev);
       }
@@ -108,9 +109,11 @@ export const StoryFeed = memo(function StoryFeed({ stories }: StoryFeedProps) {
       setTimeout(() => {
         isScrollingRef.current = false;
       }, 700);
-    },
-    [activeIndex, stories.length]
-  );
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [activeIndex, stories.length]);
 
   if (stories.length === 0) {
     return (
@@ -144,7 +147,7 @@ export const StoryFeed = memo(function StoryFeed({ stories }: StoryFeedProps) {
       {/* Feed scroll container */}
       <div
         ref={setContainerRef}
-        onWheel={handleWheel}
+
         className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
         style={{
           scrollSnapType: 'y mandatory',
@@ -196,23 +199,7 @@ export const StoryFeed = memo(function StoryFeed({ stories }: StoryFeedProps) {
         </div>
       </div>
 
-      {/* Navigation dots – right side */}
-      {stories.length > 1 && stories.length <= 20 && (
-        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2">
-          {stories.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => scrollToIndex(i)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                activeIndex === i
-                  ? 'bg-white scale-125 shadow-lg shadow-white/30'
-                  : 'bg-white/30 hover:bg-white/50'
-              }`}
-              aria-label={`Go to story ${i + 1}`}
-            />
-          ))}
-        </div>
-      )}
+
 
       {/* Scroll hint – only on first story */}
       {activeIndex === 0 && (
