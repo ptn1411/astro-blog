@@ -1842,7 +1842,7 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
             {(story.audio?.src || currentSlide.audio?.src) && (
               <button
                 onClick={() => setIsMuted(!isMuted)}
-                className={`p-2 hover:text-white bg-black/30 backdrop-blur-sm rounded-full transition-colors ${
+                className={`w-9 h-9 flex items-center justify-center hover:text-white bg-black/30 backdrop-blur-sm rounded-full transition-colors ${
                   isMuted ? 'text-red-400' : 'text-white/80'
                 }`}
                 title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
@@ -1852,13 +1852,13 @@ export const StoryPreviewV2: React.FC<StoryPreviewProps> = ({ story, onClose, st
             )}
             <button
               onClick={() => setIsPaused(!isPaused)}
-              className="p-2 text-white/80 hover:text-white bg-black/30 backdrop-blur-sm rounded-full transition-colors"
+              className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-white bg-black/30 backdrop-blur-sm rounded-full transition-colors"
             >
               {isPaused ? <Play size={18} fill="currentColor" /> : <Pause size={18} />}
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-white/80 hover:text-white bg-black/30 backdrop-blur-sm rounded-full transition-colors"
+              className="w-9 h-9 flex items-center justify-center text-white/80 hover:text-white bg-black/30 backdrop-blur-sm rounded-full transition-colors"
             >
               <X size={18} />
             </button>
