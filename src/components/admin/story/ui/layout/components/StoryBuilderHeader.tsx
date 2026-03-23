@@ -2,7 +2,6 @@ import {
   Download,
   Film,
   Grid3X3,
-  Key,
   Layers,
   Play,
   Redo2,
@@ -14,7 +13,6 @@ import {
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
-import React from 'react';
 import type { CanvasState, Story } from '../../../types';
 
 interface StoryBuilderHeaderProps {
@@ -33,7 +31,7 @@ interface StoryBuilderHeaderProps {
   onExportVideo: () => void;
   onOpenSettings: () => void;
   onOpenAIModal: () => void;
-  onOpenKeyStatus: () => void;
+
   onSave: () => void;
 }
 
@@ -53,7 +51,7 @@ export function StoryBuilderHeader({
   onExportVideo,
   onOpenSettings,
   onOpenAIModal,
-  onOpenKeyStatus,
+
   onSave,
 }: StoryBuilderHeaderProps) {
   return (
@@ -142,7 +140,9 @@ export function StoryBuilderHeader({
           <button
             onClick={() => onCanvasStateChange({ showGrid: !canvasState.showGrid })}
             className={`p-1.5 rounded-lg transition-all duration-150 active:scale-90 ${
-              canvasState.showGrid ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-300 hover:bg-slate-600'
+              canvasState.showGrid
+                ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                : 'text-slate-300 hover:bg-slate-600'
             }`}
             title="Toggle Grid"
           >
@@ -151,7 +151,9 @@ export function StoryBuilderHeader({
           <button
             onClick={() => onCanvasStateChange({ showSafeZone: !canvasState.showSafeZone })}
             className={`p-1.5 rounded-lg transition-all duration-150 active:scale-90 ${
-              canvasState.showSafeZone ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-300 hover:bg-slate-600'
+              canvasState.showSafeZone
+                ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                : 'text-slate-300 hover:bg-slate-600'
             }`}
             title="Toggle Safe Zone"
           >
@@ -196,13 +198,6 @@ export function StoryBuilderHeader({
             title="AI JSON"
           >
             <Sparkles size={16} />
-          </button>
-          <button
-            onClick={onOpenKeyStatus}
-            className="p-1.5 text-slate-300 hover:bg-slate-600 hover:text-white rounded-lg transition-all duration-150 active:scale-90"
-            title="API Keys Status"
-          >
-            <Key size={16} />
           </button>
 
           <button

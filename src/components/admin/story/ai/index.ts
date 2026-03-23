@@ -1,58 +1,60 @@
 /**
  * AI Module - CopilotKit Integration for Story Builder
- * 
+ *
  * This module provides AI assistant capabilities for the Story Builder,
  * including chat interface, context awareness, and AI-powered actions.
  */
 
 // Provider
-export { CopilotProvider, CopilotAuthContext, ServerStatusContext, useCopilotAuth, useServerStatus } from './CopilotProvider';
-export type { CopilotProviderProps, AuthState } from './CopilotProvider';
+export {
+  CopilotAuthContext,
+  CopilotProvider,
+  ServerStatusContext,
+  useCopilotAuth,
+  useServerStatus,
+} from './CopilotProvider';
+export type { AuthState, CopilotProviderProps } from './CopilotProvider';
 
 // Chat Component
 export { StoryAIChat } from './StoryAIChat';
 export type { StoryAIChatProps } from './StoryAIChat';
 
 // Hooks
-export { useStoryAI, buildStoryContext, formatContextForAI } from './useStoryAI';
-export type { UseStoryAIOptions, StoryContext, StoryBuilderActions } from './useStoryAI';
+export { buildStoryContext, formatContextForAI, useStoryAI } from './useStoryAI';
+export type { StoryBuilderActions, StoryContext, UseStoryAIOptions } from './useStoryAI';
 
 // Retry Utilities
 export {
-  retryWithBackoff,
-  fetchWithRetry,
   calculateBackoffDelay,
+  DEFAULT_RETRY_CONFIG,
+  fetchWithRetry,
   isRetryableError,
   isRetryableStatusCode,
-  sleep,
-  DEFAULT_RETRY_CONFIG,
   RETRYABLE_ERRORS,
   RETRYABLE_STATUS_CODES,
+  retryWithBackoff,
+  sleep,
 } from './retryWithBackoff';
 export type { RetryConfig, RetryResult } from './retryWithBackoff';
 
 // AI Availability (Graceful Degradation)
 export {
+  AIAvailabilityContext,
+  AIAvailabilityProvider,
+  createAIError,
+  getStatusMessage,
+  shouldShowAIFeatures,
   useAIAvailability,
   useAIAvailabilityState,
-  AIAvailabilityProvider,
-  AIAvailabilityContext,
-  createAIError,
-  shouldShowAIFeatures,
-  getStatusMessage,
 } from './useAIAvailability';
 export type {
-  AIStatus,
-  AIError,
-  AIAvailabilityState,
   AIAvailabilityActions,
   AIAvailabilityContextValue,
   AIAvailabilityProviderProps,
+  AIAvailabilityState,
+  AIError,
+  AIStatus,
 } from './useAIAvailability';
-
-// API Key Status Monitoring
-export { AIKeyStatus, AIKeyStatusModal, AIKeyStatusButton } from './AIKeyStatus';
-export type { AIKeyStatusProps, AIKeyStatusModalProps, AIKeyStatusButtonProps } from './AIKeyStatus';
 
 // AI Settings
 export { useAISettings } from './useAISettings';

@@ -1,0 +1,84 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@astrojs/rss": {
+      "name": "@astrojs/rss",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "fast-xml-parser"
+      ],
+      "effects": [],
+      "range": "*",
+      "nodes": [
+        "node_modules/@astrojs/rss"
+      ],
+      "fixAvailable": false
+    },
+    "fast-xml-parser": {
+      "name": "fast-xml-parser",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1114952,
+          "name": "fast-xml-parser",
+          "dependency": "fast-xml-parser",
+          "title": "Entity Expansion Limits Bypassed When Set to Zero Due to JavaScript Falsy Evaluation in fast-xml-parser",
+          "url": "https://github.com/advisories/GHSA-jp2q-39xq-3w4g",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-1284"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=4.0.0-beta.3 <=5.5.6"
+        },
+        {
+          "source": 1115134,
+          "name": "fast-xml-parser",
+          "dependency": "fast-xml-parser",
+          "title": "fast-xml-parser affected by numeric entity expansion bypassing all entity expansion limits (incomplete fix for CVE-2026-26278)",
+          "url": "https://github.com/advisories/GHSA-8gc5-j5rx-235r",
+          "severity": "high",
+          "cwe": [
+            "CWE-776"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=4.0.0-beta.3 <=5.5.5"
+        }
+      ],
+      "effects": [
+        "@astrojs/rss"
+      ],
+      "range": "4.0.0-beta.3 - 5.5.6",
+      "nodes": [
+        "node_modules/fast-xml-parser"
+      ],
+      "fixAvailable": false
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 1,
+      "high": 1,
+      "critical": 0,
+      "total": 2
+    },
+    "dependencies": {
+      "prod": 1407,
+      "dev": 306,
+      "optional": 192,
+      "peer": 3,
+      "peerOptional": 0,
+      "total": 1866
+    }
+  }
+}
