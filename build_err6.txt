@@ -1,0 +1,29 @@
+[2m16:12:09[22m [34m[@astrojs/cloudflare][39m Enabling sessions with Cloudflare KV with the "SESSION" KV binding.
+[2m16:12:09[22m [34m[@astrojs/cloudflare][39m If you see the error "Invalid binding `SESSION`" in your build output, you need to add the binding to your wrangler config file.
+[2m16:12:09[22m [34m[astrowind][39m Astrowind `./src/config.yaml` has been loaded.
+[33m[1m16:12:09[22m [WARN] [adapter][39m Cloudflare does not support sharp at runtime. However, you can configure `imageService: "compile"` to optimize images with sharp on prerendered pages during build time.
+[2m16:12:10[22m [34m[content][39m Syncing content
+[2m16:12:10[22m [34m[content][39m Synced content
+[2m16:12:10[22m [34m[types][39m Generated [2m499ms[22m
+[2m16:12:10[22m [34m[build][39m output: [34m"static"[39m
+[2m16:12:10[22m [34m[build][39m mode: [34m"server"[39m
+[2m16:12:10[22m [34m[build][39m directory: [34mC:\Users\NAM\Code\rust\astro-blog\dist\[39m
+[2m16:12:10[22m [34m[build][39m adapter: [32m@astrojs/cloudflare[39m
+[2m16:12:10[22m [34m[build][39m Collecting build info...
+[2m16:12:10[22m [34m[build][39m [32mΓ£ô Completed in 610ms.[39m
+[2m16:12:10[22m [34m[build][39m Building server entrypoints...
+[33m[1m16:12:11[22m [WARN] [vite][39m [33m[plugin vite:resolve] Automatically externalized node built-in module "fs/promises" imported from "src\pages\admin\pages.ts". Consider adding it to environments.ssr.external if it is intended.[39m
+[33m[1m16:12:11[22m [WARN] [vite][39m [33m[plugin vite:resolve] Automatically externalized node built-in module "path" imported from "src\pages\admin\pages.ts". Consider adding it to environments.ssr.external if it is intended.[39m
+[33m[1m16:12:12[22m [WARN] [vite][39m [33m[plugin vite:resolve] Automatically externalized node built-in module "node:fs/promises" imported from "src\pages\admin\_utils.ts". Consider adding it to environments.ssr.external if it is intended.[39m
+[33m[1m16:12:12[22m [WARN] [vite][39m [33m[plugin vite:resolve] Automatically externalized node built-in module "node:path" imported from "src\pages\admin\_utils.ts". Consider adding it to environments.ssr.external if it is intended.[39m
+16:12:20 [ERROR] [vite] Γ£ù Build failed in 10.27s
+[vite]: Rollup failed to resolve import "src/assets/images/js-oop-prototype.png" from "C:/Users/NAM/Code/rust/astro-blog/src/content/post/js-masterclass-part-5.mdx".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`
+  Stack trace:
+    at viteLog (file:///C:/Users/NAM/Code/rust/astro-blog/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46374:15)
+    at onwarn (file:///C:/Users/NAM/Code/rust/astro-blog/node_modules/@vitejs/plugin-react/dist/index.js:90:7)
+    at onRollupLog (file:///C:/Users/NAM/Code/rust/astro-blog/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46422:5)
+    at file:///C:/Users/NAM/Code/rust/astro-blog/node_modules/rollup/dist/es/shared/node-entry.js:21028:32
+    at ModuleLoader.handleInvalidResolvedId (file:///C:/Users/NAM/Code/rust/astro-blog/node_modules/rollup/dist/es/shared/node-entry.js:21767:26)
