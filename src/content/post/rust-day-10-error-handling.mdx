@@ -1,0 +1,98 @@
+---
+title: "30 Ngày học Rust - Day 10: Trị dứt điểm Ác mộng Lỗi (Error Handling)"
+excerpt: "Day 10: Hãy quên vĩnh viễn khối try-catch chậm chạp ở ngôn ngữ khác. Khám phá triết lý Error Handling rạch ròi bằng Option và Result trong Rust."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - errors
+  - result
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 10
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:10:00
+---
+
+# Lời từ biệt của Triều đại Try/Catch
+
+Không ai muốn app của mình Crash tung tóe lúc khách hàng đang quẹt thẻ. Java và JavaScript xài khối u bọc rác `try { ... } catch (e) { ... }` để ứng cứu. Lỗi của thiết kế này là Thằng nào quăng rác (Throw)? Chó mới biết! Thằng Dev nào đó giấu 1 lệnh ném ngầm phía dưới thư viện đục xuyên qua màn màn code khiến việc Tracking vô cùng rối loạn. Tốc độ thực thi bị thụt luỵ vì cơ chế giật lùi chuỗi hàm Stack Unwinding.
+
+Rust tuyên bố: **MỌI CUỘC LỖI ĐỀU PHẢI TIÊN LIỆU NHƯ TỶ TINH CẬY.** Nó chia rác làm 2 trường học: Lỗi khắc phục được, và Lỗi Ban Banh (Bó tay Crash).
+
+## 1. Unrecoverable Errors (Lỗi chết đi luôn) với `panic!`
+
+Nếu một ông hacker sửa file cấu hình CSDL `config` đổi cổng DB, Code backend ko còn DB sẽ ra sao? Nghỉ khoẻ thôi, đằng nào cũng sụp rồi. Xài vệt bồi nổ `panic!`.
+
+```rust
+fn main() {
+    panic!("Vỡ bình ắc quy, dẹp mẹ tiệm đi");
+}
+```
+Lúc App chạm vào bệ phóng `panic!`, nó từ từ đóng bộ nhớ ngầm, thui app lại và để lại rêu rao báo màu đỏ trên Console cho Developer fix code Cứng. Không che chắn vòng vèo!
+
+## 2. Recoverable Errors (Lỗi Trị liệu) với `Result<T, E>`
+
+Phần lớn lỗi nằm ở đây: Gọi API Timeout? Lấy lại Lần 2. Mở nhầm file không có thư mục? Báo ông khách chui sang chọn File khác gởi.
+
+Rust tạo một cái Enum lột trần 2 khe:
+```rust
+enum Result<T, E> {
+    Ok(T),    // Thành công: Nách giấu Dữ Liệu T (T là Type)
+    Err(E),   // Vỡ trận: Nách giấu Lí Do Rác E (Lỗi Type)
+}
+```
+
+Hãy mở 1 File bằng Thần công mở Cửa (File System):
+
+```rust
+use std::fs::File;
+
+fn main() {
+    let ket_qua_mo = File::open("hello.txt");
+
+    // Rust cưỡng chết ông bằng dao cạo Match. Rút Ok hay Rút Lỗi
+    let my_file = match ket_qua_mo {
+        Ok(file) => file,
+        Err(error) => panic!("Chạy ngầm File Hỏng nặng mẹ r: {:?}", error),
+    };
+}
+```
+
+## 3. Lan Tuyền Lỗi Không Đứt Khúc với Bùa Dấu Hỏi `?`
+
+Viết chục khối Match Error 1 lèo (Mở HTTP, Load Image Base, Tạo JWT) vỡ gân tay DEV. 
+Rust nặn cỗ Toán Tử Hỏi Thét Chạm Trán `?`. 
+
+```rust
+use std::fs::File;
+use std::io::{self, Read};
+
+// Đầu ra cắm chốt: Nếu Thắng nhả String tên, Nếu Thua trả Dấu Lỗi Chéo E 
+fn read_username_from_file() -> Result<String, io::Error> {
+    let mut username = String::new();
+    
+    // NẾU OPEN VỠ, Trả NGAY mẹ Err về hàm phía trên, không chạy tiếp chữ "read" ở Tầng dứoi. (Return early lén)
+    File::open("hello.txt")?.read_to_string(&mut username)?;
+
+    Ok(username)
+}
+```
+
+Sức mạnh của Dây Bùa Chấm Hỏi `?` xoá sạch mớ Code dây trói và xuyến xiểng. Y hệt như Khối bọc Await nhưng Error văng lùi gọn gàng.
+
+## Câu hỏi thường gặp (FAQ)
+
+### `.unwrap()` và `.expect()` thấy thiên hạ hay gõ?
+Chúng là phím tắt (Shortcut của Match) xài bạo lực cắm `panic!`. Gõ `File::open("a.txt").unwrap()`; Tượng Trưng: "Bố mày biết 100% File này có lúc tao Code. Nếu xui rủi bay màu đứt ổ cứng, cho nổ banh máy Panic". `expect("Nổ thì báo Text dính nha")` khác chỗ nó tự điền tên nguyên nhân vào ngòi nổ thay vì Dòng chửi Mặc định. Pro Dev KHUYÊN bạn: Chỉ dùng làm Demo hoặc File Tự Thân đúc chốt cứng. 
+
+### Sao Rust có Option<T> và Result<T,E> cứ đan chéo ?
+- Lệnh Fail (KHông tồn Nại Value Trống rỗng cạn Data) = `Option` `None`
+- Lệnh Fail (Có Value nhưng TÁC VỤ Hành Sự Đập Két Bể Chán Bể Chậu) = `Result` `Err`. 
+
+---
+
+**Sẵn sàng cho Ngày 11?** Xoá Lỗi thành Quỹ Luật rồi. Qua Tuần thứ Giữa, Bứt Top đỉnh Băng Tuyết: Ngành Thần Mã Type Hoá Generics. Nhanh và Nhẹ Trừu Tượng Hóa Bỏ Hàm rườm Rà. Khớp tới: **[Day 11: Generics - Thuật Phóng Kiểu Đa Định]**.

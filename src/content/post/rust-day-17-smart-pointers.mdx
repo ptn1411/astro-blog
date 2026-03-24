@@ -1,0 +1,95 @@
+---
+title: "30 Ngày học Rust - Day 17: Quyền năng của Smart Pointers"
+excerpt: "Day 17: Khi References mặc định không đủ sức mạnh. Khám phá cách Box cấp phát RAM trên Heap, cách Rc nhân bản Quyền Sở Hữu, và cách RefCell bẻ cong định luật Rust."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - smart-pointers
+  - memory
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 17
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:17:00
+---
+
+# Khi Con Trỏ Bình Thường Bất Lực
+
+Các tham chiếu (References `&` và `&mut`) mà chúng ta học ở Ngày 5 là những Trọng Binh cơ bản. Chúng chỉ cầm Địa chỉ để ngó dữ liệu. Nhưng chúng không sở hữu Mảnh đất đó và không có năng lực gọi GC vứt Rác (Drop memory).
+
+Để xây dựng Cây Dữ Liệu (Trees) hay Đồ Thị Phức Tạp (Graphs) - nơi mà các cục Data móc vào nhau chằng chịt, Trình Biên Dịch của Rust sẽ hoảng loạn và báo Lỗi vì Giao Thức Mượn / Trả của nó bị Gẫy Chéo. Đó là lúc **Smart Pointers (Con trỏ thông minh)** tỏa sáng. Khác với `&`, Smart Pointers là Cục Data Sở hữu (Owner).
+
+![Minh hoạ cấu trúc bao bọc của Smart Pointers](/src/assets/images/rust-day17-smart-pointers.png)
+
+## 1. Box&lt;T&gt; - Đẩy mọi thứ ra The Heap
+
+Dữ liệu cục bộ tạo ra trong Hàm sẽ lưu ở **Stack** (Cực nhanh nhưng nhỏ). Nhưng nếu bạn cố tình tạo một cấu trúc dữ liệu Lồng lúp Vô Tận kiểu Danh Sách Liên Kết, Rust cấm cửa bạn:
+`struct Node { so: i32, next: Node }` 
+-> Compiler sẽ Gào thét: Tao không biết cái Struct này Bự bao nhiêu Megabytes, Không cho chạy!
+
+Giải pháp là bọc nó vào Cỗ Xe `Box`:
+```rust
+struct Node {
+    so: i32,
+    next: Option<Box<Node>>, // Giờ thì Mày chỉ lưu 1 Điểm Tham Cố định Bằng Cái Box
+}
+
+fn main() {
+    let _b = Box::new(5); // Cưỡng ép số 5 Phải Lưu Bỏ Ở bãi Rác Khổng Lồ The Heap
+}
+```
+Nhờ `Box`, kích thước `Node` giờ là Tĩnh (Chỉ chứa 1 Con Số và 1 Sợi Dây Trỏ 64Bit). Dữ liệu thật nằm trên Heap.
+
+## 2. Rc&lt;T&gt; - Đa thê, Đa chủ (Reference Counted)
+
+Bạn học Bùa Ownership ở bài 4: 1 Data chỉ có 1 Chủ. 
+Nhưng nếu trong App Game, Bạn vẽ 1 Chiếc Xe, và 2 Màn Hình Giao Diện đều muốn "Làm Cố Chủ" Lấy Cổ Phần Thằng Xe đó?
+
+Dùng `Rc<T>` (Bộ Đếm Lượt Gọi).
+```rust
+use std::rc::Rc;
+
+fn main() {
+    let xe_hoi = Rc::new(String::from("Audi R8"));
+    
+    // Phân Thân Biến nhưng KHÔNG TỐN THÊM BỘ NHỚ
+    let man_hinh_1 = Rc::clone(&xe_hoi); 
+    let man_hinh_2 = Rc::clone(&xe_hoi); 
+
+    // Bộ Nhớ xe_hoi giờ báo CÓ TỚI 3 CHỦ (Count = 3)
+}
+```
+Khi Các màn hình Tắt (Bracket `}` đóng), Số Count tụt dần về 0. Bằng 0 Phát Lúc Đó Xe Hơi mới bị dọn sọt Rác. Triết Lý Rút Bóng Siêu Việt của Rust thay thế cho Garbage Collector Dỏm. Đoán Rác Từ Gốc!
+
+## 3. RefCell&lt;T&gt; - Đạo ngụy: Phép Sửa Đồ Bên Trong Lớp Vỏ Đóng Băng
+
+Nếu Bạn Bị Khóa Tay Bằng Lệnh `let xe`. Bạn Không Thể Gõ `xe.push('a')` được. Khung Sườn Bất Biến (Immutable).
+Nhưng Kẹt Một Khía cạch ở Library Người Khác, Họ Bắt Truyền Bất Biến `&`. Mình Vẫn Bức Tức Muốn Sửa Bí Cẩu Lỗ Trong? Dùng `RefCell<T>`!
+
+```rust
+use std::cell::RefCell;
+
+// Vỏ Vách Kính: x được Định Bất Biến!
+let x = RefCell::new(5);
+
+// NHƯNG NHỜ BÙA REFCELL, chọc xuyên lớp Kính Thay Số Đục Nghịt:
+*x.borrow_mut() = 10;
+```
+Rust Chấp Nhận Hạ Phàm Bỏ Đuổi Lọc Bãi Lỗi Compile. Đổi lại Nếu Bạn Gọi Hai Cái Lệnh `borrow_mut()` Dính chập Nhau Chạy Ở Lúc Chạy Runtime App, App SẼ VỠ Văng NÁT Ngầm PANIC. Sức mạnh luôn Tới Đổi Giá Bọc Lỗi.
+
+## Câu hỏi thường gặp (FAQ)
+
+### Vậy khi nào nên dùng `Box`, `Rc` hay `RefCell`?
+Giữa tâm Bão Mượn Data:
+- Code Bình thường Rút Ruột -> Dùng `&` và `&mut`.
+- Code Không Thể Biết Định Dạng Lượng Dài To -> `Box`.
+- Data Có 3 Ông Bà Muốn Nhận Con Tới Cùng Lúc -> `Rc`.
+- Cần Lừa Trình Compile Ẩn Sửa Trúng Vỏ Lạnh (Mocking Test API) -> `RefCell`.
+
+---
+
+**Sẵn sàng cho Ngày 18?** Nhờ Cơ Chế Quyền Lực Ownership, Trình biên Không Cho Ai Xâm Lấn Nơi Mình Ráp Khớp. Đó Trở Thành Khối Bọc Vàng Phát Triển Công nghệ Multi-threading mà Không Bị Sụp Web Nút Nghẽn Đạt Đỉnh Điểm Tại **[Day 18: Sự Cứu Rỗi Concurrency Đa Luồng]**.

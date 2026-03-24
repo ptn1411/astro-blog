@@ -1,0 +1,83 @@
+---
+title: "Làm chủ JavaScript Phần 2: Trái Tim Của JS (Hàm, Scope & Closures)"
+excerpt: "Khám phá bản chất của Function trong JS, sự khác biệt của Arrow Function, Lexical Scope, và khái niệm Closure đầy sức mạnh nhưng cũng dễ gây nghi ngờ nhất."
+category: "Lập trình cơ bản"
+tags:
+  - javascript
+  - js-masterclass
+  - function
+  - closure
+  - es6
+series:
+  id: "js-masterclass"
+  title: "Làm chủ JavaScript 2025"
+  part: 2
+  totalParts: 5
+author: "Phạm Thành Nam"
+image: "/src/assets/images/js-part2-cover.png"
+publishDate: 2026-03-24T16:35:00
+---
+
+# Functions: Cỗ máy bơm máu của ứng dụng
+
+Chào mừng bạn đến với Phần 2 của series **Làm chủ JavaScript 2025**. Nếu Biến (Variables) là những viên gạch thì Hàm (Functions) chính là những khối vữa liên kết chúng lại để tạo nên logic nghiệp vụ. Trong JavaScript, Function không chỉ là những khối code có thể gọi lại nhiều lần, nó còn là "Công dân hạng nhất" (First-class citizen) — nghĩa là bạn có thể gán hàm vào một biến, truyền nó vào làm tham số, hoặc return một hàm từ bên trong một hàm khác.
+
+Tính chất linh hoạt này đẻ ra những kỹ thuật mạnh mẽ bậc nhất của ngôn ngữ.
+
+## 1. Cuộc chiến giữa Regular Function và Arrow Function
+
+Từ ES6, cú pháp Arrow Function (`=>`) ra đời và nhanh chóng phủ sóng rộng rãi. Tuy nhiên, nó không hoàn toàn thay thế được `function` truyền thống. Câu hỏi quan trọng nhất là: *Khi nào dùng cái gì?*
+
+### Vấn đề cốt lõi nằm ở từ khóa `this`
+
+- **Regular Function:** Từ khóa `this` được quyết định bởi **Cách hàm được gọi** (Tính động). Nếu bạn gọi `user.sayHi()`, `this` là `user`. Nếu bạn chỉ gọi `sayHi()`, `this` rơi về cửa sổ `window` (hoặc `undefined` trong strict mode).
+- **Arrow Function:** Không có `this` riêng! Nó kế thừa `this` từ **Nơi hàm được định nghĩa** (Lexical this - Tính tĩnh). Bất kể bạn gọi mũi tên ảo diệu này ra sao, nó vẫn nhớ mãi về "gốc gác" của mình.
+
+Đó là lý do các method xử lý mảng như `map()`, `filter()` hoặc trong React Components thường luôn dùng Arrow Function để tránh bị rớt mất ngữ cảnh (context) trỏ đến cửa sổ Global. Nhưng nếu gán nó làm phương thức của một Object thông thường, bạn sẽ gặp quả báo khi gọi `this.họ_tên`.
+
+## 2. Lexical Scope (Phạm Vi Ngôn Ngữ) 
+
+Scope là không gian mà biến của bạn tồn tại. JS dùng cơ chế Lexical Scope (phạm vi từ vựng). Nghĩa là trình biên dịch xác định phạm vi của bạn lúc bạn **viết code xuống trình soạn thảo**, chứ KHÔNG PHẢI lúc code đang chạy.
+
+Nếu ở bên trong một hàm, bạn cố đọc biến `a`, JavaScript sẽ tìm biến `a` trong khối đó. Không thấy ư? Nó sẽ nhảy ra khối bao bọc bên ngoài. Lên tầng tiếp theo... và cuối cùng lên tận Scope đỉnh (Global). Quá trình bò từ dưới lên này gọi là **Chuỗi Phạm Vi (Scope Chain)**. Nếu đào đến nóc mà không có, nó mới quăng lỗi mắng bạn `a is not defined`.
+
+## 3. Closures (Bao đóng) — Khái niệm vĩ đại nhất của JavaScript
+
+Hiểu được Closures là bài test phân loại Junior và Mid/Senior. Định nghĩa kinh điển:
+> *Một Closure là khả năng của một hàm để **ghi nhớ và truy cập** tới phạm vi Lexical Scope của nó, ngay cả khi Lexical Scope bên ngoài đó đã chết (đã thực hiện xong và bị rớt khỏi Call Stack).*
+
+![Biểu đồ mô tả Execution Context và Closure](/src/assets/images/js-execution-context.png)
+
+### Trí nhớ kỳ diệu
+
+```javascript
+function taoTaiKhoanNganHang(soTienBanDau) {
+   let soDu = soTienBanDau; // Biến này rẽ mây mù khuất lối sau khi hàm chạy xong
+
+   return function rutTien(tienRut) {
+      if(tienRut > soDu) return "Không đủ tiền";
+      soDu -= tienRut;
+      return `Đã rút ${tienRut}, Còn lại ${soDu}`;
+   }
+}
+
+const myVIB = taoTaiKhoanNganHang(100); 
+console.log(myVIB(30)); // Đã rút 30, Còn lại 70
+```
+
+Trong ví dụ trên, hàm `taoTaiKhoanNganHang` chỉ chạy đúng một lần, vứt trả về hàm `rutTien` rồi tắt thở. Lẽ ra biến `soDu` phải bị Garbage Collector hót ngay vào sọt rác. 
+Nhưng KHÔNG. Một dây chằng vô hình mang tên Closure đã kết nối hàm `rutTien` bên trong với vùng ký ức của biến `soDu`. 
+
+Hệ quả là bạn không bao giờ có thể tự gõ `myVIB.soDu = 1_000_000` được. Dữ liệu đã bị phong ấn an toàn tuyệt đối. Đây chính là gốc rễ của **Tính Đóng Gói (Encapsulation)** trong lập trình JS trước khi có khái niệm Private Class.
+
+## Câu hỏi thường gặp (FAQ)
+
+### Memory Leak (Rò rỉ bộ nhớ) liên quan thế nào với Closures?
+Rất lớn. Nếu một biến DOM Element đực liên kết với một Closure (ví dụ event listener), nhưng element đó bị gỡ khỏi trang mà bạn không remove cái event đó đi, Closure vẫn giữ khư khư tham chiếu tới khối DOM đó. Máy dọn rác bất lực, và thanh RAM của bạn dần bị xói mòn. Framework lớn như React giải quyết nó trong hàm dọn dẹp (Cleanup Function của `useEffect`).
+
+### Hàm vô danh (Anonymous Function) và Closures có giống nhau không?
+Thương bị nhầm lẫn, nhưng không. Anonymous Function chỉ là một hàm không có tên (dùng tạm 1 lần). Còn Closure là một hiện tượng/cơ chế vận hành của JavaScript mà mọi loại hàm (có tên hay vô danh) đều thừa hưởng khi chúng lồng nhau.
+
+---
+
+**Sẵn sàng cho phần tiếp theo?** Đã hiểu về chức năng bơm máu (Function), chúng ta cần nơi để trữ lượng máu dồi dào đó. Thẳng tiến tới **[Phần 3: Làm chủ Dữ liệu & Giao diện (Array, Object & DOM)]** ngay thôi!

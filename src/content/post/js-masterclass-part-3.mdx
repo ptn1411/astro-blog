@@ -1,0 +1,78 @@
+---
+title: "Làm chủ JavaScript Phần 3: Thao túng Mảng, Object và Làm chủ DOM"
+excerpt: "Phần 3: Phá đảo các phương thức bất biến của Mảng (map, filter, reduce), kỹ thuật Destructuring và cách JavaScript tương tác với DOM tree của trình duyệt."
+category: "Lập trình cơ bản"
+tags:
+  - javascript
+  - js-masterclass
+  - array
+  - object
+  - dom
+series:
+  id: "js-masterclass"
+  title: "Làm chủ JavaScript 2025"
+  part: 3
+  totalParts: 5
+author: "Phạm Thành Nam"
+image: "/src/assets/images/js-part3-cover.png"
+publishDate: 2026-03-24T16:40:00
+---
+
+# Lập trình hướng cấu trúc dữ liệu
+
+Bất kể bạn đang xây dựng một ứng dụng to-do list nhỏ xíu hay một mạng xã hội khổng lồ như Facebook, bản chất công việc front-end chỉ xoay quanh hai bước: **Lấy dữ liệu (Data) và Hiển thị nó ra màn hình (View).**
+
+Trong JavaScript, dữ liệu được chuyển chở qua lại đằng sau hậu trường dưới dạng **Object** (Dữ liệu mô tả cấu trúc) và **Array** (Danh sách các dữ liệu). 
+
+## 1. Array Methods hiện đại: Code ít lại, làm nhiều hơn
+
+Vòng lặp `for(let i=0; ...)` truyền thống đã dần biến mất khỏi source code hiện đại. ES6 mang đến "Bộ ba nguyên tử" (The Big Three) cho việc xử lý mảng mà bạn buộc phải thuộc lòng:
+
+- `map()`: Trả về một mảng mới có **cùng độ dài**, mỗi phần tử đã bị "biến đổi". Cực kỳ hữu dụng để biến 1 mảng dữ liệu JSON thành 1 danh sách các thẻ `<li>` trong React.
+- `filter()`: Trả về mảng mới chỉ chứa các phần tử **thỏa mãn điều kiện** nhất định (chấp nhận lệnh `return true`).
+- `reduce()`: Ngược lại với mảng, nó "nén" cả mảng lại thành **một giá trị duy nhất** (ví dụ: Tính tổng tiền giỏ hàng shopping cart).
+
+*Chìa khóa ở đây là Tính Bất Biến (Immutability).* Các hàm này không can thiệp thay đổi thay đổi mảng gốc ban đầu, chúng luôn trả về mảng mới tinh. Từ đó, phòng tránh các lỗi bộ nhớ ngẫu nhiên (side-effects).
+
+## 2. Destructuring và Cú Pháp Spread (Dấu 3 chấm `...`)
+
+Object trong JS thường lồng nhau rất sâu. Thay vì gõ `user.address.street.name` dài loằng ngoằng, ES6 cung cấp **Destructuring** (Phá cấu trúc phân rã):
+
+```javascript
+const user = { name: "Nam", age: 25, role: "Dev" };
+
+// Destructuring gọn gàng:
+const { name, role } = user;
+console.log(`Xin chào ${name}, chức vụ: ${role}`);
+```
+
+Đi đôi với Destructuring là thao tác cấu trúc lây lan (Spread operator `...`). Chấm chấm chấm cho phép bạn xé toạc một object/array cũ và rải các phần tử của nó vào một object mảng mới:
+
+```javascript
+const settingCu = { theme: 'dark', lang: 'vi' };
+// Cập nhật giá trị một cách an toàn (Immutability):
+const settingMoi = { ...settingCu, lang: 'en' }; 
+```
+
+## 3. DOM - Khi JS chạm vào HTML
+
+Bao nhiêu logic Object, Array trên sẽ là vô nghĩa nếu người dùng chẳng nhìn thấy gì! Để JS có thể thay đổi giao diện, Trình duyệt đã chuyển đổi thẻ HTML thành các "Nút bấm" giả lập bằng Object. Tập hợp các nút Object này gọi là **DOM (Document Object Model)**.
+
+Trình duyệt cung cấp thư viện `document` Global tích hợp sẵn cho JS:
+- `document.querySelector('.btn')`: Để tóm lấy phần tử.
+- `element.addEventListener('click', () => {})`: Lắng nghe sự kiện.
+- `element.innerHTML / textContent`: Bơm dữ liệu Array của bạn ra phía ngoài màn hình.
+
+![Sơ đồ chuyển đổi HTML sang DOM Tree](/src/assets/images/js-dom-tree.png)
+
+## Câu hỏi thường gặp (FAQ)
+
+### Tại sao React / Vue lại đẻ ra "Virtual DOM"?
+Việc dùng JS lôi trực tiếp cái nút DOM thật trong trình duyệt ra thay đổi (Real DOM Manipulation) là hành vi **rất chậm** và tốn kém tài nguyên render bề mặt (Paint/Reflow). React giải quyết bằng cách tạo một DOM Tưởng tượng (Virtual DOM) trong RAM của JS trước. Nó sửa trong RAM cực nhanh, rồi so sánh 2 bản RAM (Diffing algorithm), phát hiện xem khúc nào thay đổi mới gửi lệnh chỉnh sửa đúng duy nhất cái nút phần tử đó sang DOM thật.
+
+### Nên dùng Array hay Set/Map cho hiệu năng cao hơn?
+Nếu tập dữ liệu của bạn cần "kiểm tra tính độc nhất" (chỉ chứa các giá trị không trùng nhau), cấu trúc `Set` cực kỳ nhanh hơn `Array.includes()`. Nếu bạn cần tốc độ truy xuất key-value bằng địa chỉ tham chiếu chớp nhoáng (O(1)), dùng `Map` thay cho Object truyền thống. Đây là thủ thuật tối ưu ở quy mô hàng trăm nghìn phần tử.
+
+---
+
+**Sẵn sàng cho phần tiếp theo?** Object, Array chỉ là khúc thịt, DOM chỉ là khúc xương hiển thị. Vậy điều gì cung cấp dòng điện 24/7 chạy ngầm giúp Node.js gánh hàng triệu truy cập mà không treo máy? Cùng giải mã trong **[Phần 4: Vượt qua ác mộng Bất đồng bộ (Async, Event Loop)]**.

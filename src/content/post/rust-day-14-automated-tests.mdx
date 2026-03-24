@@ -1,0 +1,86 @@
+---
+title: "30 Ngày học Rust - Day 14: Tận diệt Bug từ trứng nước bằng Automated Tests"
+excerpt: "Day 14: Viết Unit Test và Integration Test ngay trong mã nguồn. Cỗ máy Cargo tự động dọn dẹp lỗi. Tại sao ở Rust, kiểm thử không phải là tùy chọn mà là bắt buộc."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - testing
+  - tdd
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 14
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:14:00
+---
+
+# Lập trình mà không có Test là Đánh bạc mù
+
+Bạn viết xong một hàm tính Tiền Lãi (Interest Rate) cực kì phức tạp. Bạn gọi `cargo run`, gõ thử 1 số vào Terminal, thấy ra đúng kết quả. Bạn tự tin Deploy lên Production. 
+Ngày hôm sau khách hàng gõ số âm `-500` vào, Web bạn đứng hình.
+
+Để tránh những kết cục đau đớn đó, các công ty công nghệ lớn bắt buộc áp dụng **Automated Tests (Kiểm thử tự động)**. Khác với JS phải đi mượn thư viện `Jest` hay Python cần `pytest`, Rust tích hợp hệ thống Test thẳng vào lõi Trình Biên Dịch (Built-in) cực kỳ bá đạo. 
+
+![Sơ đồ mô phỏng quá trình kiểm thử tự động Test Runner của Cargo](/src/assets/images/rust-day14-testing.png)
+
+## 1. Unit Tests ngay trong lòng địch
+
+Trái với truyền thống tách file Test ra thư mục xa xôi, Rust khuyên bạn viết Unit Test (Test đơn vị) **Nằm ngay bên dưới cái Hàm mà bạn định Test** trong cùng một file.
+
+```rust
+pub fn cong_hai_so(a: i32, b: i32) -> i32 {
+    a + b + 1 // Cố tình viết SAI Lỗi để xem Test nó bắt nè
+}
+
+// Bắt đầu vùng Test
+#[cfg(test)]
+mod tests {
+    use super::*; // Import tất cả code phía trên xuống vùng này
+
+    #[test]
+    fn thu_nghiem_tinh_tong() {
+        let ket_qua = cong_hai_so(2, 2);
+        // assert_eq! là búa tạ. Nó so sánh 2 vế. Nếu Lệch, nó Phá nát App kèm Tiếng Gào (Panic)
+        assert_eq!(ket_qua, 4, "Tính toán phải bằng 4 chứ thằng ngu!"); 
+    }
+}
+```
+
+Tại sao lại nhét chúng chung một cục vậy? Nhờ cái chữ `#[cfg(test)]`, khi bạn `cargo build --release` đưa App lên mạng, cái Phân khu Test này bốc hơi hoàn toàn, giúp File chạy bạn mỏng tanh 0 Byte rác!
+
+Hãy gọi: `cargo test` để xem phép màu:
+`thread 'tests::thu_nghiem_tinh_tong' panicked at: Tính toán phải bằng 4 chứ thằng ngu!`
+
+## 2. Integration Tests (Mô phỏng Góc nhìn Đối tác)
+
+Nếu Unit Test nằm tuốt phía trong (Dùng để bắt chẹt những file Rễ con của dự án/Hàm Private), thì **Integration Tests** đóng vai trò là Lão Tester Người Dùng dòm lén qua khe cửa. Lão này chỉ được phép vòi vào những Cổng API (Public `pub` functions).
+
+Bạn tạo hẳn một thư mục `tests` ngang hàng với `src`. 
+Bên trong thư mục `tests`, bạn quẳng vào file mới `integration_test.rs`:
+
+```rust
+// Giả dụ dự án bạn tên là "adder"
+use adder;
+
+#[test]
+fn tinh_nang_tinh_toan_xuyen_module() {
+    assert_eq!(adder::cong_hai_so(5, 5), 10);
+}
+```
+
+Giờ khi gõ lại `cargo test`, Cargo tự động phân luồng rà qua 2 bãi chiến trường cùng lúc: `[Unit tests]` rồi lao xuống `[Integration tests]`. 
+
+## Câu hỏi thường gặp (FAQ)
+
+### Có cách nào Test Mảng văng Dấu Lỗi/Bắn Lỗi Panic Chủ ý không?
+Có. Có những Test bạn muốn nó CHẮC CHẮN PHẢI NỔ TUNG thì mới là ĐÚNG CODE (Ví dụ test nhét số Tuổi âm `-5`). Chèn Macro `#[should_panic]` ngay dưới dòng `#[test]`. Từ đó, hễ Hàm Mồi không văng tung Lỗi Đỏ - Tức Test Bị Đánh Rớt Trượt.
+
+### Viết quá nhiều File Test, Cargo có chạy chậm rề Rề không?
+Bí thuật đáng sợ nhất của Rust: `cargo test` kích hoạt các hàm test chay song song đa luồng (Multi-threading). 500 Test Cases văng vào 16 rãnh CPU của bạn. Kết quả in Cụp cực hạn 0.2 giây. (Lưu ý: Nếu có hàm Test nào Ghi Nhập Database chung bảng, Test Song Song sẽ vấp Mâu thuẫn tranh dồn vỡ cấu trúc. Bắt buộc hãm phanh đơn luồng bằng `cargo test -- --test-threads=1`).
+
+---
+
+**Sẵn sàng cho Ngày 15?** Suốt nửa chặng Đầu Khóa chúng ta Viết Ứng Dụng Console in ra mấy dòng Chữ cọc lóc. Mới Ngày Mai, Mở Hộp I/O Môi Trường, Viết Tương Tác Thật Lọc String File siêu dị qua **[Day 15: I/O Programs - Viết App CLI như Grep C++ !]**.

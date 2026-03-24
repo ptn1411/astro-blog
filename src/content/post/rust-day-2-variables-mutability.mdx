@@ -1,0 +1,87 @@
+---
+title: "30 Ngày học Rust - Day 2: Biến, Bất biến (Mutability) và Shadowing"
+excerpt: "Day 2: Tại sao mọi biến trong Rust mặc định là không thể thay đổi? Tìm hiểu khái niệm Mutability và kỹ thuật Shadowing độc đáo giúp code an toàn tự động."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - variables
+  - mutability
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 2
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:02:00
+---
+
+# Lật đổ thói quen cũ
+
+Trong Python hay JS, nếu bạn tạo một biến `x = 5`, bạn có thể thản nhiên sửa nó thành `x = 10` ở dòng kế tiếp. Bạn coi đó là một lợi ích.
+Nhưng trình biên dịch của Rust nhìn hành vi đó và gào lên: **"RỦI RO QUÁ!"**. 
+
+Rust thiết kế dựa trên một triết lý an toàn: Nếu bạn không nói, thì bạn không được chạm vào.
+
+## 1. Mặc định là Bất biến (Immutable)
+
+Hãy xem đoạn code phổ thông sau:
+```rust
+fn main() {
+    let x = 5;
+    println!("Giá trị của x: {}", x);
+    x = 6; // Dòng này sẽ làm trình biên dịch VẢ BẠN NGAY LẬP TỨC
+    println!("Giá trị mới của x: {}", x);
+}
+```
+
+Nếu chạy `cargo run`, Rust sẽ hiện lỗi màu đỏ chói với thông báo cực kỳ lịch sự nhưng vô tình: `cannot assign twice to immutable variable x`.
+
+Mọi biến tạo bằng từ khóa `let` trong Rust **mặc định là khóa cứng (readonly/immutable)**.
+Tại sao lại cực đoan như vậy? Vì trong các hệ thống xử lý đa luồng (Multi-threading), nếu hai luồng cùng cố đè lên một biến vào cùng một tích tắc (Race Condition), hệ thống có nguy cơ sập hoàn toàn hoặc lấy sai dữ liệu ngân hàng. Sự cấm cản này ép bạn tư duy kỹ trước khi cho phép dữ liệu bị thay đổi.
+
+## 2. Xin phép để thay đổi: Từ khóa `mut`
+
+Vậy nếu mình muốn đếm số người truy cập (số thay đổi liên tục) thì sao? Rất đơn giản, hãy khai báo cho trình biên dịch biết ý định đó bằng từ khóa `mut` (viết tắt của Mutable):
+
+```rust
+fn main() {
+    let mut x = 5; // Tôi tuyên bố biến này CÓ THỂ BỊ BIẾN ĐỔI
+    console.log!("x ban đầu là: {}", x);
+    x = 6; // Ok, thoải mái!
+    console.log!("x bây giờ là: {}", x);
+}
+```
+Nhờ từ khóa `mut`, bất kỳ lập trình viên nào vô tình đọc code của bạn cũng nhận ra ngay: *"À, biến này đang bị biến đổi ngầm ở đâu đó bên dưới"*. Nó tăng tính dễ đọc lên hàng nghìn lần.
+
+## 3. Thuật phân thân: Kỹ thuật Shadowing
+
+Rust cung cấp một kỹ thuật "Hack não" hơn cho việc gán biến gọi là **Shadowing** (Che phủ). Nó cho phép bạn gõ `let` lại y nguyên cái tên cũ!
+
+```rust
+fn main() {
+    let spaces = "   ";           // Biến ban đầu kiểu chuỗi (String)
+    let spaces = spaces.len();    // Biến MỚI đè nhầm tên cũ, kiểu số (Integer)
+    
+    println!("Số khoảng trắng: {}", spaces); // In ra: 3
+}
+```
+
+Khoan! Mới ban nãy cấm đổi biến, sao giờ lại cho phép đổi cả _kiểu dữ liệu_ cơ á?
+
+Khác biệt là sự có mặt của từ khóa `let` lần thứ 2. Bạn hoàn toàn không sửa đổi cái biến cũ. Bạn đang tạo ra một cái biến **mới tinh**, cấp phát vùng nhớ mới, nhưng tận dụng lại tên gọi `spaces`. Biến `spaces` cũ biến mất đằng sau bóng tối (Bị Shadowed).
+
+## Câu hỏi thường gặp (FAQ)
+
+### Vậy `let` bất biến có giống với `const` hằng số không?
+Chúng khác nhau! 
+- `const` là Hằng số chân lý vĩnh cửu. Giá trị của `const` phải được tính toán xong ngay lúc Biên dịch (Cấm dùng kết quả từ hàm động trả về). Bạn buộc phải ghi rõ kiểu dữ liệu: `const MAX_POINTS: u32 = 100_000;`.
+- `let` (bất biến) thì chỉ là không cho đổi giá trị sau khi đã gán. Giá trị của nó có thể được lấy từ thao tác tính toán, đọc API, đọc file khi người dùng nhấp chạy chương trình.
+
+### Dùng Shadowing có làm tốn bộ nhớ hơn `mut` không?
+Thực chất Shadowing là cấp phát biến mới, nên ở mức độ cực vi mô là tốn RAM hơn so với việc ghi đè trực tiếp của bộ nhớ. Nhưng Trình tối ưu (LLVM Compiler) của Rust đủ thông minh để tái cấu trúc vùng nhớ khi máy tự động compile. Đổi lại, Shadowing tiết kiệm cho bạn việc phải nghĩ cực nhọc để nặn ra cái tên biến `spaces_str` và `spaces_num`.
+
+---
+
+**Sẵn sàng cho Ngày 3?** Giờ bạn đã kiểm soát được biến. Ngày mai, chúng ta bắt đầu dạy cho chương trình biết đưa ra quyết định thông minh thông qua luồng điều khiển trong **[Day 3: Control Flow (if, match, loop)]**.

@@ -1,0 +1,90 @@
+---
+title: "30 Ngày học Rust - Day 7: Quyền năng vô song của Enums và Pattern Matching"
+excerpt: "Day 7: Trãi nghiệm tính năng Enum 'khác người' của Rust - Nơi Enum không chỉ là các danh sách nhãn dán, mà là những vật tải dữ liệu thần thánh kết hợp cùng lệnh match."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - enum
+  - match
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 7
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:07:00
+---
+
+# Khi Enum lột xác thành quái vật
+
+Trong đa số ngôn ngữ lập trình khác (Java, C#, JS Typescript), `Enum` (Liệt kê) chỉ đơn thuần là gán một cái tên cho một con số. Ví dụ: `enum Direction { N, S, E, W }`. Nó khá vô hại và tĩnh.
+
+Trong Rust, **Enum là một thứ hoàn toàn khác biệt ở đẳng cấp vũ trụ**. Nó không chỉ là các "Lựa chọn định danh" (Variants), nó còn có quyền nhồi trực tiếp một Cấu trúc dữ liệu (Data) chà bá vào ngay sau biến thể của chính nó.
+
+## 1. Mở ra giới hạn mới của Enums
+
+Chúng ta xây ứng dụng phân tích Giao thức Internet. IP có IPv4 và IPv6. Trong Cấu trúc cũ, bạn phải lập 1 Struct chung bao gồm ID Enum và kèm theo mốc chứa chuỗi. Trông siêu ngớ ngẩn. 
+
+Còn đây là cách Rust làm:
+
+```rust
+enum IpAddr {
+    V4(u8, u8, u8, u8), // Chứa 4 số cục bộ (Giống Tuple)
+    V6(String),         // V6 chứa 1 cái String bự
+}
+
+// Khai báo siêu tự do mà gom chung 1 loại "IpAddr"!
+let home = IpAddr::V4(127, 0, 0, 1);
+let loopback = IpAddr::V6(String::from("::1"));
+```
+
+Chưa hết, một cái Enum thậm chí có thể chứa nguyên cái Struct vô nó! Điều này biến Enum thành chiếc đòn gánh gom tất cả các loại Mảng / Biến / Struct khác nhau vào chung MỘT TYPE. Cực kỳ mạnh khi lập trình Web socket trả về N loại Tin nhắn.
+
+## 2. Match - Lưới bắt không dính một hạt bụi
+
+Cỗ máy hoàn hảo để "mổ xẻ" cái Enum biến hóa khôn lường trên chính là lệnh `match`. `Match` không chỉ xoi xói xem đó là cái gì, nó sẽ Thò tay móc túi móc thẳng data ở trong ra:
+
+```rust
+enum Message {
+    Quit,
+    Move { x: i32, y: i32 },
+    Write(String),
+}
+
+fn process_msg(msg: Message) {
+    match msg {
+        Message::Quit => println!("App thoát mất tiêu"),
+        Message::Move { x, y } => println!("Đi tới {} và {}", x, y),
+        Message::Write(text) => println!("Bạn gõ chữ: {}", text),
+    }
+}
+```
+
+Hãy nhìn vào `Move` và `Write`. Bằng phép thuật liên kết Pattern, lệnh in được sử dụng ngay biến `x, y` hoặc `text` từ ống nghiệm ruột Enum đưa ra rực rỡ và an toàn.
+
+## 3. Cú đánh tỉa `if let`
+
+Nếu bạn dùng `match` nhưng chỉ nhắm tới đúng 1 trường hợp cụ thể và vứt sọt rác toàn bộ phần dư lại (dùng cành rác `_ => ()`), thì code sẽ hơi dài. 
+Viết tắt nó với chốt chặn `if let`:
+
+```rust
+let config_max = Some(3u8);
+
+// HACK NGẮN GỌN: Chỉ khi config_max bằng Some(max) thì chạy khối lệnh
+if let Some(max) = config_max {
+    println!("Duyệt luôn số Max tại {}", max);
+}
+```
+*Lưu ý: Bạn mất đi cái vòng tròn bảo mật Exhaustive (Kiểm tra đủ cành) của `match`.*
+
+## Câu hỏi thường gặp (FAQ)
+
+### `Option<T>` được quảng cáo ghê gớm lắm, nó là gì vậy?
+Đó là pha cứu thua thế kỉ của Rust. Năm 1965, ngài Tony Hoare thả Null Reference vào lập trình, tạo ra lỗi "NullPointerException" gây thiệt hại ròng một tỷ Dollar tỷ Dollar suốt 50 năm qua. 
+Rust quyết định **Không tồn tại Null**. Thay vào đó, nó đẻ ra Enum gọi là `Option`. Trong đó chứa 2 loại vỏ hạt: `Some(gia_tri)` (Có Data) và `None` (Null). Bạn BẮT BUỘC phải dùng Lệnh Match để mở cái vỏ đó ra thành 2 cành gạt. Quá trình chia này khiến bạn mãi mãi không quên việc xử lý lỗi lỡ lấy phải Data rác. 
+
+---
+
+**Sẵn sàng cho Tuần 2?** Xin chúc mừng! Bạn đã tốt nghiệp khóa Core Mầm Non của Rust. Chào đón Ngày tiếp theo cũng thay đổi quy mô, biến File Test thành một Tòa tháp dự án to đùng trong **[Day 8: Quản lý Packages, Crates & Modules]**.

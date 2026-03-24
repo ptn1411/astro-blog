@@ -1,0 +1,96 @@
+---
+title: "30 Ngày học Rust - Day 15: Thực chiến Build Command Line App (CLI) đầu đời"
+excerpt: "Day 15: Nghỉ ngơi lý thuyết. Vận dụng toàn bộ kiến thức nửa đầu khóa học để tạo một Tool dòng lệnh đục phá file Text như lệnh 'grep' của Linux."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - command-line
+  - cli
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 15
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:15:00
+---
+
+# Minigrep: Vũ khí CLI đầu tay của bạn
+
+Rust là ông vua mới trong lĩnh vực xây dựng phần mềm Công cụ dòng lệnh (Command Line Interface - CLI). Nó đã khiến hàng ngàn lệnh gõ Linux cũ kĩ (viết bằng C) bị ném vào sọt rác và lập trình lại toàn bộ bằng Rust vì tốc độ kinh hồn và tính an toàn cháy nổ của nó (Tiêu biểu: tools như `ripgrep`, `bat`, `fd`).
+
+Hôm nay, thay vì học Lý Thuyết khô mòn, mình sẽ hướng dẫn cặn kẽ bạn viết một App thu nhỏ lọc Chữ qua Tệp (Mô phỏng `grep`). Lệnh bạn chạy sẽ như vầy:
+`cargo run -- chien_tranh tho_ca.txt` (App sẽ In ra tất cả dòng Thơ chữ `chien_tranh` Cụ Nằm Dưới text).
+
+![Giao diện Console CLI Tool phát sáng rực rỡ](/src/assets/images/rust-day15-cli.png)
+
+## 1. Đọc Đối Lệnh Đầu Vào (Arguments)
+
+Lệnh `cargo run` nằm trước. Dòng chữ `chien_tranh` và `tho_ca.txt` đưa nhồi từ chuột gõ phía sau nó gọi là Args (Đối số). Cần phải tóm cổ chúng Tức Khắc.
+
+```rust
+use std::env;
+
+fn main() {
+    // Ạ Hàm gom đối số thành Mảng Các Chuỗi (String)
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 3 {
+        panic!("⚠️ Cảnh Báo: Truyền Thiếu Nước Ráp - Dùng: cargo run <chuoi_kieu_tim> <ten_file>");
+    }
+
+    let query = &args[1];
+    let file_path = &args[2];
+
+    println!("Đang quét mò từ '{}' trong file {}", query, file_path);
+}
+```
+*Lưu ý: `args[0]` là chuỗi bí ẩn - Nó là tên Thư Mục Ổ Đĩa Binary File Đang Chạy (VD: `target/debug/minigrep`). Cái cần chộp là Mốc 1 và Mốc 2.*
+
+## 2. Bổ Viện Cưa Lõi Đọc Text File
+
+Bạn lấy Biến `file_path` có trên kia, mở Khoan Khóa File Hệ Thống `fs`. Rất hay Tạch (Vì gõ sai tên tệp, ko tồn tại). Chấp nhận bắt Hư Lỗi (Error Catching) bằng lệnh Tối Giản `expect`.
+
+```rust
+use std::fs;
+
+// Tạm Để Dưới main() ...
+let contents = fs::read_to_string(file_path)
+    .expect("Lỗi Chết Oan Trái: Đếch đọc được file này nha bạn ey!");
+
+println!("Đang In Rượt Có Trong Document:\n{contents}");
+```
+Nhét cho nó chạy, bạn TẠM THỜI Thấy Nó xả Full Bãi chữ cái lên Cái Màn hình đen. Vẫn Chưa Cắt Nghĩa Được Chữ Query Lỏi.
+
+## 3. Duyệt Hàm Cắt Cò Chữ
+
+Để Lọc Từ Khoá, Đỉnh Cao là Móc từng Vạch Cắt Thừa Số. Lập Vòng For Quẹo. 
+```rust
+fn search<'a>(tu_khoa: &str, noi_dung: &'a str) -> Vec<&'a str> {
+    let mut ket_qua = Vec::new();
+
+    for line in noi_dung.lines() { // Tóm từng hàng bị bẻ Enter Break \n
+        if line.contains(tu_khoa) {
+            ket_qua.push(line);
+        }
+    }
+    ket_qua
+}
+```
+
+**TRÒ CHƠI LÚ Não:** Nhìn Chữ `'a`. Bạn biết tại sao Hàm Rổ này Khải Có Chèn Vết Dấu `'a` (Lifetime Mệnh Biến Tuần 13) Không? 
+Vì Bạn Mượn (Borrowing) Mảng Return Vector Trả Lại Cụm Tham Chiếu Đọc Báo Mài Tường. Nếu Không Báo Mệnh Lứa Chừng, Lỡ cái file Text Chết Rụng Trong Lúc Văng Rổ Output Bơm Ngược, Quả Trình Dính Lủng (Dangling Pointer). Kéo Dài Cho Trọn 1 Kỉ Nguyên Gắn Tới Chuỗi Chứa Khơi Hàm Chuyên Cốt Nõi!
+
+## Câu hỏi thường gặp (FAQ)
+
+### Để App Này thành Chấn Động Giới Linux thật, tôi cần cài Package nào?
+Để Không Phải Gõ vòng rào bẻ Mảng String bực nhọc và bắt Hụt Error Tham số (Người dùng quên Cắm Cờ). Cài Ngay Thư Viên Chẻ Đời Lập Pháp Args bá nhất Mọi Nghành: `clap`. Viết chưa tới 4 dòng chữ, Bơm Toàn Bộ Biến Lệ --flags Đỉnh Nhất Giao Diện Xịn Nhất Thế Kỉ!
+
+### Vì sao Bài này code Viết Liền chứ không tách Module?
+Khuôn Khổ Blog Đỡ Nặng, Nhưng Gốc Nguyên Thủy: 5 Dòng Nhóm Bắt Cỏ Đầu Tiên Trong Tệp `main.rs`, Toàn bộ khối File `search` và Nịt Error Chảy Bắn Lỗ Ngầm `lib.rs` -> Mức Tách Ghép Crate Module Library Ở Bài Tuần 8 Vẫn Luôn Áp Dụng Chuyên Sâu!.
+
+---
+
+**Sẵn sàng cho Ngày 16?** Khúc vòng lập gán Mảng Vector ở trên rườm rà Quá Đáng! Lập Lệnh Rút Lõi Hàm Gốc - Chống Mổ Rễ. Băm Vạch Gập Chéo Đoạn Code Ngắn Chỉ Bằng 1 Nửa. Tiến hóa Thuật Tính **[Day 16: Closures & Bơm Iterators Duyệt Chi Lăng]**.

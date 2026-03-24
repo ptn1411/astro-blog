@@ -1,0 +1,95 @@
+---
+title: "30 Ngày học Rust - Day 11: Generics - Ma thuật Đa hình kiểu dữ liệu"
+excerpt: "Day 11: Code ít lại, tái sử dụng nhiều hơn. Khám phá cách Generics giúp tạo ra các hàm và cấu trúc dữ liệu không phụ thuộc vào một kiểu cố định."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - generics
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 11
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:11:00
+---
+
+# Generics: Thoát khỏi sự kìm kẹp của Type cứng
+
+Trong các ngôn ngữ định kiểu tĩnh (Statically Typed) như Java, C++ hay Rust, khi bạn viết một hàm tìm giá trị lớn nhất của 2 số nguyên, bạn phải gõ:
+```rust
+fn so_lon_nhat(a: i32, b: i32) -> i32 { ... }
+```
+
+Nếu ngày mai dự án cần tìm số lớn nhất của hai số thực (`f64`), hoặc hai ký tự (`char`), bạn lại phải hùng hục copy dán code ra thêm 2 hàm mới tinh mang tên `so_thuc_lon_nhat`, `ki_tu_lon_nhat`. Quá tồi tệ trong việc nguyên lý lập trình DRY (Don't Repeat Yourself).
+
+Giải pháp cho vấn đề này là **Generics** — thay vì ép cứng nó là `i32` hay `f64`, ta truyền vào một CÁI TÊN THAY THẾ (Thường viết tắt là `T` - Type).
+
+![Sơ đồ nguyên lý hoạt động của Generics](/src/assets/images/rust-day11-generics.png)
+
+## 1. Viết Generics trong Hàm (Function)
+
+Hãy xem cách chúng ta bẻ gãy mọi khuôn mẫu:
+
+```rust
+// Khai báo <T> cho Rust biết: "T là một kiểu bất kỳ do khách hàng quyết định"
+// Yêu cầu `PartialOrd` là bắt buộc để Rust biết T có thể so sánh lớn/nhỏ
+fn so_lon_nhat<T: std::cmp::PartialOrd>(a: T, b: T) -> T {
+    if a > b {
+        a
+    } else {
+        b
+    }
+}
+
+fn main() {
+    println!("Lớn nhất: {}", so_lon_nhat(50, 20));       // T tự động thế thành i32
+    println!("Lớn nhất: {}", so_lon_nhat(50.5, 90.1));   // T tự động thế thành f64
+    println!("Lớn nhất: {}", so_lon_nhat('a', 'z'));     // T thế thành char
+}
+```
+
+Bây giờ hàm `so_lon_nhat` có thể nuốt mọi kiều dữ liệu tồn tại trên địa cầu, miễn là loại đó thỏa mãn điều kiện CÓ THỂ SO SÁNH (`PartialOrd`). 
+
+## 2. Viết Generics trong Cấu trúc Dữ liệu (Struct & Enum)
+
+Ở những bài trước, bạn đã vô tình dùng Generics cực kì nhuần nhuyễn mà không hề hay biết!
+
+`Vec<T>` là một Struct Generics. Vector Mảng này được thiết kế trống rỗng về kiểu. Khi bạn chạy `Vec::<i32>::new()`, bạn đang bơm xi lăng `i32` vào thế chỗ chữ `T`. 
+Hai vị cứu tinh của Rust là `Option` và `Result` cũng vậy:
+
+```rust
+enum Option<T> {
+    Some(T),
+    None,
+}
+
+enum Result<T, E> { // E đại diện cho Kiểu của Lỗi (Error)
+    Ok(T),
+    Err(E),
+}
+```
+
+Khởi tạo Trục tọa độ 2D đa hình:
+```rust
+struct ToaDo<T, U> {
+    x: T,
+    y: U,
+}
+
+// X có thể là i32, Y có thể là số thực f64!
+let diem = ToaDo { x: 5, y: 10.5 };
+```
+
+## Câu hỏi thường gặp (FAQ)
+
+### Việc dùng Generics có làm chậm ứng dụng khi chạy như ở Java / C# không?
+Một tính năng GÂY THƯƠNG NHỚ của Rust là **Monomorphization** (Đơn hình hóa). 
+Lúc bạn gõ code T, nó đa hình. Nhưng đến lúc bạn Compile (Biên dịch) bằng Cargo, gã Compiler tự động chui vào code của bạn, quét xem bạn đã lấy hàm đó gán mấy kiều thực tế. Nếu nó thấy bạn gọi với `i32` và `f64`, Cỗ máy Compilation âm thầm Dịch và COPY RA 2 HÀM con nhộng riêng biệt ứng với đúng kiểu `i32` và `f64` đưa xuống vi xử lý CPU.
+Kết quả: Tốc độ chạy lúc Runtime (Lúc khách hàng xài app) là **NHANH BẠO LỰC CỰC ĐẠI**, tốc độ vút ngang bằng việc bạn gõ code tường minh thủ công. Điểm trừ duy nhất là dạn phình to file `.exe` lúc build (Compile time dài hơn một tẹo).
+
+---
+
+**Sẵn sàng cho Ngày 12?** Việc khống chế chữ T không được biến thành Array mảng nếu mình mang đem Hàm Phép Cộng là do chức năng của một Kẻ canh gác tên là Trait. Ngày mai chúng ta sẽ đào sâu khái niệm Mỏ Vàng này tại: **[Day 12: Traits - Lập pháp Hành vi]**.

@@ -1,0 +1,88 @@
+---
+title: "30 Ngày học Rust - Day 8: Quản lý dự án với Packages, Crates và Modules"
+excerpt: "Day 8: Tổ chức codebase đồ sộ. Mở khóa bí ẩn về cách Rust sắp xếp file và thư mục thông qua kiến trúc Module Tree. Sự khác biệt giữa Crate và Package."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - cargo
+  - modules
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 8
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:08:00
+---
+
+# Lộ trinh thoạt khỏi File `main.rs` nghìn dòng
+
+Khi dự án Web hay Game của bạn phình tên từ vài trăm lên vài chục nghìn dòng tệp, chèn nhét tất cả logic vào `main.rs` chằng khác nào tự đào mồ chôn code. Các ngôn ngữ như Java và C# sử dụng thư mục theo đường dẫn Folder trên đĩa cứng làm cấu trúc namespace. JavaScript sử dụng hệ thống Import/Export.
+
+Còn Rust? Nó có một cỗ thần kỳ riêng gọi là **Mô hình Cây Module Tree**. Và nó không chịu chi phối bởi việc bạn ném File vào ổ cứng!
+
+## 1. Giải phẫu hệ sinh thái The Module System
+
+Để giao tiếp chuẩn như một kỹ sư Rust thực thụ, bạn phải phân biệt 4 thuật ngữ bùa chú:
+
+1. **Packages (Gói chứa hàng):** Là cái Box ngoài cùng chứa file `Cargo.toml`. Nó là toàn bộ project của bạn.
+2. **Crates (Thùng hàng):** Một Package có thể chứa 1 Library Crate chuyên dùng để chia sẻ, và chứa N-đống Binary Crate chuyên dùng xuất xưởng file `.exe`.
+3. **Modules (Các ngăn nhỏ):** Ngăn cho phép bạn kiểm soát Tầm Vực, Nhóm Code liên quan, và Thiết lập Quyền (Quyền riêng tư Private vs Công khai Public).
+4. **Paths (Đường bưu cục):** Tên định tuyến (VD: `std::cmp::Ordering`) báo cho hệ thống hiểu hàm đó đang giấu ở đâu trong Cây.
+
+## 2. Quản lý Quyền Công Khai bằng `pub`
+
+Mặc định, 100% mọi thứ trong Rust đều là **Private** (Kín). Nếu Mod `B` nằm trong Mod `A`, thì tụi ngoài Mod `A` không thấy được hàm bên trong `B`.
+Bức tường này phải được gỡ bỏ bằng giấy phép `pub` (Public).
+
+```rust
+mod restaurant {
+    // Để bên ngoài menu gọi được nhà hàng, Front_of_house phải pub
+    pub mod front_of_house {
+        pub fn them_ho(ho_ten: &str) {}
+        fn an_gi_do() {} // Vẫn Private nhé! Cấm bên ngoài xài
+    }
+}
+
+pub fn an_toi_nay() {
+    // Đường dẫn tuyệt đối đâm từ đầu rễ cái cây (crate)
+    crate::restaurant::front_of_house::them_ho("Nam");
+}
+```
+
+Hãy nhớ rằng: Nếu gắn `pub` cho Struct, các cánh cửa bên ngoài vẫn đóng kín các Variable nằm THUỘC TÍNH (Field) phía trong Struct đó. Phải nhồi thêm `pub` vô từng Variable con. Thiết kế An Toàn By Default!
+
+## 3. Khai báo sử dụng file với `use` và `mod`
+
+**Trong Node.js (JS):** Mọi thứ trong File là cục bộ, bạn ghi `require('./my_file')`.
+**Trong Rust:** Quá trình phân tách file vô cùng độc quyền. Trình biên dịch sẽ **CHỈ BẮT TỰ ĐỘNG ĐỌC** tệp `main.rs` (Hoặc `lib.rs`). Nếu bạn tạo tệp `front_house.rs`, Rust sẽ Phớt lờ như không khí!
+
+Để chèn file đó vào cây sơ đồ biên dịch, bạn phải KHAI BÁO CÂY CHO `main.rs`:
+```rust
+// Trong main.rs
+mod front_house; // Lệnh này bảo: Ê Rust, qua cái file front_house.rs lấy code bọc vô cho tao một cái TÊN là front_house
+
+fn main() {
+    front_house::mo_cua_ban();
+}
+```
+
+Rút gọn tên đường dải rác bằng lệnh `use`:
+```rust
+use std::collections::HashMap; // Đem hàm mảng bảng vô trung tâm xài luôn 1 phát
+let mut map = HashMap::new();
+```
+
+## Câu hỏi thường gặp (FAQ)
+
+### Tại sao lại chia Crate Binary (Ứng dụng chạy) và Library (Thư viện gói)?
+Trường phái chuyên nghiệp khi thiết lập Rust Backend là: Họ tạo 1 file mỏng te `main.rs` ở Binary Crate chỉ chứa nút công tắc mở nguồn. Toàn bộ ruột DB, Logic Controller thì họ vứt vô Library Crate. Mô hình siêu sạch sẽ và sau này có đem tái chế thành App Command Line hay Test tự động cũng rực rỡ, dễ bới tìm. 
+
+### Sức mạnh của Cargo Workspace là gì?
+Ở bài Ngày 22, chúng ta sẽ đụng Workspace. Khi cả Công ty chia App ra thành 5-7 Packages siêu lằng nhằng, Workspace nén tất cả chạy trong chung 1 folder Lõi đùng (chung version Cargo.lock). Các Package nhỏ gọi Module vòng vèo của nhau siêu mượt y như 1 thư mục! Monorepo siêu đỉnh.
+
+---
+
+**Sẵn sàng cho Ngày 9?** Bây giờ chèn ép code thành kiến trúc ổn định. Đã đến lúc chúng ta bốc gánh khối dữ liệu khổng lồ đẩy vô Array List thay vì biến Array tĩnh giới hạn đồ bộ nhớ cổ điển. Tiếng chuông cho **[Day 9: Các bộ sưu tập chung (Vectors, Strings, Hash Maps)]**.

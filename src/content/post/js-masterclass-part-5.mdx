@@ -1,0 +1,84 @@
+---
+title: "Làm chủ JavaScript Phần 5: JavaScript Tinh hoa (OOP, Prototype & ES Modules)"
+excerpt: "Phần cuối cùng của series JS Masterclass: Phá vỡ lầm tưởng con người về Lập trình hướng đối tượng trong JS, hiểu rõ Prototype và phân rã dự án với ES Modules."
+category: "Lập trình cơ bản"
+tags:
+  - javascript
+  - js-masterclass
+  - oop
+  - prototype
+  - es6
+series:
+  id: "js-masterclass"
+  title: "Làm chủ JavaScript 2025"
+  part: 5
+  totalParts: 5
+author: "Phạm Thành Nam"
+image: "/src/assets/images/js-part5-cover.png"
+publishDate: 2026-03-24T16:50:00
+---
+
+# Lời nói dối mang tên "Class" trong JavaScript
+
+Chào mừng bạn đến với ải cuối cùng của series **Làm chủ JavaScript 2025**. Nếu đã từng code Java hay C#, bạn hẳn quen thuộc với Lập trình hướng đối tượng (OOP) dựa trên Class (Lớp). Một Class như bản thiết kế ngôi nhà, và bạn đúc ra các Object (ngôi nhà thật) từ bản thiết kế đó.
+
+Năm 2015 (ES6), JS ra mắt từ khóa `class`. Bao nhiêu lập trình viên vỡ òa sung sướng. Nhưng sự thật là: **JavaScript không hề có Class thực sự.** Từ khóa `class` chỉ là "lớp kính màu" (Cú pháp bọc đường - Syntactic Sugar) đậy lên trên một cơ chế kỳ lạ và nguyên thủy hơn nhiều: **Prototypal Inheritance (Kế thừa nguyên mẫu).**
+
+## 1. Bí ẩn của Prototype
+
+Trong JS, khi một Object muốn mượn tính năng (method) của Object khác, nó không tạo ra một bản copy từ khung đúc. Thay vào đó, nó **móc một sợi dây xích vô hình** (được gọi là `__proto__`) thẳng đến Object cha. Đối tượng cha đó được gọi là Prototype.
+
+Hãy ví dụ khi bạn tạo một mảng `const arr = [1, 2, 3]`. Bản thân `arr` không hề chứa hàm `.map()` hay `.push()`. Nhờ sợi dây xích Prototype, khi bạn gõ `arr.push()`, JS tìm trong `arr` không thấy, nó lần theo xích lên đối tượng `Array.prototype` (Object cha) và tìm thấy cái búa `push()` ở đó để dùng.
+
+![Sơ đồ chuỗi Prototype Chain trong JavaScript](/src/assets/images/js-oop-prototype.png)
+
+Cơ chế này tiết kiệm RAM vô cùng, vì 1 triệu mảng được tạo ra đều chỉ xài chung đúng 1 bộ công cụ `Array.prototype` duy nhất, thay vì copy 1 triệu lần.
+
+## 2. Viết OOP theo phong cách "đúng chất" ES6+
+
+Dù phía dưới lớp màn là Prototype, cú pháp `class` vẫn giúp source code sạch sẽ và dễ áp dụng kiến thức OOP truyền thống (Tính đóng gói, Tính kế thừa, Tính đa hình). Đặc biệt là từ 2022, JS đã chính thức hỗ trợ trường riêng tư (Private fields) bằng dấu `#`.
+
+```javascript
+class TaiKhoan {
+  // Private field - Bất khả xâm phạm từ bên ngoài
+  #soDu = 0; 
+
+  constructor(ten) {
+    this.ten = ten;
+  }
+
+  napTien(soTien) {
+    this.#soDu += soTien;
+    console.log(`${this.ten} đã nạp ${soTien}. Số dư: ${this.#soDu}`);
+  }
+}
+
+const viCuaNam = new TaiKhoan("Nam");
+viCuaNam.napTien(500);
+// console.log(viCuaNam.#soDu); // Bung lỗi cú pháp ngay lập tức!
+```
+
+## 3. Kiến trúc dự án với ES Modules (ESM)
+
+Khi dự án to ra (hàng nghìn dòng code), bạn không thể nhét chung tất cả HTML và `<script>` vào một file `index.js` duy nhất (như hồi thập niên 2000). 
+
+**ES Modules** là chuẩn mực phân mảnh code năm 2025. Bạn chi bổ logic thành hàng trăm Tệp siêu nhỏ, rồi lắp ráp chúng lại như Lego:
+
+- **Export:** Từ một file `math.js`, bạn "xuất bến" các biến hoặc hàm. `export const add = () => {}`.
+- **Import:** Tại file `main.js`, bạn "bốc dỡ" hàng về để dùng. `import { add } from './math.js'`.
+
+Sự khác biệt lớn nhất giữa ESM và hệ thống cũ (CommonJS của Node `require()`) là **Tree-Shaking**. Các công cụ biên dịch (Bundler) hiện tại như Vite hay Webpack sẽ quét qua các file: Nếu một hàm được `export` nhưng không may không bao giờ được `import` ở đâu, nó sẽ chặt bỏ hàm đó, không đóng gói hàm rác đó vào tệp JS cuối cùng gửi cho khán giả. Nó giúp website có tốc độ ánh sáng!
+
+## Câu hỏi thường gặp (FAQ)
+
+### Có nên từ bỏ hàm tạo (Constructor function) dấy bẩn prototype cũ kỹ không?
+Nên. Việc trực tiếp sửa đổi `Object.prototype` (Monkey patching) trong codebase hiện đại được coi là tối kị vì nó gây lây nhiễm chéo giữa các thư viện. Hãy hoàn toàn trung thành với cú pháp `class` và module hóa của hiện tại.
+
+### Con đường tiếp theo sau khi hoàn thành JS Core là gì?
+Khi bạn đã vững 5 phần của Series này, **bất kể là React, Vue hay Angular** cũng chỉ là những cuốn sách mượn ngôn ngữ JS để viết ra. Hãy chọn một Framework phổ biến (VD: Web với React/Next.js, hoặc Backend với Node/Express), và bạn sẽ thấy hành trình học chớp nhoáng hơn rất nhiều khi không còn bị rối rắm bởi bản chất JS gốc.
+
+---
+
+**Kết thúc Series:** Xin chúc mừng! Bạn đã vừa bước qua 5 cánh cổng định hình cấu trúc toàn bộ thế giới Web hiện đại. 
+
+> Đừng quên đánh dấu trang (Bookmark) mục **[JavaScript Masterclass]** trên Blog của chúng tôi để tra cứu lại mọi lúc. Giờ thì mở trình duyệt lên, bật DevTools (F12) và thử gõ vài dòng code thay đổi ngay giao diện trang web bạn đang xem nào!

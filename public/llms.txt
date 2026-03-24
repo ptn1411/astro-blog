@@ -1,0 +1,31 @@
+# Phạm Thành Nam — Fullstack Developer & Creative Maker
+
+> Fullstack Developer chuyên xây dựng ứng dụng web hiện đại, công cụ sáng tạo và hệ thống có khả năng mở rộng. Chuyên Node.js, React, Go, Rust. Dịch vụ phát triển sản phẩm số: thiết kế UI/UX, phát triển web fullstack, kiến trúc hệ thống, tối ưu hiệu năng và bảo mật.
+
+## Dịch vụ
+- [Phát triển Web Fullstack](https://bug.edu.vn/#services): Frontend (React, Next.js, Astro) + Backend (Node.js, Go, Rust)
+- [Kiến trúc Hệ thống](https://bug.edu.vn/#services): Thiết kế hệ thống microservices, event-driven, API gateway
+- [Tư vấn Kỹ thuật](https://bug.edu.vn/#services): Review code, tối ưu hiệu năng, chọn tech stack
+- [Bảo trì & Phát triển](https://bug.edu.vn/#services): CI/CD, monitoring, scaling, security audit
+
+## Blog & Bài viết
+- [Blog](https://bug.edu.vn/blog): Chia sẻ về phát triển web, lập trình, công nghệ
+- [pandas 3.0 ra mắt: 3 thay đổi lớn](https://bug.edu.vn/pandas-3-0-ra-mat-3-thay-doi-lon-co-the-lam-code-cua-ban-gay-va-cach-nang-cap-an-toan)
+- [Phát Hiện Lộ API Key: Hướng Dẫn Bảo Mật](https://bug.edu.vn/phat-hien-lo-api-key-trong-du-an-huong-dan-bao-mat-va-gioi-thieu-truf)
+- [No Value No Talk: Giá Trị Thực Là Tiếng Nói Quyền Lực](https://bug.edu.vn/no-value-no-talk-tai-sao-gia-tri-thuc-moi-la-tieng-noi-quyen-luc-nhat)
+
+## Sản phẩm
+- [HiveMind](https://hivemind.bug.edu.vn): Biến ChatGPT miễn phí thành API chuẩn OpenAI, server Rust hiệu năng cao
+
+## Thông tin
+- Tên: Phạm Thành Nam
+- Vị trí: Hà Nội, Việt Nam
+- Chuyên môn: Fullstack Development, System Architecture, DevOps
+
+## Liên hệ
+- Website: https://bug.edu.vn
+- Email: contact@bug.edu.vn
+- GitHub: https://github.com/ptndz
+- LinkedIn: https://www.linkedin.com/in/ptn1411
+- Telegram: https://t.me/Ptn1411
+- Zalo: 0346038772

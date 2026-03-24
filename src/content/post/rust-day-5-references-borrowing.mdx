@@ -1,0 +1,102 @@
+---
+title: "30 Ngày học Rust - Day 5: Khóa học nhặt đồ chung với References & Borrowing"
+excerpt: "Day 5: Phá giải ức chế của Ownership. Cách truyền tham số cho hàm mà không bị mất quyền sơ hữu bằng cơ chế Tham Chiếu (References) và Mượn đồ (Borrowing) trong Rust an toàn."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - references
+  - borrowing
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 5
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:05:00
+---
+
+# Khi "Sở hữu" trở thành sự kiềm cặp
+
+Ở Ngày 4, chúng ta học rằng đưa Data ra khỏi ngoặc sẽ làm thay Chủ (Move). Điều này sinh ra một bi kịch khi bạn dùng Hàm (Functions):
+
+```rust
+fn tinh_do_dai(s: String) -> usize {
+    s.len()
+}
+
+fn main() {
+    let ten = String::from("Nam");
+    let chieu_dai = tinh_do_dai(ten); // "ten" bị Mất Giấy Chuyển Nhượng cho hàm!
+    println!("Tên là {}", ten); // LỖI COMPILER! Giá trị của "ten" đã ra đi mãi mãi...
+}
+```
+
+Bạn chỉ muốn một hàm soi xét độ dài từ, nhưng hàm đó nuốt chửng luôn biến của bạn. Mọi giải pháp như việc bắt hàm đó phải `return` ném trả lại miếng string cũ là quá đần độn. Xin giới thiệu: **Tham Chiếu và Mượn (References & Borrowing).**
+
+## 1. Bùa hộ mệnh: Ký tự Ampersand `&`
+
+Trong thế giới thuật ngữ Rust, **Reference** (Tham chiều) là địa chỉ cầm tờ giấy trỏ xuống tận gốc gác dữ liệu thay vì việc cầm luôn tờ đăng ký kết hôn của dữ liệu. Biểu tượng là dấu và (`&`).
+
+Hãy sửa code ở trên:
+
+```rust
+fn tinh_do_dai(s: &String) -> usize { // Khai báo: Tôi chỉ xin NGÓ (Reference) 
+    s.len()
+}
+
+fn main() {
+    let ten = String::from("Nam");
+    let chieu_dai = tinh_do_dai(&ten); // Gửi đi cái Bóng (Reference), giữ lại cái Thân
+    println!("Tên là: {}, độ dài: {}", ten, chieu_dai); // Code chạy mượt mà!
+}
+```
+
+Hành động chúng ta tạo ra một tham chiếu `&ten` và đẩy vào hàm được gọi bằng cái tên hành động là **Borrowing** (Mượn đồ). Hàm `tinh_do_dai` mượn ô xe, đếm số ghế bên trong, xong kết thúc hàm trả lại ô xe. Nó không được phép thóa mạ bán dỡ chiếc xe đó vì nó đéo có quyền sở hữu!
+
+## 2. Bạn không thể thay đổi thứ bạn vay mượn
+
+Giống như ngoài đời, mượn củ cà rốt thì lúc trả không thể thành đĩa nộm. Tham chiếu mặc định là Bất biến.
+
+```rust
+fn thay_doi(s: &String) {
+    s.push_str(", chao ban"); // LỖI! Dám chỉnh sửa đồ đi mượn à?
+}
+```
+
+## 3. Sám hối trước Borrow Checker: Mutable References
+
+Nếu tôi khăng khăng muốn sửa rễ gốc qua biến tham chiếu thỉ sao? Cần phải làm đúng nghi thức: Khai báo Bản tính biến đổi (Mutable) từ tận cành cho tới lá. Tức là gắn `&mut`.
+
+```rust
+fn main() {
+    let mut ten = String::from("Hello"); // Cành: Khai tử tĩnh báo
+    thay_doi(&mut ten); // Xin phép tham chiếu Động
+    println!("{}", ten);
+}
+
+fn thay_doi(s: &mut String) { // Đón nhận tham chiếu Động
+    s.push_str(", world");
+}
+```
+
+### Bộ Nhị Cấm Cung Lỗi của Ngài Borrow Checker
+
+Sức ảnh hưởng của đoạn code tuy hoàn mĩ nhưng hệ thống ngăn lỗi sập data của Ngài Checking cấm bạn 2 luật cốt cán:
+
+1. Bạn có thể có **Nhiều** tham chiếu dạng đọc `&T`, cùng lúc thoải mái.
+2. Hoặc, Bạn chỉ có **DUY NHẤT 1** tham chiếu dạng viết `&mut T` trong cùng lúc Scope đoạt được.
+> *CẤM: Vừa có ông ngực đọc (`&T`), lại vừa có ông đi sửa (`&mut T`) ngay cạnh nhau ở cùng giây phút. Sinh ra thảm họa thay đổi ngầm đứt mạng Database.*
+
+## Câu hỏi thường gặp (FAQ)
+
+### Rút cụt lại thì Ownership và Borrowing bảo vệ ta khỏi cái gì?
+Nó chặn vĩnh viễn thuật ngữ kinh dị trong thế giới Hacker siêu đẳng: **Data Races (Thi chạy tranh dữ liệu)**. Việc quy định chỉ 1 người có giấy viết ở 1 tích tắc giúp việc gọi API song song ở 5.000 luồng đồng thời (Concurrency) đạt mốc an toàn 100%. Sẽ không có việc 2 lệnh cùng trừ thẳng $1000 vào băng ngân hàng mà ra sai phép tính.
+
+### Có hiện tượng Tham Chiếu Nguy Cấp (Dangling References) ở Rust không?
+Con trỏ lủng lẳng là bug đau đớn nhất ở C (Trỏ đến Object đã bị xoá). Ở Rust, Borrow Checker dập chết bug này ngay khi bạn code nhờ vào "Lifetime". Biến mượn đồ không thể nào bay nhảy với tuổi thọ vĩnh cửu trong khi thằng chủ đồ bị diệt. Rust sẽ mắng bạn ngay lập tức nếu bạn cố trả về `&String` của một biến vừa chết trong hàm.
+
+---
+
+**Sẵn sàng cho Ngày 6?** Xong 5 ngày đầu, bạn đã vượt qua thung lũng kinh hoàng nhất của Rust. Chúng đi bộ xuống dốc thư giãn với việc quy hoạch Đống dữ liệu bừa bãi thành khối cấu trúc trong **[Day 6: Structs và Methods]**.

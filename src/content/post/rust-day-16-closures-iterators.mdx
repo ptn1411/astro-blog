@@ -1,0 +1,78 @@
+---
+title: "30 Ngày học Rust - Day 16: Functional Magic chốn trần gian (Closures & Iterators)"
+excerpt: "Day 16: Biến Code vòng lặp cồng kềnh thành một dải băng chuyền tốc độ cao. Tìm hiểu sức mạnh bất biến của Closures và khả năng lazy evaluation của Iterators."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - closures
+  - iterators
+  - functional
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 16
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:16:00
+---
+
+# Lập trình Hàm Phân Tán (Functional Programming)
+
+Dù Rust sinh ra ở phân khúc Hệ thống hạng nặng (System level), nó lại chứa đựng những phép thuật lấp lánh của Haskell hay Lisp. Hai công cụ mang tính biểu tượng nhất của ngôn ngữ Functional chính là **Closures** (Hàm ẩn danh) và **Iterators** (Máy duyệt mảng biến tần).
+
+## 1. Closures: Hàm vô danh bắt trộm Scope
+
+Binh đoàn `function (a, b)` của JS được thay bằng Mũi Nết Cắm Dọc `|a, b|` ở thế giới Rust.
+
+```rust
+let toc_do = 50;
+
+// Closure: Biến gán cầm 1 Rút Code Vô Răng.
+let tinh_van_toc = |x| x + toc_do; // Mặc dù khai báo trong ruột khối trên, Nó trộm được biến "toc_do"!
+
+println!("Chạy Hết: {}", tinh_van_toc(2)); // Cắm 2 vô X, cộng Lên 52
+```
+
+Lệnh Lấp Lắp này là Bức tranh Thuần Tuý Tĩnh Mịch. Nét siêu cấp của nó ở chỗ, Nếu Cột Cắm Tọa Trói Quanh (Ví Dụ Bạn Gói Chuỗi Cấu Trụ File Truyền Tải). Biến Mượn (`Borrowing`) Trong Scope đó Cắm Ngầm Trong Closure Sẽ Gây Bực Thắt Borrow Checker. 
+Cách Xử Giảo Cắt Cầu: **Từ khoá Bứng Biến Bỏ Quê Hình `move`**.
+
+```rust
+let thung_do = vec![1, 2, 3];
+// Giật Lửa Đem Thùng Đồ chạy cúp đi Nơi Khác 
+let xach_di = move || println!("Gói Mạng Trụ: {:?}", thung_do);
+xach_di(); 
+// Giờ Gọi print(thung_do) Ở Ngoài Rìa Nổ Bug Ngay Vi Đã Húp Quả Tròn Kéo Thằng Trọ Đi!
+```
+
+## 2. Iterators: Những Mắt Xích Ngủ Động (Lazy Evaluation)
+
+Hồi viết Dải Test Quét Thơ trong Mảng Lọc Mảng Tồn, bạn Đục Bẻ Vòng For Chặt Bức. Với Iterators, nó là Băng trượt Kéo Vận, Kênh Chuyển Dịch Bào Bán Cấp Nhánh.
+
+![Sơ đồ băm Iterators và chuỗi dãn xích](/src/assets/images/rust-day16-closures.png)
+
+Iterators Nghĩa Là NÓ ĐÉO LÀM GÌ, Cho Tới Khi Bạn Gọi Lệnh Lột Vỉ Hút Nước Đè Cột `collect()`. Quá trình gọi là Ngủ Động (Lazy).
+
+```rust
+let mang_so = vec![1, 2, 3];
+
+// Biến mảng thành máy duyệt Iterator -> Bơm qua Phểu Lọc Chọn Số To -> Đóng Gói Collect Đẩy Về Mảng Lại.
+let mang_ra: Vec<i32> = mang_so.into_iter()
+                         .filter(|x| *x > 1)
+                         .map(|x| x * 10)
+                         .collect();
+
+// Kết quả mang_ra Sẽ là Mảng: [20, 30] 
+```
+Đoạn Lọc Kẹp Gập Trên Trông Đẹp Chuẩn Chỉnh Như Quất Chữ JS. Ở Các Phiên Chuyển `map` và `filter`, Cái Rập Khuôn Cứa Khung Bọc Bên Cạnh Đó Đích Thực Là Những Anh Chàng **Closures** Âm Thầm Hứa Nhảy Múa Rứt Thăm Ẩn Tránh! 
+
+## Câu hỏi thường gặp (FAQ)
+
+### Có Phải Chơi Chuỗi Iterators (Functional) Chạy Nặng Hơn Việc Gõ Vòng Xích Cổ Tích `for (i=0;...)` ?
+KHÔNG! Thậm Chí Là Điều Chấn Động Rúng Mạch Vi Mạch Giả Kim. 
+Tại Các Bài Viết Code Đo Thước RAM (Benchmark Loop Unrolling). Rust Bóp Các Cổng Closure Trộn Đi Gộp Thẳng Ra Mạch Mã Máy CPU Giống Cực Cẩn Cho Mã C. Việc Bẻ Vector Nén Iterators Trong Rust CHẠY NHANH Cực Đại Y HỆT Lệnh Gạt For Rẻ Tiền Thủ Công. Điều Cãi Mệnh Các Ngôn Ngữ Khác Vì Họ Phải Mở Object Nặng Cắm Trì Trướng. Mặc Đồ "Zero-Cost Abstraction". Viết Tuốt Đẹp Mắt Mà K sợ Sập Hiệu Năng!
+
+---
+
+**Sẵn sàng cho Ngày 17?** Con trỏ Trầm Kẹp Dữ Cốt Biến Biến. Đi Chọc Sâu Quá Lòng Sứ. Biến Những Miếng Code Văng Sát Trục Biển Số Bộ Nhớ Dính Sót Tại RAM Đất Xới (The Heap). Ngày Mai Lòng Can Đảm Triển Vận Vào Khối Não Máy Qua Mệnh Biến: **[Day 17: Cột Đột Nguy Bắn Trụ Mão - Smart Pointers]**.

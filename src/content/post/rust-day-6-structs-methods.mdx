@@ -1,0 +1,116 @@
+---
+title: "30 Ngày học Rust - Day 6: Đắp nặn dự án với Structs và Methods"
+excerpt: "Day 6: Biến đổi các nhóm biến rời rạc thành các Cấu trúc dữ liệu có ý nghĩa (Structs) và gán hành vi cho chúng bằng Methods trong Rust."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - structs
+  - methods
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 6
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:06:00
+---
+
+# Lắp ráp những khối Lego đầu tiên
+
+Nếu chỉ có chuỗi String, số nguyên Integer và Boolean, bạn không thể mô tả được một "Người Dùng". Một người dùng làm bằng email (String), tuổi (u8) và trạng thái online (bool). Không thể mỗi lần viết hàm lại truyền tận 3 biến rời rạc vào được.
+
+Giải pháp ở đây là gom chúng lại vào một chiếc hộp dán nhãn `User`. Trong Rust, vật chứa đó gọi là Nhóm cấu trúc **Structs**. Nếu bạn đã dùng qua JavaScript, Struct giống hệt như một Object cấu tạo bằng class.
+
+## 1. Định nghĩa và Khởi tạo Struct
+
+Giống như việc tạo bản vẽ trước khi xây nhà, bạn cần quy định kiểu dáng Struct:
+
+```rust
+struct User {
+    username: String,
+    email: String,
+    sign_in_count: u64,
+    active: bool,
+}
+```
+
+Để đúc ra một thực thể sống (Instance) từ bản thiết kế trên, bạn gắn value cho chúng:
+
+```rust
+fn main() {
+    // Lưu ý: Nếu muốn đổi email sau này, phải khai báo "mut user1"
+    let mut user1 = User {
+        email: String::from("nam@bug.edu.vn"),
+        username: String::from("thanhnam"),
+        active: true,
+        sign_in_count: 1,
+    };
+
+    user1.email = String::from("contact@bug.edu.vn");
+}
+```
+
+Một cú pháp cực xịn sò của Rust: Nếu bạn muốn tạo `user2` giống hệt `user1` nhưng chỉ khác tên, bạn có thể xài cú pháp **Struct Update Syntax**:
+
+```rust
+let user2 = User {
+    username: String::from("nam_pro"),
+    ..user1 // Ba dấu chấm ... sao? Không, trong Rust là 2 dấu chấm (..) hứng toàn bộ!
+};
+```
+*Cú pháp cướp giật này làm `user1` mất sạch quyền Ownership các biến String bên trong. Gọi lại `user1.email` sẽ crash app.*
+
+## 2. Tuple Structs - Chút bụi của toán học
+
+Nhiều lúc bạn không cần đặt tên cho từng trường thông tin. Cứ vứt thẳng giá trị vào cho lẹ. Trường hợp kinh điển nhất là tọa độ Màu sắc hoặc 3D:
+
+```rust
+struct Color(i32, i32, i32);
+struct Point(i32, i32, i32); // Hai cái này khác hệ quy chiếu dù giống y hệt kiểu ruột
+
+let black = Color(0, 0, 0);
+let origin = Point(0, 0, 0);
+```
+
+## 3. Khai mở sức mạnh với Methods (Phương thức)
+
+Cấu trúc tĩnh thì chỉ như bức tượng vô tri. Để tượng có thể di chuyển, bạn cần gắn "Hành vi" vào nó. Hành vi nằm bên trong khối `impl` (Implementation - Thực thi).
+
+```rust
+struct HinhChuNhat { width: u32, height: u32 }
+
+impl HinhChuNhat {
+    // &self là ám chỉ nó mượn bộ nhớ của chính "bản thân nó" để chạy
+    fn dien_tich(&self) -> u32 {
+        self.width * self.height
+    }
+
+    // Hàm KHÔNG cần &self gọi là HÀM LIÊN KẾT (Tương đương Static Method/Constructor)
+    fn hinh_vuong(size: u32) -> HinhChuNhat {
+        HinhChuNhat { width: size, height: size }
+    }
+}
+
+fn main() {
+    let rect1 = HinhChuNhat { width: 30, height: 50 };
+    println!("Diện tích: {}", rect1.dien_tich());
+    
+    // Gọi hàm Static bằng dấi "::"
+    let sq = HinhChuNhat::hinh_vuong(10); 
+}
+```
+
+## Câu hỏi thường gặp (FAQ)
+
+### Rust có tính Nạp chồng phương thức (Method Overloading) không?
+Giống như nhiều tính năng nhập nhằng của C++/Java, Rust nói "KHÔNG" với Method Overloading (Định nghĩa 2 hàm trùng tên nhưng khác tham số). Mỗi hàm đều phải có một cái tên đặc trưng rõ ràng để Trình biên dịch hiểu trong một phần nghìn giây. Ví dụ: Viết hàm `parse_int()` và `parse_float()` phân định rạch ròi.
+
+### Có cách nào in nhanh cấu trúc Struct ra màn hình để debug không?
+Mặc định bạn không thể dùng `println!("{}", user1)` (bị báo lỗi chưa implement Display trait). Cách hack nhanh nhất cho debug là thêm dòng `#[derive(Debug)]` gián tiếp ngay trên chữ `struct User {`. Sau đó khi in bạn dùng cú pháp `{:?}` hoặc `{:#?}` (in dọc thụt lề đẹp mắt):
+`println!("{:#?}", user1);`
+
+---
+
+**Sẵn sàng cho Ngày 7?** Bạn nghĩ Struct đã là điểm sáng nhất của Khung phân nhóm dữ liệu? Chờ tới bài ngày mai nhé. Chúng ta sẽ nâng cấp khái niệm Tùy biến đến mức tối đa với một công cụ mà hiếm ngôn ngữ nào bì được: **[Day 7: Enums & Pattern Matching]**.

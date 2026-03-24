@@ -1,0 +1,90 @@
+---
+title: "30 Ngày học Rust - Day 1: Lời chào thế giới và Vũ khí Cargo"
+excerpt: "Mở đầu chuỗi 30 ngày trở thành Rustacean. Khám phá cách cài đặt Rust, viết chương trình Hello World đầu tiên và làm quen với Cargo - Trình quản lý gói xịn xò nhất thế giới code."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - cargo
+  - lap-trinh
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 1
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:01:00
+---
+
+# Lời mở đầu: Vì sao lại là Rust?
+
+Rust đã liên tiếp 8 năm giữ vương miện "Ngôn ngữ được yêu thích nhất" trên bảng xếp hạng Stack Overflow. Nó mang lại tốc độ và khả năng kiểm soát phần cứng ngang ngửa C/C++, nhưng lại đi kèm sự an toàn tuyệt đối về bộ nhớ (Memory Safety) nhờ vào cơ chế đặc biệt mà không ngôn ngữ nào có: The Borrow Checker.
+
+Series **"30 Ngày Trở Thành Rustacean Tinh Hoa"** này được thiết kế để đập bỏ mọi rào cản từ khó hiểu nhất của Rust (Ownership, Lifetimes) cho tới việc bạn có thể tự tin viết một Web API tốc độ cao.
+
+## 1. Cài đặt Rust (Rustup)
+
+Khác với việc cài đặt bằng apt, brew hay tải file exe rườm rà, cộng đồng Rust cung cấp một công cụ kỳ diệu mang tên `rustup` - Trình quản lý chuỗi công cụ phân phối đa nền tảng.
+
+Chỉ cần mở Terminal (hoặc PowerShell) và gõ:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Thế là xong! Khởi động lại terminal. Để kiểm tra cài đặt thành công, gõ:
+```bash
+rustc --version
+cargo --version
+```
+Nếu màn hình in ra phiên bản (Ví dụ: `rustc 1.75.0`), chúc mừng bạn đã chính thức bước một chân vào giới Rustacean (từ lóng chỉ người code Rust).
+
+## 2. Hello World kinh điển
+
+Hãy tạo một file tên là `main.rs` ở bất cứ đâu và gõ:
+
+```rust
+fn main() {
+    println!("Dậy sóng đi, hỡi các Rustacean!");
+}
+```
+
+**Biên dịch và chạy:**
+1. `rustc main.rs` (Trình biên dịch Rust sẽ dịch mã nguồn thành một file thực thi nhị phân tĩnh).
+2. Xung quanh bạn giờ xuất hiện file `main.exe` (Windows) hoặc `./main` (Mac/Linux). 
+3. Chạy file đó, bạn sẽ thấy dòng chữ in ra màn hình.
+
+*Lưu ý: Dấu chấm than `!` trong `println!` không phải để cho vui. Nó ám chỉ rằng bạn đang gọi một "Macro" chứ không phải một "Function" bình thường. Sự khác biệt này sẽ được làm rõ ở các Ngày sau.*
+
+## 3. Cargo - Người bạn đồng hành vĩ đại
+
+Việc dùng `rustc` chỉ dành cho file đơn lẻ. Khi làm dự án thật với hàng trăm file và các thư viện tải về từ Internet, bạn cần **Cargo**. Cargo là "Trình quản lý gói" (như npm của Node.js) và là "Trình build dự án" (như Vite/Webpack).
+
+Khởi tạo một dự án mới cực kỳ chuyên nghiệp:
+```bash
+cargo new hello_cargo
+cd hello_cargo
+```
+
+Lúc này, Cargo tự động đẻ ra:
+- File `Cargo.toml`: Nơi khai báo thông tin dự án và danh sách các thư viện cần dùng (Crates).
+- Thư mục `src/main.rs`: File code gốc của bạn đã có sẵn hàm Hello World.
+
+Để chạy dự án này, bạn không cần gọi `rustc` nữa. Chỉ cần mỉm cười và gõ:
+```bash
+cargo run
+```
+Cargo sẽ lẳng lặng tải về toàn bộ dependency, biên dịch chúng, gộp vào code của bạn và chạy một mạch ra kết quả. Quá sướng!
+
+## Câu hỏi thường gặp (FAQ)
+
+### Cargo có khác gì npm của JS hay pip của Python không?
+Cargo vượt trội hơn hẳn. Nó không chỉ tải/liên kết thư viện (`crates.io`) mà nó còn phụ trách việc chạy Test (`cargo test`), format code cho chuẩn đẹp (`cargo fmt`), bắt lỗi code rác (`cargo clippy`), và đóng gói cho production (`cargo build --release`).
+
+### Code file thực thi (.exe) của Rust có cần cài thêm phần mềm gì để chạy không?
+Không! Không giống Java (cần cài JRE) hay Python (cần trình thông dịch), Rust biên dịch thẳng ra Máy ảo CPU nguyên thủy (Ahead-Of-Time compiled). Bạn có thể copy cái file `.exe` vừa tạo gửi cho ông hàng xóm, ổng nhấp đúp là chạy mượt mà ngay cả khi máy ổng không cài Rust.
+
+---
+
+**Sẵn sàng cho Ngày 2?** Hôm nay chúng ta đã có đồ nghề. Trong bài viết ngày mai **[Day 2: Variables, Mutability & Shadowing]**, chúng ta sẽ thấy Rust dập tắt thói quen "khai báo biến vô tội vạ" của con người từ trứng nước như thế nào.

@@ -1,0 +1,91 @@
+---
+title: "30 Ngày học Rust - Day 12: Traits - Kẻ ban phát quyền năng và Lập pháp Hành vi"
+excerpt: "Day 12: Trait trong Rust là gì? Khám phá cách Rust vượt qua giới hạn của Interface truyền thống để định hình hành vi dùng chung giữa vô số các khối hình Types khác nhau."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - traits
+  - interface
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 12
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:12:00
+---
+
+# Traits: Bóng dáng của Interface nhưng hùng mạnh hơn
+
+Trong thiết kế Phần mềm (vd Web Backend), chúng ta có hàng loại cấu trúc dữ liệu khác nhau. Một Bài Đăng Blog (Article) và một Đoạn Bình Luận (Tweet) là hai hình khối Struct cách biệt. 
+
+Nhưng ở trang Tổng Hợp, chúng ta cần một Cổng gọi Method in ra dòng tóm tắt (Summary) gọi được chung trên cả Bài viết lẫn Tweet mà không phát sinh lỗi.
+Trong C#, Go hay TS, nó gọi là Interface (Giao diện phương thức). Rust gọi Cơ chế siêu phàm này là **Traits** (Đặc diểm / Khí chất).
+
+![Sơ đồ Trait quy tụ các Struct khác nhau vào chung một bộ phương thức](/src/assets/images/rust-day12-traits.png)
+
+## 1. Định nghĩa Luật và Áp Luật vào Struct
+
+Bước 1: Ban hành một Bản Sắc Lệnh (Trait) khai báo hàm tóm tắt. Cấm ghi nội dung hàm rẽ nhánh.
+
+```rust
+pub trait Summary {
+    // Chỉ có khuôn hàm, không có khối body
+    fn summarize(&self) -> String; 
+}
+```
+
+Bước 2: Buộc Cấu Hình Bài Viết của bạn học cách thực thi Luật này (Impl for):
+
+```rust
+pub struct BàiViết {
+    pub tieu_de: String,
+    pub tac_gia: String,
+    pub noi_dung: String,
+}
+
+// Bắt khai báo Tóm Tắt (Summary) TRÊN Struct BàiViết
+impl Summary for BàiViết {
+    fn summarize(&self) -> String {
+        format!("(Đọc ngay) {} viết bởi {}", self.tieu_de, self.tac_gia)
+    }
+}
+```
+
+Từ giờ, Biến gán Bài Viết sẽ thừa kế một Hành vi mở rộng bằng câu lệnh `bai_viet.summarize()`.
+
+## 2. Tác dụng vĩ đại: Ràng buộc Kiểu Parameter (Trait Bounds)
+
+Điều khiến Hành động bên trên đáng tiền nhất nằm ở việc tạo Hàm Tổng Lập. Hãy viết một cái Hàm gọi Báo cáo:
+
+```rust
+// HÀM NÀY: Mày ném Cái con mịa gì vô cũng được, MIỄN LÀ thứ đó Đã kí khế ước Trait Summary
+pub fn thong_bao_nong(item: &impl Summary) {
+    println!("Tin mới nhận! {}", item.summarize());
+}
+```
+
+Nếu bạn cố ném thử 1 Số Nguyên `i32` vào hàm `thong_bao_nong`, Compiler chửi xối xả do Ngài Số Nguyên chưa bao giờ kí cái Luật Summary Của bạn. Đây được gọi là **Trait Bounds** (Hàng rào Đặc Tính).
+
+## 3. Các Traits dựng sẵn nổi tiếng của Rust
+
+Bạn không cần tự chế toàn bộ. Rustc cung cấp kho vũ khí siêu khổng lồ:
+- `Display` và `Debug`: Biến Struct thành Đoạn Text In Phun Mực Ra Console.
+- `Clone`: Phép thuật Bóng phân thân Bộ Nhớ Memory RAM.
+- `Drop`: Thần Huỷ Diệt gọi lúc Cửa Sinh tử Bracket (}) nhắm lại.
+- `Eq` và `PartialEq`: Khả năng lấy Lệnh Toán học Ngang Hàng Lưỡi Dao So Sánh (Dấu ngã `==`).
+
+## Câu hỏi thường gặp (FAQ)
+
+### Lệnh `#[derive(...)]` ma quỷ đặt trên đầu các Struct là gì?
+Rust cung cấp công cụ tự động phát sinh thuật toán Trait cho bạn mang tên Macro Derive. 
+Ví dụ dòng `#[derive(Debug, Clone)]` dán ở ngay trên chữ `struct ToaDo` báo hiệu cho Compiler: *Trong lúc Build App, hãy thay ta viết giùm hàng trăm cái Lệnh Impl Clone Mặc định và Debug cho cái cục ToaDo này giùm*! Bạn Tiết kiệm hàng giờ đồng hồ mổ não đập code rác.
+
+### "Trait Objects" khác gì Trait Bounds Generics?
+Chữ `impl Trait` ở mục 2 ép Compiler sinh ra nhiều Phiên bản Hàm (Monomorphization ở Ngày 11) - tốc độ max. Nhưng Trait Object (`Box<dyn Trait>`) thì cho phép bạn gói BàiViết và Tweet xới trọn vào Cùng 1 MẢNG List Vector. Đổi lại khi ứng dụng chạy, nó sẽ bị trễ vài siêu Nano Giây để dò bảng con trỏ hàm ảo Vtable. Kén RAM hơn.
+
+---
+
+**Sẵn sàng cho Ngày 13?** Chặn vách núi cao tót nhất làm gẫy xương chân của 90% Dev chuyển từ Node JS qua học Rust chính là Bóng Đêm mang tên Lifetimes. Rửa mặt tỉnh não, sẵn sàng đối phó Boss cuôi The Borrow Checker vào Ngày mai: **[Day 13: Lifetimes - Nỗi ám ảnh Không - Dangling Pointer]**.

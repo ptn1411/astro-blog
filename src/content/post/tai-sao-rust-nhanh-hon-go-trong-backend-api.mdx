@@ -1,0 +1,211 @@
+---
+title: "Tại sao Rust nhanh hơn Go trong Backend API — và khi nào Go vẫn là lựa chọn tốt hơn"
+excerpt: "So sánh hiệu năng Rust vs Go với dữ liệu benchmark thực tế: 782K vs 588K RPS, memory 4.5MB vs 18.2MB. Phân tích khi nào nên chọn Rust, khi nào nên chọn Go."
+category: "Lập trình cơ bản"
+tags:
+  - rust
+  - golang
+  - backend
+  - api
+  - performance
+  - benchmark
+  - axum
+author: "Phạm Thành Nam"
+image: /src/assets/images/rust-vs-go-backend-cover.png
+publishDate: 2026-03-24T11:00:00
+---
+
+# Tại sao Rust nhanh hơn Go trong Backend API — và khi nào Go vẫn là lựa chọn tốt hơn
+
+## TL;DR
+
+- **Rust nhanh hơn Go 25-33%** trong hầu hết benchmark backend API, đặc biệt ở CPU-bound tasks
+- **Memory:** Rust server dùng 4.5MB vs Go server 18.2MB — gấp 4 lần chênh lệch
+- **Throughput:** Axum (Rust) đạt 782K RPS vs Gin (Go) đạt 588K RPS
+- **Latency:** Rust trung bình 15ms vs Go 20ms tại 1,000 concurrent requests
+- **Nhưng:** Go "đủ nhanh" cho 95% use case và developer velocity nhanh hơn đáng kể
+- **Kết luận:** Chọn Rust khi cần hiệu năng cực đại, chọn Go khi cần ship nhanh
+
+---
+
+Nếu bạn đang đứng trước quyết định chọn ngôn ngữ cho backend API tiếp theo, có lẽ bạn đã từng nghe câu: _"Rust nhanh hơn Go"_. Câu nói này đúng — nhưng chỉ đúng một nửa. Sự thật phức tạp hơn nhiều, và việc chọn đúng ngôn ngữ phụ thuộc vào rất nhiều yếu tố mà benchmark đơn thuần không thể trả lời. Bài viết này sẽ đi sâu vào **dữ liệu thực tế**, phân tích **tại sao** Rust nhanh hơn ở mức kỹ thuật, và quan trọng hơn — **khi nào bạn không cần Rust**. Bởi vì chọn đúng công cụ cho đúng vấn đề mới là kỹ năng thật sự của một engineer giỏi, chứ không phải lúc nào cũng chạy theo thứ nhanh nhất.
+
+---
+
+## 1. Benchmark thực tế: Rust vs Go bằng con số
+
+Trước khi đi vào lý thuyết, hãy nhìn vào dữ liệu. Dưới đây là tổng hợp từ nhiều nguồn benchmark độc lập:
+
+### Throughput (Requests per second)
+
+| Framework | RPS | Ghi chú |
+|-----------|-----|---------|
+| Axum (Rust) | **782,156** | HTTP hello-world benchmark |
+| Gin (Go) | **587,934** | Cùng điều kiện test |
+| Rust (TF-IDF algo) | **3,887** | CPU-intensive workload |
+| Go (TF-IDF algo) | **2,001** | Cùng thuật toán |
+
+> **Nguồn:** Medium — "Benchmarking 6 Web Frameworks" (2025), Medium — "TF-IDF Cosine Similarity Benchmark"
+
+### Latency
+
+| Concurrent Requests | Rust | Go |
+|---------------------|------|-----|
+| 1,000 | **15ms** | 20ms |
+| 10,000 | **45ms** | 55ms |
+
+### Memory Usage
+
+| Metric | Rust | Go |
+|--------|------|-----|
+| Idle server | **4.5 MB** | 18.2 MB |
+| Binary size | **~3-4x nhỏ hơn** | Lớn hơn (bao gồm GC runtime) |
+
+> **Nguồn:** effective-programmer.com — "Rust vs Go Memory Comparison"
+
+Con số nói lên nhiều điều, nhưng chúng chỉ là phần nổi của tảng băng. Câu hỏi thú vị hơn là: **tại sao** Rust lại nhanh hơn?
+
+---
+
+## 2. Zero-Cost Abstractions: Triết lý cốt lõi của Rust
+
+Rust được thiết kế với nguyên tắc **"zero-cost abstractions"** — bạn có thể viết code ở mức trừu tượng cao mà không phải trả giá về hiệu năng khi chạy. Điều này có nghĩa là khi bạn sử dụng generics, traits, hay iterators trong Rust, compiler sẽ biến chúng thành mã máy tối ưu tương đương với việc viết tay bằng C. Không có lớp runtime nào đứng giữa code của bạn và phần cứng. Mỗi dòng Rust bạn viết đều được compile trực tiếp xuống machine code, trải qua quá trình tối ưu hóa của LLVM — cùng backend compiler mà Clang (C/C++) sử dụng. Đây là lý do tại sao Rust đạt hiệu năng ngang C/C++ trong hầu hết các benchmark, điều mà Go với runtime và garbage collector không thể đạt được.
+
+Go cũng compile xuống machine code, nhưng binary của Go luôn đi kèm một **runtime** bao gồm garbage collector, goroutine scheduler, và nhiều thành phần khác. Runtime này chiếm tài nguyên và tạo ra overhead.
+
+---
+
+## 3. Garbage Collection: Kẻ thù thầm lặng của latency
+
+Đây là **khác biệt quan trọng nhất** giữa Rust và Go về mặt hiệu năng backend.
+
+### Go: Garbage Collector
+
+Go sử dụng garbage collector (GC) để tự động quản lý bộ nhớ. GC giúp developer không cần lo về memory leaks, nhưng đổi lại:
+
+- **GC Pauses:** Định kỳ, GC phải "dừng thế giới" (stop-the-world) để quét và giải phóng bộ nhớ không sử dụng. Dù Go đã cải tiến GC rất nhiều qua các phiên bản, vẫn có những khoảng dừng **microsecond đến millisecond** tại thời điểm không thể đoán trước. Với một API server xử lý hàng chục nghìn request mỗi giây, những khoảng dừng này tích lũy lại tạo thành **latency jitter** — P99 latency tăng vọt so với trung bình. Điều này đặc biệt có hại cho các hệ thống giao dịch tài chính, game server, hay bất kỳ ứng dụng nào yêu cầu latency ổn định dưới 1ms.
+
+- **Memory overhead:** GC cần bộ nhớ bổ sung để theo dõi objects và trạng thái — giải thích tại sao Go server dùng 18.2MB so với 4.5MB của Rust.
+
+### Rust: Ownership Model
+
+Rust giải quyết bài toán memory management hoàn toàn khác: thông qua **ownership system** và **borrow checker** tại compile time. Compiler Rust đảm bảo rằng mỗi vùng nhớ chỉ có một "chủ sở hữu" tại một thời điểm, và bộ nhớ được giải phóng ngay khi owner ra khỏi scope — không cần GC.
+
+Kết quả:
+- **Không có GC pauses** → latency ổn định, P99 sát P50
+- **Memory footprint nhỏ** → chạy được nhiều instance hơn trên cùng phần cứng
+- **Predictable performance** → dễ capacity planning
+
+---
+
+## 4. Concurrency: Goroutines vs Tokio
+
+### Go Goroutines
+
+Go nổi tiếng với goroutines — lightweight threads được quản lý bởi Go runtime. Tạo hàng triệu goroutines rất đơn giản:
+
+```go
+go func() {
+    handleRequest(req)
+}()
+```
+
+Goroutines chiếm khoảng **2-8KB** stack ban đầu, tự động grow khi cần. Đây là lý do Go cực kỳ phù hợp cho I/O-bound workloads và microservices.
+
+### Rust Async/Await + Tokio
+
+Rust sử dụng `async/await` với runtime như **Tokio**:
+
+```rust
+#[tokio::main]
+async fn main() {
+    let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let app = Router::new().route("/", get(handler));
+    axum::serve(listener, app).await.unwrap();
+}
+```
+
+Tokio tasks nhẹ hơn goroutines (vài trăm bytes), nhưng quan trọng hơn — chúng **không cần runtime GC** nên không bị jitter.
+
+### Kết quả thực tế
+
+Cả hai đều xử lý concurrency xuất sắc. Go đơn giản hơn để viết concurrent code. Rust cho hiệu năng tốt hơn và latency ổn định hơn. Trong thực tế, sự khác biệt chỉ rõ ràng khi bạn đẩy đến hàng chục nghìn concurrent connections.
+
+---
+
+## 5. Khi nào Rust là lựa chọn đúng?
+
+Chọn Rust khi project của bạn cần:
+
+- **Latency cực thấp và ổn định** — trading engines, game servers, real-time systems
+- **Hiệu quả tài nguyên** — edge computing, embedded, serverless (cold start nhỏ)
+- **Throughput cực đại** — API gateway, proxy server, load balancer
+- **Memory-constrained environments** — IoT, containers với RAM hạn chế
+- **An toàn bộ nhớ tuyệt đối** — blockchain, security-critical systems
+
+### Ai đang dùng Rust cho backend?
+
+- **Cloudflare** — Pingora (thay thế Nginx, xử lý 1 triệu RPS)
+- **Discord** — Chuyển từ Go sang Rust cho Read States service, giảm latency từ ~50ms xuống ~5ms
+- **AWS** — Firecracker (microVM cho Lambda)
+
+---
+
+## 6. Khi nào Go vẫn là lựa chọn tốt hơn?
+
+> **"Go đủ nhanh cho 95% backend scenarios"** — đây không phải lời an ủi, mà là sự thật.
+
+Chọn Go khi:
+
+- **Cần ship nhanh** — Go đơn giản, learning curve thấp, stdlib mạnh
+- **Microservices** — goroutines + channels = perfect fit cho distributed systems
+- **Team lớn** — Go enforces simplicity, code đồng nhất, onboarding nhanh
+- **CRUD APIs** — hiệu năng Go dư thừa cho 99% REST APIs thông thường
+- **Tooling ecosystem** — Docker, Kubernetes, Terraform, Prometheus đều viết bằng Go
+
+### Ai đang dùng Go?
+
+- **Google** — nhiều internal services
+- **Uber** — microservices platform
+- **Dropbox** — migration từ Python sang Go
+- **Twitch** — backend services
+
+---
+
+## Câu hỏi thường gặp
+
+### Rust có thay thế Go trong tương lai không?
+
+Không. Cả hai phục vụ những phân khúc khác nhau. Go tối ưu cho **developer productivity** và **simplicity**, Rust tối ưu cho **performance** và **safety**. Nhiều công ty sử dụng cả hai: Rust cho core infrastructure, Go cho business logic services. Xu hướng 2025-2026 cho thấy cả hai đều tăng trưởng mạnh mẽ trong hệ sinh thái cloud-native.
+
+### Học Rust khó hơn Go bao nhiêu?
+
+Go có thể productive trong 1-2 tuần. Rust cần 2-3 tháng để "chiến đấu" với borrow checker và thật sự hiểu ownership model. Tuy nhiên, một khi vượt qua learning curve, Rust cho phép viết code ít bug hơn và hiệu năng cao hơn mà không cần lo về memory leaks hay data races.
+
+### Nên chọn framework nào cho mỗi ngôn ngữ?
+
+- **Rust:** Axum (phổ biến nhất 2025, dựa trên Tokio + Tower), Actix-web (hiệu năng cao nhất)
+- **Go:** Gin (phổ biến nhất), Echo, Chi, hoặc stdlib `net/http` (đủ mạnh cho nhiều use case)
+
+---
+
+## Kết luận
+
+Rust nhanh hơn Go — đó là sự thật được chứng minh bằng dữ liệu: **throughput cao hơn 33%**, **memory ít hơn 4 lần**, **latency thấp hơn 25%**. Những con số này đến từ sự khác biệt kiến trúc cốt lõi: zero-cost abstractions, ownership model thay vì garbage collection, và compile-time optimizations qua LLVM. Nhưng hiệu năng chỉ là một chiều. Khi tính cả developer velocity, team scalability, và ecosystem maturity, Go vẫn là lựa chọn pragmatic cho phần lớn backend APIs. Lời khuyên thực tế: nếu bạn đang build startup và cần ship nhanh — chọn Go. Nếu bạn đang build infrastructure layer cần chạy ổn định dưới áp lực cực đại — chọn Rust. Và nếu bạn có thể, hãy học cả hai.
+
+## 💡 Hành động ngay hôm nay
+
+1. **Thử Axum:** Tạo một API đơn giản với Axum và benchmark so với project Go hiện tại
+2. **Đọc "Zero to Production in Rust"** — cuốn sách tốt nhất để học backend Rust
+3. **Benchmark project thật:** Đừng tin benchmark tổng hợp — test với workload thực tế của bạn
+
+---
+
+## Nguồn tham khảo
+
+- Medium — "Benchmarking 6 Web Frameworks: Rust vs Go vs Node.js" (2025)
+- effective-programmer.com — "Rust vs Go Memory Comparison"
+- Medium — "Rust vs Go: Latency and Throughput at Scale"
+- LogRocket — "Rust vs Go: Performance Comparison 2025"
+- JetBrains — "Rust vs Go Developer Survey 2025"
+- Discord Engineering Blog — "Why Discord is Switching from Go to Rust"

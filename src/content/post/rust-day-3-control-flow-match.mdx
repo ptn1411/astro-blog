@@ -1,0 +1,88 @@
+---
+title: "30 Ngày học Rust - Day 3: Luồng điều khiển (Control Flow) và sức mạnh của Match"
+excerpt: "Day 3: Điều hướng luồng chương trình Rust không chỉ bằng 'if else' truyền thống mà còn bằng sức mạnh của vòng lặp vô tận 'loop' và 'match' biểu thức."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - control-flow
+  - if-else
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 3
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:03:00
+---
+
+# Lập trình không có ngã rẽ thì chỉ là máy tính cầm tay
+
+Bất cứ ứng dụng nào, từ con bot Discord cơ bản đến thuật toán tên lửa SpaceX, cũng đều cần phải đưa ra quyết định. Nếu A đúng thì thực thi việc B. 
+Trong Rust, logic điều khiển nhánh (Control flow) được hiện thực hóa bằng ba thứ chính: `if`, vòng lặp (loop, while, for), và điểm sáng rực rỡ nhất: `match`.
+
+## 1. Mọi thứ đều là Biểu thức (Expressions)
+
+Bí mật sức mạnh lớn nhất của Rust so với các ngôn ngữ cũ kỹ là: Hầu như mọi thứ trong Rust đều trả về một giá trị, vì chúng là Expression.
+
+Hãy xem cách `if` cấu tạo nên một gán biến siêu gọn:
+```rust
+fn main() {
+    let condition = true;
+    
+    // Nếu là JS bạn sẽ phải xài toán tử ba ngôi (condition ? 6 : 5)
+    // Ở Rust, khối `if` có thể bưng thẳng gán vào hàm:
+    let number = if condition { 6 } else { 5 };
+
+    println!("Giá trị là: {}", number);
+}
+```
+*Lưu ý: Bạn không được nhét dấu chấm phẩy `;` vào đuôi số `6` hoặc `5` ở trong khối ngoặc nhọn `{}`. Nếu bạn để `;`, Rust coi đó là kết thúc câu lệnh, nó sẽ không return ra số 6 để nhét vào cụm `number` nữa.*
+
+## 2. Vòng lặp: loop, while, for
+
+Rust cung cấp 3 cỗ máy vòng lặp cho các mục đích riêng biệt:
+
+- **`loop`:** Lặp vô tận. Nó lặp chết bỏ cho đến khi bạn hét lên lệnh `break`. Thường dùng ở các trình giả lập game (Game loop lắng nghe màn hình phím bấm 60fps) hoặc server chạy 24/7.
+- **`while`:** Lặp với điều kiện (y hệt C++).
+- **`for`:** Vua của mọi vòng lặp. 90% thời gian bạn sẽ dùng cái này. Nó duyệt qua từng phần tử một cách xuất sắc mà không bị dính lỗi Out of Bounds (Bắn khỏi mảng).
+
+Ví dụ lặp xịn xò của `for`:
+```rust
+for number in (1..4).rev() { // rev() là reverse đảo ngược đếm lùi
+    println!("{}...", number);
+}
+println!("PHÓNG!"); // In ra: 3... 2... 1... PHÓNG!
+```
+
+## 3. "Match" - Cây đũa phép định hình RUST
+
+Trong lúc chờ đến Day 7 để học sâu về Enum, bạn phải biết đến `match` - phiên bản tiến hóa lên GOD mode của `switch/case` bên C/JS.
+
+Trình biên dịch Rust **BẮT BUỘC** bạn phải lo liệu TẤT CẢ TÌNH HUỐNG (Exhaustive) nếu dùng Match. Lỗ hổng quên xử lý rác sẽ không đội sổ diễn ra:
+
+```rust
+let lua_chon = 2;
+
+match lua_chon {
+    1 => println!("Bạn chọn Vàng"),
+    2 => println!("Bạn chọn Bạc"),
+    // Quên điền các số khác? Rust không cho Compile đâu!
+    _ => println!("Bạn chọn Nhôm"), // Dấu gạch dưới '_' hứng tất cả trường hợp còn lại
+}
+```
+
+Sức mạnh của `match` khủng khiếp ở chỗ, nó không những so khớp số nguyên, nó còn có thể so khớp Enum, bắt trọn Data bên trong ống rỗng, bẻ khóa Pattern... giúp phân luồng lỗi (Error Handle) hoàn mỹ — thứ sẽ được giới thiệu ở Ngày 10.
+
+## Câu hỏi thường gặp (FAQ)
+
+### Rust có toán tử điều kiện (Ternary Operator) kiểu `? :` không?
+Không. Với tư duy làm cho ngôn ngữ minh bạch và ít lộn xộn, nhóm phát triển Rust quyết định không chèn toán tử `? :` vì dùng thẳng khối lệnh `if else` (như ví dụ 1 ở trên) vừa làm được chuyện ấy lại vừa rõ ràng, không đẻ thêm cú pháp thừa thãi. 
+
+### Việc sử dụng `_` (Wildcard) trong match có gì lưu ý?
+Vì `_` ôm trọn "mọi thứ còn lại" (the rest), bạn phải vứt cành này xuống cuối cùng của cấu trúc `match`. Tuy nhiên, về mặt thiết kế an toàn của các hệ thống ngặt nghèo (Critical system), các DEV kỳ cựu ở Rust khuyên bạn **Hạn chế dùng `_`**. Tại sao? Vì nếu tương lai bạn cập nhật thêm lựa chọn `3 => "Đồng"`, nhưng bạn lỡ quên sửa logic. Nhờ không dùng `_`, Rust sẽ gào lên báo lỗi giúp bạn nhớ. Nếu có `_`, code vẫn pass qua nhẹ nhàng và ẩn đi một bug khủng bố chờ bom nổ.
+
+---
+
+**Sẵn sàng cho Ngày 4?** Biến? Ok. Điều khiển nhánh? Ok. Bạn chỉ còn cách chức danh Rustacean một cánh cửa duy nhất. Bài viết ngày mai sẽ dạy bạn bức tường khó nhằn và đặc trưng nhất của Rust: **[Day 4: Ownership - Kẻ thao túng bộ nhớ]**.

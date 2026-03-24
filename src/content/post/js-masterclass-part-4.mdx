@@ -1,0 +1,81 @@
+---
+title: "Làm chủ JavaScript Phần 4: Vượt qua ác mộng Bất đồng bộ (Async)"
+excerpt: "Phần 4: Hiểu sâu về cách JavaScript xử lý đa nhiệm dù chỉ có 1 luồng (Single-thread). Giải mã Event Loop, Promises và Async/Await."
+category: "Lập trình cơ bản"
+tags:
+  - javascript
+  - js-masterclass
+  - async
+  - event-loop
+  - promise
+series:
+  id: "js-masterclass"
+  title: "Làm chủ JavaScript 2025"
+  part: 4
+  totalParts: 5
+author: "Phạm Thành Nam"
+image: "/src/assets/images/js-part4-cover.png"
+publishDate: 2026-03-24T16:45:00
+---
+
+# Ảo giác Đa luồng của JavaScript
+
+JavaScript là ngôn ngữ **đơn luồng (Single-threaded)**. Nghĩa là tại một thời điểm, nó **chỉ có thể làm duy nhất MỘT việc**. Khác với Java hay C# có thể quăng công việc cho nhân CPU số 2, số 3 chạy song song; JS chỉ có một con đường cao tốc duy nhất.
+
+Vậy tại sao khi bạn tải một bức ảnh 5MB mất 10 giây qua lệnh `fetch()`, trang web không bị đơ giật trong suốt 10 giây đó mà bạn vẫn có thể cuộn trang hay bấm nút bình thường? Câu trả lời nằm ở kiến trúc vĩ đại nhất của trình duyệt: **Event Loop (Vòng lặp sự kiện).**
+
+## 1. Hành trình giải cứu của Web APIs và Event Loop
+
+Khi JS gặp một tác vụ tốn thời gian (như gọi API, hẹn giờ `setTimeout`), nó sẽ không đứng chờ. Nó tóm lấy tác vụ đó và ném cho **Web APIs** (những công nhân chạy ngầm do Trình duyệt viết bằng C++ cung cấp).
+Sau đó, JS tiếp tục chạy các dòng code bên dưới ngay lập tức.
+
+Khi công nhân Web APIs làm xong việc (ảnh đã tải xong), nó không vứt thẳng kết quả vào giữa mặt JS. Nó bọc kết quả lại và xếp hàng vào một khu vực gọi là **Task Queue (Hàng đợi tác vụ)**.
+
+Nhiệm vụ của **Event Loop** rất đơn giản nhưng bền bỉ: Nó là một giám thị đứng dòm xem cái **Call Stack** (Bộ nhớ thực thi của JS) đã trống trơn chưa. Nếu Call Stack đã chạy xong hết tất cả code đồng bộ và trống rỗng, Event Loop mới mở cửa cho tác vụ đang xếp hàng đầu tiên trong **Task Queue** chạy vào. 
+
+![Sơ đồ Event Loop trong JavaScript](/src/assets/images/js-event-loop.png)
+
+*Sự luân chuyển nhịp nhàng này mang lại "ảo giác" rằng JS có thể làm đa nhiệm.*
+
+## 2. Từ Callback Hell đến Lời hứa (Promise)
+
+Trước năm 2015, để xử lý bất đồng bộ, lập trình viên phải truyền một hàm vào trong một hàm khác (Callback). Nếu bạn phải gọi 5 API liên tiếp (cái sau cần dữ liệu của cái trước), bạn sẽ tạo ra một thảm họa **Callback Hell** hình kim tự tháp méo mó đâm thủng màn hình.
+
+**Promise** ra đời như một vị cứu tinh. Một Promise là một Object đại diện cho một hành động "sẽ hoàn thành trong tương lai". Nó có 3 trạng thái:
+- **Pending**: Đang đợi kết quả.
+- **Fulfilled**: Thành công, trả về dữ liệu qua `.then()`.
+- **Rejected**: Thất bại, văng lỗi vào `.catch()`.
+
+Nhờ Promise, code từ hình kim tự tháp đã duỗi thẳng thành chuỗi liên kết dọc gọn gàng. Hơn thế nữa, các `.then()` này được ưu tiên chèn lốp vào hàng đợi VIP gọi là **Microtask Queue** — chạy nhanh hơn cả `setTimeout`.
+
+## 3. Cú pháp tối thượng: Async / Await
+
+Dù Promise đã tốt, ES8 (2017) tiếp tục chiều chuộng giới lập trình viên bằng `async / await`. 
+
+Nó thực chất đằng sau vẫn là Promise (Syntactic Sugar), nhưng nó cho phép bạn viết các tác vụ bất đồng bộ **trông y hệt như code đồng bộ bình thường**. Từ khóa `await` sẽ ra lệnh cho hàm đó tạm ngưng (nhường đất cho tác vụ khác chạy) cho đến khi Promise trả về kết quả. 
+
+```javascript
+// Chuỗi hành động dễ đọc như tiếng Anh:
+async function phucVuMuaHang() {
+  try {
+    const user = await xacThucNguoiDung();
+    const giỏHàng = await layGioHang(user.id);
+    await thanhToan(giỏHàng);
+    console.log("Tuyệt vời, đơn hàng thành công!");
+  } catch (error) {
+    console.error("Ôi không, bị từ chối thẻ:", error);
+  }
+}
+```
+
+## Câu hỏi thường gặp (FAQ)
+
+### Node.js cũng chạy Event Loop giống trình duyệt phải không?
+Đúng vậy. Dù không có thư viện Web APIs như Chrome, Node.js lấy sức mạnh bất đồng bộ từ thư viện **libuv** viết bằng C. Nhờ cơ chế Event Loop đẩy I/O (việc đọc ghi file, gọi mạng) ra nền sau, Node.js có thể phục vụ được hàng chục nghìn kết nối đồng thời mà không bị ngốn cạn RAM tạo Luồng (Thread) như các hệ thống Backend máy chủ cơ bản.
+
+### Xử lý nhiều API cùng lúc như thế nào để tối ưu tốc độ nhanh nhất?
+Nếu 3 màn gọi API không phụ thuộc vào nhau, bạn không nên gõ `await` 3 lần liên tiếp (sẽ gây tình trạng chờ chặn nhau - Waterfall). Khắc phục cực nhanh bằng `Promise.all([api1(), api2(), api3()])`. Chúng sẽ được gửi kích hoạt cùng một lúc, rút ngắn tổng thời gian đợi xuống chỉ còn bằng thời gian của API chạy chậm nhất.
+
+---
+
+**Sẵn sàng cho ải cuối cùng?** Chúng ta đã đi qua Biến, Hàm, Array và Bất đồng bộ. Phần cuối cùng của cuộc hành trình sẽ là việc cấu trúc lại hàng ngàn dòng code đó sao cho ra dáng một kỹ sư thực thụ trong **[Phần 5: Lập trình hướng đối tượng (OOP) & ES Modules]**.

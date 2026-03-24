@@ -1,0 +1,44 @@
+---
+title: "Mã hóa hậu lượng tử: Giải pháp mã hóa nào sẽ sống sót sau năm 2025?"
+excerpt: "Thực tế về Ngày Q (Q-Day) khi máy tính lượng tử phá vỡ RSA và quá trình chuyển đổi sang Post-Quantum Cryptography."
+category: "Bảo mật & Mã hóa"
+tags:
+  - quantum
+  - bao-mat
+  - ma-hoa
+  - cybersecurity
+  - rsa
+author: "Phạm Thành Nam"
+image: /src/assets/images/quantum-security-cover.png
+publishDate: 2026-03-24T15:35:00
+---
+
+# Quantum Computing và Tương lai bảo mật: Đếm ngược đến Ngày Q
+
+Khi nhắc đến Điện toán lượng tử (Quantum Computing), hầu hết chúng ta đều nghĩ đến những chiếc máy có tốc độ nhanh hơn siêu máy tính hàng tỷ lần. Nhưng trong giới chuyên gia An toàn thông tin, Quantum Computing lại đại diện cho một thảm họa tồi tệ nhất — sự sụp đổ của toàn bộ hệ thống mã hóa toàn cầu.
+
+## 1. Mối đe dọa từ Thuật toán Shor
+
+Phần lớn dữ liệu nhạy cảm trên internet hiện nay — từ tin nhắn Zalo, đến giao dịch ngân hàng (giao thức HTTPS/SSL) — đều được bảo vệ bởi **Hệ mật mã khóa công khai (Public Key Cryptography)**, cụ thể là thuật toán RSA. RSA hoạt động dựa trên nguyên lý: Việc nhân hai số nguyên tố khổng lồ để tạo ra một khóa dài rất dễ, nhưng việc dò ngược từ khóa dài để tìm ra 2 số nguyên tố cấu thành ban đầu là bất khả thi với máy tính truyền thống (sẽ mất hàng triệu năm phân tích).
+
+Tuy nhiên, vào năm 1994, nhà toán học Peter Shor đã chứng minh rằng một máy tính lượng tử đủ mạnh có thể giải bài toán phân tích thừa số nguyên tố chỉ trong vài tiếng đồng hồ. Thời khắc máy tính lượng tử đủ khả năng làm việc này được gọi là **Q-Day (Ngày lượng tử)**.
+
+Dù Q-Day có thể chưa diễn ra ngay trong năm 2025, nhưng một mối đe dọa cấp bách khác đã xuất hiện: chiến lược **"Store Now, Decrypt Later"** (Lưu trữ ngay, Giải mã sau). Tin tặc hoặc các tổ chức nhà nước đang thu thập và lưu trữ lưu lượng internet được mã hóa hiện nay, để chờ đến khi máy tính lượng tử sẵn sàng thì sẽ lấy ra giải mã ngược các bí mật này.
+
+## 2. Kỷ nguyên Mã hóa hậu lượng tử (PQC)
+
+Để đối phó, Viện Tiêu chuẩn và Công nghệ Quốc gia Mỹ (NIST) cùng cộng đồng toàn cầu đã gấp rút chuẩn hóa các tiêu chuẩn **Mã hóa hậu lượng tử (Post-Quantum Cryptography - PQC)**. 
+
+Thay vì dựa vào bài toán phân tích thừa số nguyên tố, PQC sử dụng các bài toán toán học thuộc lĩnh vực Hình học không gian đa chiều (Lattice-based Cryptography), thứ mà ngay cả máy tính lượng tử cũng không giải nổi. Vào cuối năm 2024 và trong suốt năm 2025, những gã khổng lồ như Apple (với giao thức PQ3 cho iMessage), Google và Microsoft đã bắt đầu mặc định tích hợp PQC vào hệ điều hành và trình duyệt của mình. 
+
+## Câu hỏi thường gặp (FAQ)
+
+### Điện thoại và máy tính của tôi có cần nâng cấp lên Quantum Computing không?
+Không. Chuyển đổi sang mã hóa PQC là sự nâng cấp phần mềm. Ví dụ: khi bạn cập nhật iOS hoặc trình duyệt Chrome lên bản mới nhất, hệ thống tự động đổi sang giao thức mã hóa kháng lượng tử. Máy tính di động cá nhân không cần và không thể gắn chip lượng tử do yêu cầu làm mát nhiệt độ âm tuyệt đối.
+
+### Khi nào Q-Day thực sự xảy ra?
+Các công ty lớn như IBM báo cáo họ đã phát triển máy tính với hàng ngàn Qubit. Mặc dù cấu hình hiện tại vẫn "nhiễu" và chưa đủ khả năng phá vỡ mã hóa RSA-2048, nhưng nhiều cơ quan tình báo dự báo Q-Day sẽ nằm đâu đó từ năm 2030. Hành động nâng cấp mã hóa PQC là bài toán "phòng cháy trước khi thấy lửa".
+
+---
+
+**Kết luận:** Năm 2025 đánh dấu bước khởi đầu cho đợt "đại di cư" quy mô lớn nhất trong lịch sử bảo mật mạng. Chúng ta đang thiết lập lại vòng đai phòng thủ của Internet toàn cầu, một công việc âm thầm nhưng mang ý nghĩa quyết định sống còn đối với sự tồn tại của tiền mã hóa, y tế và nền dân chủ điện tử.

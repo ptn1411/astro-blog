@@ -1,0 +1,103 @@
+---
+title: "30 Ngày học Rust - Day 19: Tranh cãi Lập trình hướng đối tượng (OOP) trong Rust"
+excerpt: "Day 19: Rust có phải là ngôn ngữ OOP không? Tái hiện các đặc tính Đóng gói (Encapsulation) và Kế thừa (Inheritance) qua con mắt của Struct và Traits."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - oop
+  - design-patterns
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 19
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:19:00
+---
+
+# Sự ảo tưởng của Khái niệm Lập trình OOP
+
+Gần suốt từ thế kỉ 20, sách vở dạy bạn OOP (Lập trình hướng đối tượng) định nghĩa xoay quanh 3 trụ cột: Tính Đóng gói, Tính Kế thừa, Tính Đa hình. Từ C++ kéo qua Java, trào lưu Thiết kế Gắn Chết Object đã dìm chết biết bao Khối Óc Lập Trình (Ví dụ: Bạn muốn mượn tính năng Ăn Cỏ của Lớp Động Vật, bạn Kế Thừa Nó... Và bạn xách dọng luôn Mọi Chức năng Ảo Ma, Lọc Máu Của Nguyên dòng tộc Nặng Ngàn Cân Lấn Bóp Dữ Liệu App).
+
+Rust chê bai và từ chối cung cấp từ khóa `class` và `extend` (Kế thừa gộp gia phả). Tuy nhiên, Rust vẫn xào nấu ra 3 Cây Cột Trụ cực kì mượt mà!
+
+![Sơ đồ mô phỏng các Object trao đổi thông điệp qua Trait OOP](/src/assets/images/rust-day19-oop.png)
+
+## 1. Tính Đóng Gói (Encapsulation / Private Scope)
+
+Việc Giấu Thùng Vàng Giữa Quá Khứ, Bảo Đối Không Quả Nào Đục Vào Đổi Số Tiền Trắng Nhợn Từ Vườn Gà Ác. Trong Rust, nó Chính là Cơ Chế Private Mặc Định Chặn Lòng Hành Tinh:
+
+```rust
+pub struct KhuBaTang {
+    pub thiet_ke: String,      // Khoe Thân (Cho Tụ Chỉnh Đổi)
+    ho_so_mat: Vec<i32>,       // Lặng Mút Tuyệt Đối Private by Default
+}
+
+impl KhuBaTang {
+    pub fn new() -> KhuBaTang {
+        KhuBaTang {
+            thiet_ke: String::from("Nhà Cổ"),
+            ho_so_mat: vec![10_000, 20_000],
+        }
+    }
+    
+    // Hàm Gọi Đọc Cửa (Getter). Không đưa Khóa Xuyên Tham Chiếu `&mut`, Lạy Rời Éo Ai Phá Được
+    pub fn doc_ma_kho>(&self) -> &Vec<i32> {
+        &self.ho_so_mat
+    }
+}
+```
+
+## 2. Tính Kế Thừa vs Composition (Khai Sáng Dòng Traits)
+
+Nỗi kinh hoàng nhất C++ Cú Tác: Class Animal -> Class Dog -> Đè Chéo Mặt Class Bizarre Alien -> Lỗi Bug Bọc Tròn (Diamond Problem). 
+
+Rust Gạt Sạch: Lấy Hành Động Tính **Trait**. Bạn Không Kế Thừa Gộp Mặt Thằng Gốc, Mày Đọc Thỏa Bảng Mô Tả Tính Chất VÀ Ký Kín Tên Tuần Lễ Là Được Nhé Tên Kiểu. Lệnh Gọi "A Is B" vĩnh viễn Dập Tan, Thay Vào Là Đạo Lý "A LÀM ĐƯỢC CHỨC NĂNG H B".
+
+Vạch Bài Cụ Thể (State Pattern OOP): Bài Post Mở Tạo Bản Nháp -> Check Duyệt -> Phân Giải Post Bài. Cấu Phân Rã:
+
+```rust
+// Hộp Lưu State
+pub struct Post {
+    state: Option<Box<dyn State>>,
+    content: String,
+}
+
+// Bảng Khởi Khế Interface Trái Tính Luật Lõi
+trait State {
+    fn request_review(self: Box<Self>) -> Box<dyn State>;
+    fn approve(self: Box<Self>) -> Box<dyn State>;
+    // .. 
+}
+// Chặn 3 Cái Lõi Impl Bám Tính Dữ Cho Draft (Nháp), Pending (Chờ), Published (Xong). 
+// KẾT: Tách Đứt Vành Rể Bức Code Thay Vì Nhồi Gùi Vô Class Lộn Xộn Cũ Kĩ!
+```
+
+## 3. Tính Đa Hình Mảng Đối Loại Kẹt (Trait Objects)
+
+Dùng Trait Gốc Để Lập Môn Các Dòng Lỗ Tương Đồng Ở Đám Bảng GUI (Giao Diện Nút, Lớp Text TextBox):
+
+```rust
+pub trait Draw { fn draw(&self); }
+
+// Mảng Box Chứa Liên Vòm Trích Mọi Chủng Dòng Button/Form
+pub struct Screen {
+    pub components: Vec<Box<dyn Draw>>,
+}
+
+impl Screen {
+    pub fn run(&self) {
+        for component in self.components.iter() {
+            component.draw();
+        }
+    }
+}
+```
+
+Tẩy Sạch Code Thống Trị Nguy Hiểm, Sức Mạnh Mô-Đun Lên Ngôi Bật Nhất Ở Các Đời Rust Game Engine `Bevy` Cứu Máy Nạp Frame!
+
+---
+
+**Sẵn sàng cho Ngày 20?** Hoả Vận OOP Bịt Kéo Pháo Thành 2 Cục Sáng Đảo Tranh Trác Nếp Cắt Pattern Nâng Cao Ở Trại Kỹ Nghệ Dev Chuyên Trị Tưởng: **[Day 20: Hoa Văn Lấp Mảng Pattern Control]**.

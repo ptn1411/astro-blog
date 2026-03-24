@@ -1,0 +1,76 @@
+---
+title: "Làm chủ JavaScript Phần 1: Đặt nền móng với Biến, Kiểu dữ liệu và Bộ nhớ"
+excerpt: "Khởi đầu series Làm chủ JavaScript 2025. Tìm hiểu cách JavaScript quản lý bộ nhớ (Heap/Stack), lý do `var` bị khai tử và sức mạnh của các kiểu dữ liệu."
+category: "Lập trình cơ bản"
+tags:
+  - javascript
+  - js-masterclass
+  - lap-trinh-web
+  - frontend
+series:
+  id: "js-masterclass"
+  title: "Làm chủ JavaScript 2025"
+  part: 1
+  totalParts: 5
+author: "Phạm Thành Nam"
+image: "/src/assets/images/js-part1-cover.png"
+publishDate: 2026-03-24T16:30:00
+---
+
+# Lời mở đầu: Vì sao lại là JavaScript?
+
+JavaScript (JS) không chỉ là ngôn ngữ lập trình phổ biến nhất thế giới trong 11 năm liên tiếp (theo Stack Overflow 2024), mà nó còn là "ngôn ngữ mẹ đẻ" của trình duyệt web. Từ một kịch bản đơn giản giúp nút bấm đổi màu vào năm 1995, JS ngày nay có thể xây dựng máy chủ (Node.js), ứng dụng di động (React Native), phần mềm máy tính (Electron), và thậm chí cả AI (TensorFlow.js).
+
+Tuy nhiên, chính sự linh hoạt và tính "dễ dãi" (khoan dung với lỗi) của JS lại trở thành con dao hai lưỡi, khiến nhiều lập trình viên viết ra những dòng code chạy được, nhưng không hiểu thực sự ***tại sao nó chạy***.
+
+Series **"Làm chủ JavaScript 2025"** ra đời để giúp bạn xóa bỏ khoảng trống kiến thức đó, đi sâu vào bản chất thay vì chỉ gõ code học vẹt. Trạm dừng đầu tiên: **Biến, Kiểu dữ liệu và Cách JS cấp phát bộ nhớ.**
+
+## 1. Engine V8 và Hai Vùng Nhớ Trọng Yếu
+
+Trước khi khai báo biến, bạn cần biết code của bạn "Sống" ở đâu trong RAM. Khi một engine như Google V8 (dùng trong Chrome và Node.js) chạy code của bạn, nó sử dụng hai vùng nhớ chính:
+
+**Memory Heap:** Là một không gian lớn, vô tổ chức dùng để cấp phát bộ nhớ động. Khi bạn tạo một Object, Array hay Function, nó sẽ được vứt vào đây.
+**Call Stack:** Là một cấu trúc dữ liệu ngăn xếp (LIFO - Vào sau ra trước). Cứ mỗi khi hàm được gọi, JS đẩy ngữ cảnh thực thi (Execution Context) vào Stack. Stack cũng là nơi chứa các biến mang giá trị nguyên thủy (Primitive).
+
+![Biểu đồ minh họa Stack và Heap trong JS](/src/assets/images/js-heap-stack-diagram.png)
+
+Sự phân tách này mang ý nghĩa sống còn khi chúng ta bàn về 2 nhóm kiểu dữ liệu ngay sau đây.
+
+## 2. Kiểu Dữ Liệu Nguyên Thủy (Primitive) vs Tham Chiếu (Reference)
+
+JavaScript hiện đại sở hữu 7 kiểu nguyên thủy (String, Number, BigInt, Boolean, Undefined, Null, Symbol) và 1 kiểu tham chiếu (Object - bao gồm cả Array và Function). 
+
+### Lưu ý chết người về Tham chiếu
+
+Hãy nhìn đoạn code sau:
+```javascript
+let user1 = { name: "Nam" };
+let user2 = user1;
+user2.name = "Hoàng";
+
+console.log(user1.name); // Kết quả là "Hoàng"! Tại sao?
+```
+Vì Object được lưu ở **Heap**. Biến `user1` ở **Stack** không lưu trực tiếp Object, nó chỉ lưu **Địa chỉ (Con trỏ)** trỏ tới Object đó trên Heap. Khi bạn gán `user2 = user1`, bạn đang copy "Địa chỉ", không phải là copy dữ liệu. Hai biến cùng chĩa súng vào một mục tiêu, thay đổi của người này sẽ ảnh hưởng đến người kia.
+
+Lỗi không hiểu cơ chế tham chiếu (Reference) tạo ra 80% số lượng Bug về trạng thái (State) ở những lập trình viên mới học React / Vue.
+
+## 3. Chấm dứt kỷ nguyên của `var`
+
+Từ ES6 (2015), JS cập nhật thêm `let` và `const` cho việc khai báo biến. Việc sử dụng `var` ở năm hiện tại bị coi là "Code bốc mùi" (Code Smell). Dưới đây là lý do:
+
+1. **Vấn đề Scope (Phạm vi):** `var` có phạm vi theo hàm (Function Scope), nó sẽ phớt lờ các cặp ngoặc nhọn `{}` của `if` hoặc `for`. Điều này khiến biến chạy loạn khắp nơi. `let` và `const` có phạm vi theo khối (Block Scope), an toàn và dễ đoán hơn rất nhiều.
+2. **Hoisting quái dị:** JS luôn đưa phần khai báo `var` lên đỉnh file trước khi chạy. Do đó, bạn có thể in rả biến `var` trước cả khi bạn định nghĩa nó (sẽ trả về `undefined`), gây khó khăn vô cùng cho Debug. `let` và `const` đưa biến vào vùng chết tạm thời (Temporal Dead Zone) buộc bạn phải viết code tuân thủ thứ tự đọc từ trên xuống dưới.
+
+*Luật bất thành văn năm 2025: Mặc định luôn dùng `const`. Nếu giá trị của biến cần sự thay đổi (như bộ đếm vòng lặp), dùng `let`. Gạch bỏ hoàn toàn `var` ra khỏi từ điển của bạn.*
+
+## Câu hỏi thường gặp (FAQ)
+
+### JS là ngôn ngữ "kẻ yếu" hay "kẻ mạnh" về kiểu dữ liệu?
+JS là một ngôn ngữ có bộ định kiểu tự động và linh hoạt (Dynamically and Weakly Typed). Bạn không cần gán kiểu khi khai báo (Dynamic) và JS sẽ lén lút "ép kiểu ngầm" (Weakly) thay bạn khi cần. Ví dụ: `"5" - 1 = 4` (Ép thành số), nhưng `"5" + 1 = "51"` (Ép thành chuỗi). Sự bất cập này là lý do TypeScript ra đời để kiểm soát kiểu chặt chẽ hơn.
+
+### Garbage Collector (Bộ thu gom rác) dọn dẹp bộ nhớ như thế nào?
+JS sử dụng thuật toán "Mark-and-Sweep". Bắt đầu từ gốc rễ (ví dụ: biến Global (`window`)), thuật toán sẽ tìm theo tất cả các rễ và con trỏ. Những vùng nhớ nào trên Heap có nhãn "có thể với tới" (Reachable) sẽ được giữ lại. Đoạn vùng nhớ nào bị đứt kết nối hoàn toàn, GC sẽ nhận diện nó là "rác" và âm thầm giải phóng RAM trả lại hệ điều hành mà bạn không cần phải tự quản lý như ngôn ngữ C/C++.
+
+---
+
+**Sẵn sàng cho phần tiếp theo?** Ở phần này, chúng ta đã hiểu dữ liệu sống ra sao trong Memory. Trong bài viết sắp tới **[Phần 2: Trái Tim Của JS (Hàm, Scope & Closures)]**, chúng ta sẽ mang đống dữ liệu tĩnh đó vào hoạt động thông qua cỗ máy bơm máu của lập trình là các Function!

@@ -1,0 +1,97 @@
+---
+title: "30 Ngày học Rust - Day 9: Các bộ sưu tập chung (Vectors, Strings, Hash Maps)"
+excerpt: "Day 9: Phân rã nhóm Data Structures nền tảng. Khám phá cách Vectors nhồi nhét mạng Heap, vì sao String ở Rust lại khét tiếng khó nuốt, và lưu key-value bằng Hash Maps."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - vector
+  - hashmap
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 9
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:09:00
+---
+
+# Data Structures cốt lõi ở Bãi Rác Memory Heap
+
+Mảng `[1, 2, 3]` tĩnh tạc có vấn đề: Nó ghim kích thước bất biến ngay khi mở mắt do lưu trong vùng Stack nhỏ bé. Nếu ta muốn làm cái rổ Đựng Giỏ Hàng lúc mua thì tăng, lúc xóa thì sụt, việc đó giao cho bộ Cấu Trúc Động nhồi nhét thẳng xuống bãi phế liệu The Memory Heap.
+
+## 1. Vector: Mảng vô cực
+
+Trong Cpp, nó tên là `std::vector`, ở JS/Python thì gọi là Mảng (Array/List). Ở Rust, nó mang kí tự `Vec<T>`.
+
+Tạo và nhét rác:
+```rust
+let mut v: Vec<i32> = Vec::new();
+// Hoặc xài mẹo khởi tạo nhanh dùng macro !
+let mut m = vec![1, 2, 3];
+
+v.push(5);
+v.push(6);
+v.push(7);
+v.push(10);
+```
+
+Đọc Value mà lỡ tay gọi Cảnh Sát Đâm Biên (Out-of-Bound):
+```rust
+// Cách 1: Quyền truy cập trực tiếp bằng gạc `&v[2]`. NẾU lỗi, App vỡ Crash Panics. 
+let than = &v[2]; 
+
+// Cách 2 (Khuyên dùng): Dùng lệnh get. Nó trả về cái hạt mầm Option an toàn!
+match v.get(20) {
+    Some(nguoi_ngoai_hanh_tinh) => println!("Tìm thấy: {}", nguoi_ngoai_hanh_tinh),
+    None => println!("Chẳng có gì trong khu vực vượt mảng này."),
+}
+```
+
+## 2. String - Cuộc thanh trừng của Ả Rập, Emoji và Cấu trúc chuỗi
+
+Bạn nghĩ `String` là tập hợp Mảng Vector chứa từng kí tự chữ A B C? Nằm mơ đi. Ở thời xa cổ đại (như C), kí tự nằm vỏn vẹn trong 1 Byte gạch ngang chuẩn ASCII.
+
+Thế kỉ 21, để chèn Emoji 😘 hoặc ngôn ngữ Ả Rập, Hindi đan vẹo, bảng Unicode ra đời có kí tự chiếm từ 1 tới 4 Bytes vỡ đầu. Vì vậy Rust không cho bạn lấy Index Cắt Kí Tự ngớ ngẩn (Cấm dùng `hello[0]`). 
+
+**Tôn chỉ của Rust: Có 2 String**
+- Tham chiếu mỏng: `&str` (Slice) - Trỏ thẳng đến mã Code hoặc 1 đoạn RAM đứt gẫy nào đó. Xài nhanh không chuyển biến quyền chủ (Ownership). 
+- Kiểu thịt sườn đắp đầy: `String` - Cho phép dẹp nát cắm thêm đuôi: `hello.push_str(" World");`. Chủ Nhân.
+
+## 3. Bản đồ băm dữ liệu Hash Maps
+
+Thứ dùng để lưu Điểm số trò chơi dạng `{ Key : Value }`. Bên JS gọi là Object/Dict. 
+
+Khởi tạo (Phải móc lệnh `use` hệ thống vô trước vì không có mặc định):
+```rust
+use std::collections::HashMap;
+
+let mut scores = HashMap::new();
+scores.insert(String::from("Team Xanh"), 10);
+scores.insert(String::from("Team Đỏ"), 50);
+
+// Nạp thêm đè 1 mảng nếu có:
+let team_name = String::from("Team Xanh");
+let score = scores.get(&team_name).copied().unwrap_or(0);
+```
+
+Chính vì Hashmap gom vất tất của Biến nhập (Move Ownership) trừ References, nếu bạn Insert 1 String key `A` và 1 Value bự, cái `A` đó chết nát ngay lúc chui zô map.
+
+## Câu hỏi thường gặp (FAQ)
+
+### Rust vòng lặp đổi Value thẳng bên trong Vector (VD x2 các số bên trong mảng)?
+Siêu an toàn nhờ Mutable Borrow:
+```rust
+let mut v = vec![100, 32, 57];
+for j in &mut v {
+    *j += 50; // Dấu * (Dereference pointer) đu thẳng xuống đất lột địa chỉ trỏ số.
+}
+```
+
+### UTF-8 khiến việc cắt Chuỗi String (Slice) bị lỗi gì?
+Vì có các hệ UTF-8 đan xen chập tự 3 Byte 1 chữ trên bảng mã Unicode, nếu bạn cắt ngấn `&hello[0..2]` trúng giữa rãnh mã Unicode, Chương trình Rust nổ tung Panics. Dev Rust an toàn xài duyệt Mảng Characters (`for c in "Hello".chars()`). Càng không bao giờ tin chiều dài `len()` của String là đúng số lượng kí tự (Đó là chiều Rộng hệ Bytes).
+
+---
+
+**Sẵn sàng cho Ngày 10?** Hộp gỗ nhét Value và Đọc Error Out của Vector dãn ra. Ngày mai, học cách Lỗi Vỡ Trận bị ngài Trình Biên Dịch điều phối vạn biến bằng The Option/Result thay thế Error Hỏng Crash App của vương triều Try-Catch xưa cũ: **[Day 10: Xử lý Lỗi (Error Handling)]**.
