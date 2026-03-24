@@ -1,0 +1,63 @@
+---
+title: "30 Ngày học Rust - Day 24: Siêu Năng Lực Procedural Macros (Macro Thủ Tục)"
+excerpt: "Day 24: Cách những Framework lớn như Serde hay Axum dệt nên ma thuật. Cắm rễ vào trình biên dịch, xẻ thịt AST Code của bạn thành Node Cây và thao túng toàn bộ chúng."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - macros
+  - proc-macro
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 24
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:24:00
+---
+
+# Lấy Chìa Khóa Quản Trị Hệ Thống Trình Biên Dịch
+
+Kiểu Macro Khớp Hình (Declarative `macro_rules!`) đã quá bá đạo ở Ngày 23. Nhưng Gã khổng lồ Framework Serde (Chuyên Biến Struct thành chuỗi JSON) Không Thể Gõ So Rạch chữ Để Mò ra tên Từng Cái Biến Nằm rải rác.
+Chúng Cần Một Loại Phép Thuật Thao Túng Não Bộ Compiler. Lấy Lược Gỡ Luôn Cây Rễ Ký Tự Từ Khóa (Abstract Syntax Tree - AST) Của Bộ Não Biên Dịch.
+
+Rust Cho Phép Làm Điền Rồ Đó Bằng **Procedural Macros (Macro Thủ tục Cấp Chức Năng)**. Cấu Trúc của nó Không Phải Bảng Khớp Regex. Nó Là MỘT HÀM RUST THỰC THỤ nhận vào Mảng Code Thô (`TokenStream`) và Phụt Lại Chùm Code Thô Cải Tạo Mới!
+
+![Cỗ máy Lò Rèn Code Cắt Gói Cày Phóng Lập Trình Sinh Chế AST Token](/src/assets/images/rust-day24-proc-macros.png)
+
+## Các Thể Khí Công Procedural
+
+Vì Có Phép Thay Code Như Vị Thần Cầm Khuôn: 100% Macro Proc Không Thể Viết Chung File `lib.rs` Do Gã Crate App Bị Ràng Buộc Luật So Rối Kép Build Căng Dây. Bạn BUỘC PHẢI tạo Ra 1 Cái Crate (Gói Tool) Cắm Nhãn Riêng Gọi Là Khúc `proc-macro = true` Và Tách Trái Thẩm Gieo Vô App Root. Cực Nghệ Chuyên Môn, Gồm Ba Lực Lượng: 
+
+### 1. Custom `#[derive]` (Ma Quỷ Ký Liễn Thuộc Tích)
+Đây Là Cách Bạn Phê Chuẩn Nhất! 
+```rust
+#[derive(TuiTinhXuatJSON)] 
+struct NguoiDung {
+   tuoi: u8,
+}
+```
+Khi Thấy Khúc derive, Con Bot Hàm Của Crate Proc Macro Sẽ Hút Dữ struct đó Vô Miệng. Chẻ rã nó Thấy Chữ NguoiDung... Hắn Lặng Im Trả Lại Cài Struct Gốc Mẹ, KÈM THEO VIẾT NỐI BỘ ĐUÔI Ở Khúc Dưới Gầm 1 Lỗ `impl TuiTinhXuatJson` Kèm Quất Nguyên Toàn Bộ Đoạn Code Ép Chuyển Chữ. Bạn Bấm Nhẹ Viết Chữ "derive" Nhỏ Xíu Đã Nhận Một Quán Tính Code Chục Ngàn Dòng Auto Sinh Thêm Chạy Ngầm Bọc Ruột!!!
+
+### 2. Attribute-like Macros (Đóng Trần Chuyên Tượng Hàm)
+Nâng Cấp Áp Chế. Cấu Lệnh Khép Trên Đỉnh Đầu Băng Giá Hàm. Nhổ Luôn Ruột Hàm Ẩn Định Đóng Lại Hoàn Toàn Tươi Màu Mới Khác!
+```rust
+#[tao_cuc_route(GET="/home")] 
+fn xem_nha() {}
+```
+Bạn Nghĩ Axum Nắm Đầu Khảo Bếp Mạng Bằng Cách Nào? Nó Hút Hàm Này Đi Lọc Chèn Middleware Request Đầy Mật!
+
+### 3. Function-like Macros
+Xài In Y Hệt Macro Day 23 Gọi Ra Lệnh Búa ( VD: `sql!("SELECT * FROM HACKER")`). Nhưng Do Nó Được Khớp AST Proc Của Biên Dịch, Hàm Nó Cực Hiểm Xọc Vào Kiểm Mạch Data String Mà Búng Cánh Dò Regex DB Kiểm Soát Xem Mình Gõ Có Lủng Chén Lỗi Typos Chữ Hay Không Trục Xuất!
+
+## Câu hỏi thường gặp (FAQ)
+
+### Để Rạch Biển Data Token Mảng Syntax Có Khó Xơi Không Vị Thần Ơi?
+Không. Cộng Đồng Đã Tạo Chỗ Đáp Cực Ướt Át Và Ngon Nghẻ Là Hai Đại Thư Viện **`syn` và `quote`**. 
+- Thằng `syn`: Ăn Vào Cụm Mã Giun Chuỗi Cắt Cưa Ra Rổ Xoay Struct Danh Tánh Lệnh AST Thông Mạng Gốc Có Thể Kiểm Toán Dễ Bằng Mắt Đọc Thường i32 Object.
+- Thằng `quote`: Ôm Tí Thép Chuỗi Format Nửa Kín Nửa Mở In Kẽ Hơi Rối Ra Đạn Thụt AST Sạch Mượt Áp Trả Phóng Ra! Chúng ta Toàn Lấy 2 Kẻ Này Bọc Build Crate.
+
+---
+
+**Sẵn sàng cho Ngày 25?** Nghía Tí Thế Đã Đủ. Hết Rồi!!! Toàn Bộ Kiến Thức Cao Đại Tối Cao Của Rust Chặn Ở Mốc Tuần Này. Tuần 5 Khởi Xướng Đỉnh Bật: Một Project Đỉnh Cao 6 Ngày. Ta Xây Web Server Lõi Cân Kép CPU Tận Tay: **[Day 25: Đắp Foundation TCP Socket Áp Đất Bằng API Web]!**.

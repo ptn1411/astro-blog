@@ -1,0 +1,103 @@
+---
+title: "30 Ngày học Rust - Day 29: Lên đỉnh Web Server Thực Chiến với Axum và Tokio"
+excerpt: "Day 29: Hãy quên Web Server tự làm bằng tay đi. Khám phá cách các ông lớn tại Discord và AWS viết Backend Rust chịu tải hàng triệu Request bằng Axum và Async/Await."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - axum
+  - tokio
+  - async
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 29
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:29:00
+---
+
+# Async/Await: Chìa khoá Cân Nửa Triệu Connection
+
+Project Nhóm `ThreadPool` 4 Thợ của chúng ta ở Ngày 28 là một kiệt tác Học Thuật. Nhưng ở ngoài thương trường, nếu Discord dùng 4 Thợ đó (Hay kể cả 40 Thợ Thread), họ sẽ sập Server khi có 1 Triệu người dùng Online cùng lúc! Tốn Ram và Phí tài nguyên tạo Thread.
+
+Giải pháp tối thượng của Lập Trình Hiện Đại (Kể cả Node.js) là Cấu Trúc Bất Đồng Bộ **Async/Await** chạy dưới Mô Hình Event Loop. Ở Rust, thư viện lõi không có Sẵn Event Loop. Cộng đồng đã chế tạo ra một Cỗ Sinh Lực Khép Tín Khủng Khiếp Nhất Thế Giới: Thư viện nền tảng **`Tokio`** và Thư viện Tầng Web **`Axum`**.
+
+![Mô phỏng hàng vạn luồng kết nối không nghẽn qua Axum và Tokio](/src/assets/images/rust-day29-axum-tokio.png)
+
+## 1. Khai Cổng Trạm Phát Tokio
+Rust Cho Phép Bạn Trang Bị Lõi Máy Động Cơ Khác Nhau Dưới Hàm Main Bằng 1 Procedural Macro của Tokio:
+
+```rust
+// Bạn phải cài package: cargo add tokio axum
+#[tokio::main]
+async fn main() {
+    println!("Trạm Không Gian Bất Đồng Bộ Tokio Đã Khởi Động Kích Hoạt");
+}
+```
+Nhờ Chữ `#[tokio::main]`, Hàm `main` Của Bạn Đã Biến Thành Trạm Phát Vạn Luồng Băng Chuyền Quét Event Ngầm Đáy Đích Mượt Mà, Cho Phép Gắn Biển `async` Lên Đỉnh Nó Để Mọi Phép Nhây Đợi (I/O, Mạng, Ổ Cúng) Giải Phóng Lực Cản CPU CPU Mở Mắt Đón Khách Khác!
+
+## 2. Dựng Router Web Tuyệt Phẩm Bằng Axum
+
+Nếu Ở Day 26 Bạn Chế Switch Lọc Route Lỗ Thủng 404 Cân Mỏi Gân Code, Axum Quẹt Nó Bằng Khung Tác Cấu Sương Gọi Method Thần Thánh.
+
+```rust
+use axum::{routing::get, Router};
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
+
+#[tokio::main]
+async fn main() {
+    // Rắp Trục Router - Đục Mép Đường Dẫn Route Dưới Nửa Giây
+    let app = Router::new()
+        .route("/", get(trang_chu))
+        .route("/profile", get(trang_ca_nhan));
+
+    // Xin Mở Cổng TCP Qua Bệ Phóng Tokio 
+    let listener = TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    println!("Server Axum Rung Nhịp Tại Cảng 3000 Bắn Tốc!");
+    axum::serve(listener, app).await.unwrap();
+}
+
+// Handler Functions (Code Khớp Nhiệm Vụ Khi Người Khách Vô Route)
+async fn trang_chu() -> &'static str {
+    "Xin Chào Lịch Sử, Tôi Là Axum Chân Mệnh Web"
+}
+async fn trang_ca_nhan() -> &'static str {
+    "Thông Tin Tuyệt Mật Của Tài Khoản Admin 🚀"
+}
+```
+
+Axum Chạy Chễm Chệ Siêu Cấp. Cái Chữ `.await` Cắm Vút Là Hành Động "Bỏ Giỏ Luồng Chờ Rớt Kế Nhanh Không Chiếm CPU Đỉnh Kéo Chờ Ngang Giây Ngủ".
+
+## 3. Tương Lai Trải Đều Ở Macros Trích Data (Extractors)
+
+Khác Với Cực Hình Mòn Mỏi Rạch Cát Đo Mảng Vector Kẻ Lòng Request Thủ Công Ở Bài 25. Bạn Nhận JSON Post Khách Gửi Qua `POST` Cực Magic :
+
+```rust
+use axum::{Json, routing::post};
+use serde::Deserialize; // Macro Procedural Rã Bọc Sinh Lệnh Phân JSON 
+
+#[derive(Deserialize)]
+struct TaiKhoanTao {
+    ten: String,
+    tuoi: u8,
+}
+
+// Axum Tự Trích Khối Data Vọc Gói Vào Biến Json Luôn, Không Trật Code, Cần Khai Căn Kiểu Dáng
+async fn tao_user(Json(khach): Json<TaiKhoanTao>) -> String {
+    format!("Tạo Thành Cấp Bạn {} Năm Nay {} Tuổi", khach.ten, khach.tuoi)
+}
+// Chèn Vào Hàm Main: .route("/users", post(tao_user))
+```
+
+## Câu hỏi thường gặp (FAQ)
+
+### Nên Dùng Axum Hay Actix-Web?
+Cả 2 Đều Xuyên Top Techempower (Bảng Xếp Hạng Tốc Độ Chạy Toàn Cầu Đo Bằng Trăm Ngàn Requests Một Giây). Actix Mệnh Danh Bố Trẻ Cũ Gắt Đồ Sộ, Trụ Tính Điển Lâu Cực Đỉnh Khỏe. Axum Đẻ Say Dưới Chái Tán Tổ Đội Tokio Cha Đẻ Chính Lòng. Axum Dùng Lõi Vi Kiến Trúc Service Cực Gắn Liền Chặt Không Kém Độ Thuật Vi Sinh Gọn Gàng. Trend Dev Hiện Nay Là Trượt Thắng Cho Axum. Thiết Kế Router Đọc Sướng Không Cấn Nghẹt Đáy!
+
+---
+
+**Sẵn sàng cho Ngày 30?** 
+Chấn Cực Phóng Máy. 29 Ngày Lật Mở Code Gầy Đen. Tuột Bỏ Cái Kéo Lịch Sự Của C/C++. Khảo Nát Try Catch Của C# Mòn Java. Quấy Mảng Biến Tính Tùy JavaScript Mất Kiểm Type Bất Cẩn. Ta Nhìn Lại Toàn Đội Đúc Khối Sáng Mắt Của Tháp Vàng Cao Trữ Tại: **[Day 30: Chứng Chỉ Tinh Hoa - Đúc Kết Hành Trình RUST Dành Cho Vị Thần Lập Trình Mới]**.

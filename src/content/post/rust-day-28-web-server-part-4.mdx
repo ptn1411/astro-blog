@@ -1,0 +1,83 @@
+---
+title: "30 Ngày học Rust - Day 28: Xây dựng TCP Web Server Đa Luồng (Phần 4: Graceful Shutdown)"
+excerpt: "Day 28: Không bao giờ rút phích cắm khi Server đang chạy dở job! Xây dựng cơ chế báo hiệu Ngừng hoạt động mềm mại (Graceful Shutdown) và kết thúc Worker nhẹ nhàng."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - shutdown
+  - server
+  - memory-safety
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 28
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:28:00
+---
+
+# Bản Dịch Vụ Cuối Lúc Giã Biệt (Graceful Shutdown)
+
+Hầu hết các phần mềm Server Dỏm Đều Áp Sụng Cổ Tục "Cắt Nguồn". Bạn Bấm `Ctrl+C` Kẹt Máy, Mọi Vòng Dây Xử Lí Tính Phí Nạp Thẻ ATM Của KH Tự Nhiên Chưa Kịp Push Cập Nhật Thì Tạch Luôn Bào Hỏng Tiền Máy User!
+
+Bí Thuật "Đóng Cửa Thanh Lịch" Nghĩa Là Mồm Host Thông Cáo: *"Tao Nghỉ Nhận Request Mạng Mới Ỏ Cửa Cổng. KHÔNG GÌ ĐƯỢC LOAD THÊM. Nhung Hỡi Culi Thợ, Thằng Nào Đang Code Kéo Dở Cấu Data Job, LÀM CHO CHÓT DỨT ĐIỂM XONG ĐI RỒI MỚI SỤP MẠCH GỤC. Tao Chờ."*. Việc Mồi Trát Này Đoạt 1 Bước Drop Khép Hoàn Chỉnh Ở Rust Cực Bá.
+
+![Van Khoả An Toàn Siết Chắn Bịt Lõi Nhiệm Vụ Job Graceful Drop](/src/assets/images/rust-day28-web-server-shutdown.png)
+
+## 1. Viết Lệnh Triệt Khóa Lúc Kẻ Huỷ Diệt Impl Drop Đập Thẳng Vào Trục Pool
+
+Khi `ThreadPool` nằm Trong Khối main. Nó Ra Hết Biển `}` Ranh Giới Ngầm Nó Cũng Rụng (Bị Máng Tên Vô Cây Drop). 
+Ta Bóp Cổ Hàm Drop Theo Ý Ta Bằng Mã Rải Viết Impl: 
+
+```rust
+impl Drop for ThreadPool {
+    fn drop(&mut self) {
+        // Cú Vực 1: Cúp Dao Ngòi Bơm. Tháo Cái Ống Gọi Lệnh (drop mpsc::Sender)
+        // Việc Tháo Cái Ống Ngòi Nước Phun Lệnh Sẽ Bơm Cho Dưới Các Worker Tín Hiệu Bị Trật Lỗ (Err). Chúng Nó Tự Biết App Dừng Rõ
+        drop(self.dau_gui.take()); 
+
+        for can in &mut self.cong_nhan {
+            println!("Đóng Cửa Rãnh Tắt Lọc Worker số Vạch {}", can.id);
+
+            // Bứng Khéo Mạch JoinHandle Rút Ra Từ Option Và Lệnh Cắm Bứt Join! Bắt Nó Nằm Mặc Chờ Chạy Sạch Lõi Nhá.
+            if let Some(l_xu_ly) = can.luong_xu_ly.take() {
+                l_xu_ly.join().unwrap();
+            }
+        }
+    }
+}
+```
+
+Tại Sao Mạch Bọc Thuộc Tính Phải Là `Option` Cho Cả Thằng Vòi Đầu Gửi Bơm `Sender` Và Vách Chờ `JoinHandle`? Đứt Ruột Giải Thích: Vì Hành Động Đánh `take()` Khui Móc Cụt Con Trỏ Tách Ruột Option Đó Rời Ra Chỗ Khác, Thay Chỗ Rụng Rỗng Bằng Value Đất Chết `None`. Nó Ăn Nhờ Khối Mượn Borrow Bỏ Lướt Lỗi Compile Giắt Bực Mình Của Việc Xoát Ownership Cục Cứng Ở Cuối Rìa Struct! Kéo Phóng Trả Nợ Đóng Sập Tuyệt Lãng!
+
+## 2. Ngắt Lặp Rò Thợ Đỡ Lúc Bị Cắt Dây 
+
+Đợi Thêm! Sửa Code Chữ Vạch Ở Chỗ Đợi Receiver Lấy Vạch `Day 27`. Khi Thằng Channel Khóa Sender Dập Tạm Biệt, Kẻ Receive Tức Gào Lội Cảnh Phím Bắn Báo Lỗi Chấp Ngừng Đợi Tắt Break Gấp Cửa Lỗ Run Phun Cứu Sinh Mạng Dưới Bóng Ký! 
+```rust
+// Trong Cụm Rập Khuôn Worker Tạo Mẻ Loop {
+let m_lenh = thu_nhan.lock().unwrap().recv();
+match m_lenh {
+    Ok(lenh_job) => {
+        lenh_job(); // Thả Đâm Lệnh Function!
+    }
+    Err(_) => {
+        println!("Đầu Phát Sinh Sender Cắt. Ống Đòi Vỡ Rã Lệnh Dừng Kéo. Culi Mạch id Dừng, End Khối Lục Loop Tách Ngắn!");
+        break; // NÉM PHÁ VÒNG LẶP SẬP.
+    }
+}
+```
+
+Kiệt Lát Thay, Đỉnh Tới Quật. Từng Gả Culi Cúi Rạp Nhận Cọc Nghỉ Về Quê An Toàn Ổn Định Tột Khắc Hoàn Mỹ Nguồn Vạch! 
+
+## Câu hỏi thường gặp (FAQ)
+
+### Để Kích Động Đọc Cắt Phá Này Tự Ngõ Máy, Tui Xài Test Gì Bó Gắn Giờ Main Cứ Quạc Listener Mãi?
+Thử Nghiệm Bạn Xài Châm Nọc Hàm Lấy 2 Luồng Request Cướp Lỗ Đầu Tại `main`:
+`for stream in listener.incoming().take(2)`
+Máy Lặp Lập For Cưa Xuyên Chấp 2 Khách Gọi Tới `localhost` 2 Chuyến. Bắn Qua Luồng Lặp -> Vòng Trượt Đập Cuối Cánh Chữ `}` Hàm Main Nạp Đầu Rúc Mảng Trụ Của Mình. Server Phanh Nghẽn Lắng Trong Suốt! Cỗ Web Xương Sạch! 
+
+---
+
+**Sẵn sàng cho Ngày 29?** Quá Khủng Khiếp Trục Lõi Vòm Bền Web Đã Lớp Xong. Nhưng Nó Chỉ Mới Lọc Búa Tả Kém Trơn Cốt Xát. Bạn Muốn Framework Thụ Lọc Xịn Gắp Quả Web Xuyên Nửa Triệu Tải Như Discord Bẻ Ngang Code Máy? Ứng Tái Bùng Khái Niệm Mở Tụ Đi Đỉnh Dời Nhẹ: **[Day 29: Web Framework Khét Đỉnh Giáp Tâm - Trụ Axum]**.

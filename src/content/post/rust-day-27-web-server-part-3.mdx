@@ -1,0 +1,90 @@
+---
+title: "30 Ngày học Rust - Day 27: Xây dựng TCP Web Server Đa Luồng (Phần 3: The Thread Pool)"
+excerpt: "Day 27: Giải quyết vấn đề Nút cổ chai thảm hoạ của kiến trúc Single Thread. Đúc thủ công nhóm Máy băm Thread Pool để gánh hàng trăm ngàn Request cùng lúc."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - thread-pool
+  - server
+  - multithreading
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 27
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:27:00
+---
+
+# Lời Tử Tế với Sự Bướng Bỉnh Của Lỗi Đồng Bộ Cứng (Synchronous)
+
+Cuối bài Day 26, chúng ta có một Web API xịn. Nhược điểm chí tử? Cứ hễ có 1 khách vào truy cập hàm `sleep(5_giay)`, TOÀN BỘ NHỮNG NGƯỜI KHÁCH CÒN LẠI đang truy cập web Đều phải đứng vòng cửa chực 5 giây mới vô được. Sự ứ đọng Đồng bộ này do bạn đang dùng 1 Thread (Luồng Xử Lý CPU duy nhất mang tên Main).
+
+Ngây Thơ Bạn Đảo Khớp Viết Code Nhét Thread Bừa Trong Vòng For Socket Cho Mỗi Khách 1 Cái Thread:
+`thread::spawn(|| { xu_ly_khach(stream) });` 
+XÓA NGAY ÁP CHẾ NÀY. Nếu Bị tấn công DDOS có 100 ngàn khách đập tới, Core máy Bạn đẻ ra 100 Ngàn Cái Lõi Thread Đạp Crash Ram Nhồi Hết Pin Sập Ngây Máy Nguồn! Lệnh Chém Đầu Đuôi Mang Tính Cảnh Thức Ở Phức Kỹ Sư Cao Mạng Là: **Nhóm Công Trình Giới Hạn Luồng (The Thread Pool).**
+
+![Bơm Nhiệm Vụ Job Kênh Hóa Rập Sang Luồng Silo Chờ Sẵn Của Thread Pool](/src/assets/images/rust-day27-web-server-threadpool.png)
+
+## 1. Thiết Kế Mẫu Thread Pool Chặn Băng Cạnh
+
+Thay vì liên tục Đẻ Sinh Con. Ta Gây Nên Một Giếng Lưu Trữ Gồm Cứng Ngắc 4 Worker Thợ Mỏ Từ Đầu Cột Điện (Khi App Khởi Tạo Cất Hàm). Hễ Có Lệnh Cục Xin Request Vô, Thợ 1 Cầm Làm. Lệnh 2 Tới, Thợ 2 Bợ Lấy. Tới Lệnh 5? Bốn Thợ Kẹt? Nó Xếp Hàng Móc Job Qua Kênh Channel Queue Đợi Mấy Gã Rảnh Ra Đỡ. 
+
+Khung Xương Mạch `src/lib.rs` (Bắt Đầu Tách Hãng Gói Lib):
+```rust
+pub struct ThreadPool {
+    cong_nhan: Vec<Worker>,
+    dau_gui: Option<mpsc::Sender<Job>>, 
+}
+
+// Khái Niệm Job Nghĩa Lá 1 Box Cái Closure Mọi Cầm Gói Hàm!
+type Job = Box<dyn FnOnce() + Send + 'static>; 
+```
+*Gã Tà Đạo Khóc Đòi Giải Thích `Job`: Box bọc Khuôn Cho Lỗ Type, FnOnce Cứa Đợt Khớp Run Hàm Xong Bỏ Dọc, Send Ép Lệnh Bơm Luồng Xuyên Thread, 'static Chứng Ký Lifetime Nghéo Vòng Không Dứt Lúc Khai Hàm Cốt.*
+
+## 2. Tạo Kiện Động Worker Nuốt Các Cục Nạp Nhám
+
+Mỗi `Worker` Sẽ Rình Lấp Trong Cục Thread Của Nó. Đè Xoáy Ngang Tai Xem Ống Thu `Receiver` Nào Sủa Nôn Lệnh Từ App Tổng Xuống Mạch Hàm Phù Đổng. Đọc Lệnh Day 18 Liên Giao Channel! 
+
+```rust
+struct Worker {
+    id: usize,
+    luong_xu_ly: Option<thread::JoinHandle<()>>, 
+}
+
+impl Worker {
+    // Ép Bộ Arc Mutex Của Khớp Data Race Vòng Trọng! Cột Đầu Nhờ Giữ An Toàn Kẻ Nào Dốc Job Trước Thì Chiếm Lấy Mối Dây Receiver Cuộn Bảng Thép Nhanh Góc Nhìn Của Hắn
+    fn new(id: usize, thu_nhan: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+        let l_xu_ly = thread::spawn(move || loop {
+            // Nằm Vạ Vuốt Rờ Lỗ Data Khớp. Có Nghẽn Khoá Nạp Phóng Nhíp Cú Recv. Lượm Thùng!
+            let m_lenh = thu_nhan.lock().unwrap().recv();
+
+            match m_lenh {
+                Ok(lenh_job) => {
+                    println!("Tui Là Culi Mã Đích {id} đang Chiếc Job Kênh...");
+                    lenh_job(); // Thả Đâm Lệnh Function!
+                }
+                Err(_) => {
+                    println!("Ống Đòi Vỡ Rã Nhỉ, Culi Mạch {id} Đóng Treo!");
+                    break;
+                }
+            }
+        });
+
+        Worker { id, luong_xu_ly: Some(l_xu_ly) }
+    }
+}
+```
+
+Ráp Chữ Đầu Vào Struct Thread Pool `new(size)` Cấu Vết Gốc Là Thong Dây `mpsc::channel`. Dãn Đầy Mảng Công Nhân Tạo Lỗ. Véo Xong Đốt 1 Trận Siêu Code Lừa Đảo Compiler!
+
+## Câu hỏi thường gặp (FAQ)
+
+### Ủa Tại Sao Phải Đút Quàng Cái Lệnh Kênh Giao Tiếp Receiver Vô Khớp Arc/Mutex Vậy Cha Nội?
+Vì Chống Dãn Tà Thuật Cháy Chéo CPU Lệnh Race Nhau. Máy Bạn Có 4 Thread Thợ Song Song, Cả 4 Đều Kếch Vịn Tay Chung Nắm Bứt Đúng Ngay Chung 1 Cái Rổ Chặn Cuốn Dây Ống Cắm (Receiver Đầu Nhận). Không Bật Ổ Khóa Box Thép Từng Phiên `Mutex Lượng`, Quái Thread Vô Nhặt Sót Nhéo Đánh Nhau Tơi Tả. Bạn Hiểu Chức Năng `Mutex/Arc` Sâu Đậm Đỉnh Giáp Tại Lúc Này Đó Rứa À.
+
+---
+
+**Sẵn sàng cho Ngày 28?** Trận Cuồng Không Đè Dành Nhau Trơn Láng. 4 Lọng Channel Bơm Web Mòn Đẩy Cầu Socket Thoá Thoáng. Nhưng Đừng Quên, Nếu Bấm Nút Đóng App Thô Tụt Chẻ Giữa Dài Máy Chém Ctrl+C. Hệ Quả Web Bị Vứt Data Mưng Đứt Data Ngang Dòng Kéo. Hôm Nay Xứ Gọi Trật Tự Bấm Đỉnh Kéo Chặn Mạch Đỡ Đạn: **[Day 28: Thiết Kế Web Graceful Shutdown Lớp Chào Mượt Trầm]**.

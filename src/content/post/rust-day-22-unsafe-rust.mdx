@@ -1,0 +1,86 @@
+---
+title: "30 Ngày học Rust - Day 22: Về Phe Bóng Tối với Unsafe Rust"
+excerpt: "Day 22: Điều làm cho lõi hạt nhân của Linux và Windows chấp nhận Rust, đó là nhờ Unsafe Mode. Vượt qua giới hạn của Compiler, tự mình chọc thẳng vào The Matrix Bảng Bộ Nhớ."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - unsafe
+  - pointers
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 22
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:22:00
+---
+
+# Mạch Mã Mất Đi Vỏ Bọc Che Chở The Safe Rust
+
+Ngài Trình Biên Dịch (Compiler) ở thế giới Safe Rust (21 ngày qua bạn học) là một vị bảo mẫu siêu Cục Cằn Nhàm Chán. Nó kiểm toán Borrow Checker gắt gao. Phàm bất kì cái Biến Mượn nào chỉ cần HƠI TRÁI THỜI GIAN NHỊP TIM Sinh Học, Nó Bóp Cổ Đòi Gãy Build Panics.
+Cơ Mục Ấy Chống 100% Data Races. Tuy Nhiên.. Phần Cứng Máy Tính (Hardware CPU & VGA) Thì Vô Tình. Máy vi Tính Ở Cấp Vi Mạch KHÔNG QUAN TÂM mốc Sống `Lifetimes`. Chúng Là Lõi Đồng Vô Trị Tái Trợ Địa Chỉ Điện, Độc Chiếm Trỏ Nhay Liên Hoàn Nghịch Thập. Nếu Cứ Áp Luật Ngai Sứ Gỉa Vô Lố Rust Tròn Kín, Ta Trọn Kiếp Đéo Rèn Được Cỗ Hệ Điều Hành Windows Bự Áo.
+
+Giao Diện Chuyển Cổng Kích Sinh Siêu Năng: **Khoác Chiếc Áo Khối Chữ `unsafe`**.
+
+![Khối Năng Lượng Đỏ Nóng Unsafe Mạch Code](/src/assets/images/rust-day22-unsafe-rust.png)
+
+## 1. 5 Quyền Năng Tà Đạo Khai Mở Dưới Bóng Unsafe
+
+Khi bạn Gói Code Vào Dồn Khối `unsafe { ... }`, Rust Xóa Mù Đuổi Compiler Kiểm Bộ Nhớ, Nhường Bút Kéo Cho Sinh Mạng Cổ Nhú Của Bạn Lập Quyền Gọi:
+1. Đọc và Rút Họng (Dereference) Hắn Chìa Đạn Rò Raw Pointers C.
+2. Gọi Các Hàm Rạch Tà Trọng Phạm Unsafe (Việt Gọi Hàm Móc Extern Function Tụ C/C++ Code).
+3. Đụng Phá Đổi Lọc Biến SỐ Tĩnh Ác Global (Mut Static Variables).
+4. Phá Mộc Đạo Lí Vi Trúc Trait Sống Bạo Lực Quyền Trợ (Unsafe Traits).
+5. Chi Cảng Nấu Rút Khối Data Tại Lõi Tấm Kiên `union`.
+
+## 2. Nắm Giữ Raw Pointers Bụi Bẩn (Con Trỏ Thô C)
+
+Ở Dưới Móc Tà Vực C++, Hắn gọi Con Trỏ Thẳng. Trong Rust Nó Ràng Gắn Tên Nhục Xấu Xí: `*const T` và `*mut T`. Mạng Lưu Ý Cái Gạch Dấu `*` Đó Là Chữ Chỉ Loại Chứ Không Phải Dấu Nhân Hay Deref Đọc Vội! Đầu Không Có Sợ Rụng `&&`. 
+
+```rust
+let mut num = 5;
+
+// Biến Bùa Trấn Safe Reference Trực Tiếp Thành Bùa Lỗ Cắm Phế Thô Nhám Bụi: Raw Pointer.
+// DÙ KHÔNG GHI UNSAFE BẢN TRÁI. TẠO RA RAW POINTER LÀ AN TOÀN Nhé.
+let r1 = &num as *const i32;       
+let r2 = &mut num as *mut i32;     
+
+// NHƯNG NHƯNG NHƯNG!! HÀNH ĐỘNG DÙNG ÁNH SÁNG DEREF LỘT VÁCH NÓ SỞ Data TÚM THÌ PHẢI BỌC BÌA UNSAFE MỞ CỬA:
+unsafe {
+    println!("Dữ Liệu Vực R1: {}", *r1);
+    *r2 = 10;
+    println!("Dữ Liệu Ghi Nát Đè Tại R2 Cùng Cái Địa Chỉ Đất Kia Nè C: {}", *r2);
+}
+```
+
+Bạn Nhìn Coi Mạch Trống Kia? Khảo Cõi Dưới, Ta Chĩa Song Hờ Thẳng 2 Ống Cùng Lúc Rúc Vô 1 Ổ Data: Vi Phạm Đoạt Quyền The Borrow Checker Đã Chỉ Dạy Từ Bài 5 Rõ Ràng Lại! Ta Đã Ở Ma Đạo Lầm Mốc Data Races Bốc Khói (Lúc Nếu Chơi Thêm Kẹp Thread).
+
+## 3. Chọc Cổng Xuyên Hãng Biển Nhập Gọi Sang Thập Giá C Nước Ngoài FFI 
+
+Một Lí Do Dev Lớn Bám Mặt Sờ Tới `unsafe` là Vì Ứng dụng Không Đơn Điệu Một Mình Thả Thính. 
+Nó Muốn Gọi Mảng Của Lõi OpenSSL C, Hay Python NumPy Phóng.
+
+```rust
+// Khối Gọi Khải Đạo Lưới Sắn Đi C/C++ FFI Cực Đầm Trì Cổng "C"
+extern "C" {
+    fn abs(input: i32) -> i32;
+}
+
+fn main() {
+    unsafe {
+        // Ta Éo Biết Cái Cục Nhận Mạng `abs(-3)` Phía Khuôn C Đã Kiểm Mã Cháy Thế Nào, Gói Bọc Cương Tứ Lĩnh Đi!
+        println!("Đi Lạch Mặt Điểm Vô C Lọc Giá Trị Tuyêt Đổi Từ Hàm Trĩ Nhị: {}", abs(-3));
+    }
+}
+```
+
+## Câu hỏi thường gặp (FAQ)
+
+### Bộ Lõi Động Thần Tốc Std Rust Có Sài Unsafe Bẩn Không?
+Mọi Cái Kiệt Xuất Của Framework Mà Bạn Sử Dụng Khen Tới Tuyển Đều Đút Phẫn Viêm Khu Chứa `unsafe` Khí Tiền Bên Dưới Cuối Mắt Kính Nạn. Ví Dụ Cục Kẽ Dát Mảng Vô Cực Khốc Liệt Oai Phong Mình Xài Thói Nhất: Mảng `Vec<T>`, Thực Chất Chạy Nguyên Ngầm Mã Hóa Gồm Khuôn Tà Vực Đào Xẻ Xổ Xáo Block Memory `alloc` Chẻ Ngang Trúng Data Cực Đoan Unsafe! Các DEV Rust Core đã Mòn Chân Kiểm Điểm Từng Byte Kĩ Lưỡng Không Lỗi Để Gói Nó Trong Màng Bảo Vệ Public Mịn Trơn Bọc Ra API `push()` Cho Lớp Cháu Trẻ Mặc Sức An Tâm Sử Dụng Thỏa Cuồng Lòng Cụ. Unsafe Sinh Ra Trái Khoái Tạo Đế Quốc Góp Cơ Năng Safe Cục. Quá Gắt!
+
+---
+
+**Sẵn sàng cho Ngày 23?** Quay gót Quăng Cỗ Đạn Sống Bóc Quật, Tìm Ra Một Trong Những Tối Thượng Phượng Mạch Của Code-Viết-Code Gây Trấn Nhiễm: Lực Bắn Chùm **Macros**. Nếu Function Nhựa Chế Bịch Nilon Code Có Sẵn, Lỗ Phát Sinh Lệnh Sinh Code Theo Cỡ `println!` Là Lửa Trụ **[Day 23: Declarative Macros - Chiếc Máy Vẽ Hàm Cầm Tay]**.

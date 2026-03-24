@@ -1,0 +1,76 @@
+---
+title: "30 Ngày học Rust - Day 23: Quyền năng của Đấng Tạo Hóa (Declarative Macros)"
+excerpt: "Day 23: Macro là gì? Tại sao println! lại có dấu chấm than? Khám phá Metaprogramming, nghệ thuật viết Code sinh ra Code giúp giảm thiểu hàng ngàn dòng code tẻ nhạt."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - macros
+  - metaprogramming
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 23
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:23:00
+---
+
+# Metaprogramming: Khi Code biết làm thơ
+
+Khi bạn sử dụng hàm (Functions) trong Rust, hàm nhận dữ liệu đầu vào và trả ra kết quả. Nếu bạn nạp 3 tham số, hàm sẽ lấy 3 biến. Hàm ở Rust bị khoá cứng: bạn KHÔNG THỂ gọi một hàm với số lượng tham số biến thiên (Varargs) như ngôn ngữ C hay Javascript. Hàm cũng không thể tạo ngầm ra Biến tên mới. 
+
+Nhưng ở Ngày 1, bạn đã dùng Lệnh `println!("Trời quăng {}", 5)` và thậm chí là Mảng `vec![1, 2, 3]`. Cả 2 đều có **dấu chấm than `!`**.
+
+Chúng không phải là Function bình thường. Chúng là **Macros (Lệnh Khối vĩ mô)**. Macros có quyền nhai trọn 100 hay 1000 tham số, rồi trong tíc tắc lúc Compiler đọc ngang, nó BĂM ĐOẠN ĐÓ RA thành hàng vạn Dòng CODE CHUẨN MỰC lót vào chỗ bạn vừa đứng! 
+
+Nói cách khác: **Hàm là Code chạy tính toán ra Data. Macro là Code tự đẻ ra Code để chạy.**
+
+![Mô phỏng Declarative Pattern nhả xưởng Code ngầm](/src/assets/images/rust-day23-decl-macros.png)
+
+## 1. Declarative Macros: Macro dạng Mẫu Dấu `macro_rules!`
+
+Loại Macro rẻ tiền và phổ biến nhất ở Rust. Bạn lập 1 Khối so Khớp Hình Mẫu (như RegEx), và điền Rule (Luật Đẻ Code).
+
+Chúng ta sẽ tự chế lại Cái Cái Cọc `vec!` của Rust Lõi Nhé. Giờ ta đặt tên là `tao_mang!`:
+
+```rust
+// Tiếng Còi Khai Báo Sinh Macro
+macro_rules! tao_mang {
+    // 1. Phân khu Luật (Khớp Cấu Trúc Text Do Người CODE nhập vào)
+    // $( ... ),* báo hiệu 1 Vòng Lặp Bất Tận quét từng Vế chữ được phẩy cách nhau 
+    // Mảng ruột $x:expr Yêu cầu chữ nhập bên trong phải LÀ 1 BIỂU THỨC (Expression - như Số, Biến)
+    ( $( $x:expr ),* ) => { 
+        { 
+            // 2. Chỗ Này Là Code Được IN ĐÈ BÙNG NỔ TRONG FILE LÚC COMPILE
+            let mut v = Vec::new(); // Dịch: Tạo Mảng Két
+            
+            // Lặp Theo Số Tham Số Bị Quẳng Vô Khớp Pattern Phía Trên
+            $(
+                v.push($x); // Dịch: Gắp giá trị x đẩy Nhồi xuống V
+            )*
+            v // Trả Về Khối Két V
+        }
+    };
+}
+
+fn main() {
+    // BẠN GỌI:
+    let ds = tao_mang![10, 20, 30]; 
+    
+    // TRÌNH COMPILE NHÌN THẤY Y NHƯ VẬY (Tự Ráp Tự In Không Rác Không Bug):
+    // let ds = { let mut v = Vec::new(); v.push(10); v.push(20); v.push(30); v };
+}
+```
+
+Hãy Tưởng Tượng Việc Phải Viết 1 Trăm Lần Cái Phép Cầm `push()... push()`. `macro_rules!` Là Cái Máy Ủi Gỗ Băm Ra Bột Giấy Sức Mạnh Max Cấp.
+
+## Câu hỏi thường gặp (FAQ)
+
+### Có nên xài Macro ở Khắp Tọi Chừng Khắp Nơi Trong App Mình Lọc Nhọc Chứ?
+**TUYỆT ĐỐI KHÔNG.** Code Hàm thường Tuân theo Ranh Giới Types Type, Compiler Bug nó Báo Rõ Ràng. Lỡ Bạn Gõ Sai Mã Khớp Macro? Bảng Lỗi Báo Có Thể Dài Hơn Sớ Thằng Phở, Không Ai Dò Tìm Nổi Lỗi (Ngay đến Thằng Tool Hint Phím VScode Cũng Mù Vì Đây Code Trộn). Bạn chỉ dùng Mã Sinh Macro khi Vấn Đề Lập Khung Lặp Sườn Quá Ngột ngạt mà Generic `T` Trait không Lách Đổi Trải được. 
+
+---
+
+**Sẵn sàng cho Ngày 24?** Kiểu Declarative Gắn Khớp So Chữ Dài dòng Và Quá Kẹt Bọt. Ngày Mai, Lõi Bão Siêu Hạnh Cực Chảy Sẽ Hé Mở: Macro Thế Hệ 2 (Procedural Macros). Tước Quyền Lấy Data Trình Compiler Cưa Rách Nó Luôn Bằng: **[Day 24: Kẻ Phanh Thây - Procedural Macros]**.

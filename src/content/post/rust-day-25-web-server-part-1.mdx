@@ -1,0 +1,85 @@
+---
+title: "30 Ngày học Rust - Day 25: Xây dựng TCP Web Server Đa Luồng (Phần 1: Lõi Socket)"
+excerpt: "Day 25: Bắt đầu chuỗi Project cực hạn cuối khóa. Tự tay viết một Web Server từ con số 0 mà không dùng bất kì thư viện web nào. Bài 1: Mở cổng TCP Listener."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - web-server
+  - tcp
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 25
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:25:00
+---
+
+# Lời Tuyên Ngôn của Tuần Cuối Cùng (Project Khớp Đỉnh)
+
+Kể từ Ngày 25 đến Ngày 30 cuối khoá, chúng ta Sẽ KHÔNG Học Lí Thuyết Rời Rạc nữa. Bạn sẽ gom hết mớ kiến thức chắp nối 24 ngày qua (Struct, Result, Closure, Trait, Multithread Arc) vào chung 1 Cấu trúc: 
+**Xây MỘT WEB DEMO SERVER HTTP Bằng CHÍNH TAY MÌNH, Từ Bùn Đất Không Lấy Thư Viện Sẵn Mì Ăn Liền!!** 
+
+Để chạy Cỗ máy Web Cân Triệu Traffic kia, Gốc Rễ Đáy của Nó là Thao Tác Băm Ống Kênh Lõi IP/TCP Của Main OS Socket. Hôm Nay, Mở Nút Bức Cửa Mạng Đất Cho Trạm Chờ!
+
+![Mô phỏng Ống Nhánh Truyền Tải Dữ Lọc TCP Lưới Cảng Network Server](/src/assets/images/rust-day25-web-server.png)
+
+## 1. Mở Khoá Cổng TCP Lắng Nghe Khách (Listener Binding)
+
+Hai Vị Khách Muốn Móc Nối Data Vọc Vào Server Mạng Thì Máy Chủ Phải Có Lỗ Mở Địa Chỉ (Port). Cổng Thông Lệ Lõi Đi Giao Giao Tiếp Khách HTTP Là 80. Lên Test Cục Bộ PC Xài Ngầm Là 7878.
+
+File Gốc `src/main.rs`:
+```rust
+use std::net::TcpListener;
+
+fn main() {
+    // 1. Cắm Trạm Quát Ống Nghe Giáp Mép Địa Cầu (Trói Biển LocalHost : Cổng 7878)
+    // Nếu Đã Có Thằng Tự Build Cổng Khác Áp Chung Port, Result Quả Sẽ Error Crash (unwrap Dập).
+    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+
+    // 2. Chăm Mắt Vòng Qua Cổng Chờ Liên Tục
+    for stream in listener.incoming() {
+        // Dính Gập 1 Lõi Chắp Stream Cầu Thông Trái Data
+        let stream = stream.unwrap();
+        
+        println!("✨ Kết Nối Vỏ Ốp Đã Thông Một Vị Khách!");
+    }
+}
+```
+
+Hãy mở 1 Tab Gõ `cargo run` Ở Giữa Kẻ Console. 
+Xong Mở Chui Tab Browser Máy Bạn, Gõ Vô Trụ Link `http://127.0.0.1:7878`. 
+Màn Browser Xoay Nhoè Gục Load, NHƯNG Terminal Nảy Chữ `✨ Kết Nối Vỏ Ốp Đã Thông Một Vị Khách!`
+XONG! Thiết Bị Đã Vướng Xích Bấu Trúng Đầu API Nhượng TCP Thô Tục. Ta đã Khai Cống Web Thành Cấp 1 Nhất Phẩm!
+
+## 2. Tiêm Rút Mạch Máu Của Người Đến Trích Kích Lõi HTTP (Read Stream)
+
+Socket Giao Thoa Liên Trội Bằng Kiểu Nước 2 Chiều. Mảng Dữ Liệu Túa Ra Dòng HTTP Chọc Ống Cứng Mũi Tên Dài. Cần Bọc Vọt Phơi Sạch Nằm Viết Ra Rổ Đọc Mực.
+
+```rust
+use std::io::{BufRead, BufReader}; // Móc Tính Mới Dải Đọc Lệnh Nhanh
+use std::net::{TcpListener, TcpStream};
+
+fn xu_ly_khach(mut r_stream: TcpStream) {
+    let doc_thui = BufReader::new(&mut r_stream);
+    
+    // Tóm Mảng Vị Trí Data HTTP Đổ Tới Rả Chắp Xuống Trượt Lặp
+    let chuoi_http_vua_den: Vec<_> = doc_thui
+        .lines() // Cứa Kẽ Ống \n Từng Cọng Từng Cọng Cáp Đứt
+        .map(|ket_qua| ket_qua.unwrap()) // Closures Thọc Match Tách Lõi Lấy Cốt Chữ Code String
+        .take_while(|dong_chu| !dong_chu.is_empty()) // Header HTTP Xong Cứ Bọc Khoảng Dấu Kẽ Cách, Rọc Khớp Giữ Header Nghẽn Body!
+        .collect(); // Lấn Bỏ Tụ Thành Tập Hợp Mảng.
+
+    println!("Chi Chiết Request Khách Phun Vô Mõm:\n{:#?}", chuoi_http_vua_den);
+}
+
+// Tại Mục Số (2) Hàm Main Đổi Tên Lệnh Sang GỌI xu_ly_khach(stream);
+```
+
+Restart Bệ. Bấm Chrome Tải Lại Link. Bạn Dòm Nhận Mẻ Text Array Dài Quãng Đủ Cờ Mã Request HTTP Về Tụi User-Agent Chấp Mảng `GET / HTTP/1.1`. Cậu Xong Cửa Báo Mũi. Không Cần AI Cày Khung.
+
+---
+
+**Sẵn sàng cho Ngày 26?** Web Của Bạn Xoay Chóng Chóng Mãi Trắng Phễu Vì Mãi Chưa Trả Cọc HTML Text Về Báo Tín Giành Băng Chuyền Máy Khách. Chờ Mạch Chi Hồi Trả Bát Gắn `Response 200 OK` Ở Dịp Tiếp: **[Day 26: Ghép Phá Mã Response & Nở Rộ HTML Phản Chiếu]**.

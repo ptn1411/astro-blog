@@ -1,0 +1,90 @@
+---
+title: "30 Ngày học Rust - Day 26: Xây dựng TCP Web Server Đa Luồng (Phần 2: Bắn trả File HTML)"
+excerpt: "Day 26: Trình duyệt của bạn đang bị treo cứng? Đó là vì hệ thống TCP chưa nhả Response HTTP. Bài này hướng dẫn cách parse cú pháp GET và trả Web Page hoàn chỉnh về cho User."
+category: "Ngôn ngữ Rust"
+tags:
+  - rust
+  - 30-days-of-rust
+  - web-server
+  - http
+series:
+  id: "30-days-of-rust"
+  title: "30 Ngày Trở Thành Rustacean Tinh Hoa"
+  part: 26
+  totalParts: 30
+author: "Phạm Thành Nam"
+image: "/src/assets/images/rust-30-days-cover.png"
+publishDate: 2026-03-24T17:26:00
+---
+
+# HTTP Response: Chấm dứt cơn khát của Trình Duyệt
+
+Ở Ngày 25, chúng ta đã đọc được Cục Request HTTP mượt mà từ Google Chrome nã thẳng vào Server `127.0.0.1:7878`. Thế nhưng nếu bạn lỡ bật Tab đó trên Chrome, nó sẽ mài mòn Loading Mòn Tròng vì Thằng Cu Server (Mã Của Chúng Ta) Nhận Tin Nhắn Nhận Xong... ÉO THÈM TRẢ LỜI CỤP CỐI!!
+
+Hôm Nay, Chúng Trả Cọc Text Đáp Lễ Để Chrome Tự Động Định Hình Dữ Liệu HTML.
+
+![Sơ đồ Lọc Khớp Kiện Response Trả Thông Trình Duyệt](/src/assets/images/rust-day26-web-server-html.png)
+
+## 1. Nặn Cục Đất Sét Formatting Chuẩn HTTP
+
+Ngôn ngữ giao tiếp của Tụi Browser là Giao Thức HTTP. Một Trả Lời Cục HTTP Cực Thiển Cận Cần Có Đủ 3 Đoạn (Dòng Status, Header Và Vạch Bo-Đỳ Trắng).
+Mẫu Standard: `HTTP/1.1 200 OK\r\n\r\n` (Tức Mình Nhan Ngang Dây Kênh: Ê, Ngon Nhé!). 
+
+Hãy Biến Đổi Hàm `xu_ly_khach` Của Tuần 25:
+```rust
+use std::io::Write; // Bắt buộc Thêm Trại Write Nhé (Để Ghi Mực Xuống Tụ Mạng)
+use std::fs;
+
+fn xu_ly_khach(mut r_stream: TcpStream) {
+    // Mã Cửa Status Đầu Tiên 
+    let t_status = "HTTP/1.1 200 OK"; 
+    
+    // Tui lặn Giỏ File Hái Vội Lên File Bụng App (Bạn Nhớ Tạo File Tên hello.html cạnh cargo.toml nha)
+    let b_html = fs::read_to_string("hello.html").unwrap(); 
+    let cdai = b_html.len();
+
+    // Ráp Đất, Khợp 3 Khúc (Status, Header Count, \r\n\r\n Giãn Trống Rỗng, Và Khối Html).
+    let rp = format!("{t_status}\r\nContent-Length: {cdai}\r\n\r\n{b_html}");
+
+    // Ép Ráp Vào Ống Mực Bắn Nhanh Về Ống Mạng Bằng Write! (Cần Byte Lọc mảng As.bytes)
+    r_stream.write_all(rp.as_bytes()).unwrap();
+}
+```
+Nhấn Web F5 Lại Đi? Boom! Website HTLM Hàng Thật Giá Thật Của Bạn Hiện Mượt Như Gió! 
+
+## 2. Bắt Lỗi Mạch Routing Chân Vịt Đi Sang Chữ Số 404
+
+Khách Đi Gõ `/profile` Chứ Không Vô Rễ `/` Gốc Nữa Thì Sao?
+Ở Tuần 25 Ta Lưu Cụm Text Array. Hái Mảnh Lệnh Búa Đầu Tiên Xem Khách Muốn Về Đâu Nhé:
+```rust
+fn xu_ly_khach(mut r_stream: TcpStream) {
+    let mut db_reader = BufReader::new(&mut r_stream);
+    let mut req_line = String::new();
+    // Đọc Trực Đề Lấy Dòng Ngay Lẻ Thứ 1
+    db_reader.read_line(&mut req_line).unwrap(); 
+
+    // CHIA CÀNH VÍ DỤ NHEN (Chưa dùng match Vì Tra Chuỗi Hơi Cấn Mạt Thẳng) 
+    let (t_status, ten_file) = if req_line == "GET / HTTP/1.1\r\n" {
+        ("HTTP/1.1 200 OK", "hello.html")
+    } else {
+        ("HTTP/1.1 404 NOT FOUND", "404.html")
+    };
+
+    let b_html = fs::read_to_string(ten_file).unwrap();
+    let cdai = b_html.len();
+    let rp = format!("{t_status}\r\nContent-Length: {cdai}\r\n\r\n{b_html}");
+    r_stream.write_all(rp.as_bytes()).unwrap();
+}
+```
+
+Vãi Chưởng! Bạn Vừa Thiết Kế Một Bộ Framework Routing Siêu Cơ Bản Cho API Rồi Đó. Lệnh Đi Gõ Bất Kỳ Link Nào Không Đúng `http://localhost:7878/` Sẽ Lao Ngã Về Hố Vùi Định Dạng Nghịch Mệnh 404 Khét Lẹt Lủng Cảng!
+
+## Câu hỏi thường gặp (FAQ)
+
+### Ủa Tại Sao Phải Đính Cái Content-Length Đô Trì Vây Hả Ô Kê Mạng?
+Trình Duyệt Vốn Rất Ngu Và Rác Ở Khâu Ghép Chờ Tín Hiệu. Nếu Bản Đụng Chép Không Nọc Vào Con Số Độ Nhót Mảng `b_html`, Nó Giữ Mắt Loading Thâu Trạc Quay Vòng Suốt Khi Kéo Nối Các Cáp Mảng Chưa Biết Điểm Kịch. Bắt HTTP Server Tiên Tổ Cắt Dứt Phải Khai Đáy!
+
+---
+
+**Sẵn sàng cho Ngày 27?** 
+Hiện Tại... Đây Là Con Server Chậm Nhất Thế Giới. Trót 1 Người Truy Cập Route Quá Chậm (Vd /sleep Trễ 5s), Toàn Bộ Thiên Hạ Vô Web Bị Mòn Kẽ Load Quay 5 Giây 1 Lượt Theo Sóng Đẩy (Do Single Thread Chịu Trận). Châm Đất Ngòi Súng, Trùng Lọc Đích Cao Áp Cửa Vực: **[Day 27: Cứu Tinh Lõm - The Thread Pool Architecture]**.
