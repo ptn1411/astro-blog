@@ -49,6 +49,7 @@ import { SaveModal } from '../modals/SaveModal';
 import { TemplateModal } from '../modals/TemplateModal';
 import { PasteJSONModal } from '../modals/PasteJSONModal';
 import { AIPromptModal } from '../modals/AIPromptModal';
+import { CommandPalette } from '../modals/CommandPalette';
 
 // Mobile Layout
 import { MobileBuilderLayout } from '../../mobile/layout';
@@ -125,11 +126,43 @@ export default function BuilderApp() {
     fileInputRef,
   });
 
+  // --- Command Palette state ---
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  // --- Listen for block clicks inside preview iframe ---
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'SELECT_BLOCK' && typeof e.data.payload?.id === 'string') {
+        setters.setSelectedId(e.data.payload.id);
+        setters.setShowPropsPanel(true);
+      }
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [setters]);
+
+  // --- Sync selection back to iframe for visual ring ---
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    iframe?.contentWindow?.postMessage(
+      { type: 'SELECT_BLOCK_FROM_PARENT', payload: { id: state.selectedId } },
+      '*'
+    );
+  }, [state.selectedId, iframeRef]);
+
   // --- Keyboard Shortcuts ---
   useBuilderKeyboard({
     undo,
     redo,
     setBlocks: setters.setBlocks,
+    blocks: state.blocks,
+    selectedId: state.selectedId,
+    setSelectedId: setters.setSelectedId,
+    onDeleteSelected: state.selectedId ? () => actions.deleteBlock(state.selectedId!) : undefined,
+    onMoveSelected: state.selectedId
+      ? (dir) => actions.moveBlock(state.selectedId!, dir)
+      : undefined,
+    onOpenCommandPalette: () => setIsCommandPaletteOpen(true),
   });
 
   // --- AI Prompt Generator ---
@@ -325,6 +358,13 @@ export default function BuilderApp() {
         onOpenPasteModal={() => setters.setIsPasteModalOpen(true)}
         isDarkMode={state.isDarkMode}
       />
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        widgets={widgetRegistry.widgets}
+        onAddWidget={actions.addBlock}
+        isDarkMode={state.isDarkMode}
+      />
 
       {/* Hidden file input */}
       <input type="file" ref={fileInputRef} onChange={actions.handleImportJSON} accept=".json" className="hidden" />
@@ -385,6 +425,7 @@ export default function BuilderApp() {
             widgets={widgetRegistry.widgets}
             collapsedCategories={state.collapsedCategories}
             toggleCategory={actions.toggleCategory}
+            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           />
 
           {/* Canvas */}
@@ -401,6 +442,7 @@ export default function BuilderApp() {
             onDragEnd={actions.handleDragEnd}
             onDelete={actions.deleteBlock}
             onDuplicate={actions.duplicateBlock}
+            onMove={actions.moveBlock}
             updateBlockProps={actions.updateBlockProps}
             metadata={state.metadata}
             setMetadata={setters.setMetadata}

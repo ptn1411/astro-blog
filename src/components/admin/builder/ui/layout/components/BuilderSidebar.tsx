@@ -10,6 +10,7 @@ interface BuilderSidebarProps {
   widgets: WidgetSchema[];
   collapsedCategories: Set<string>;
   toggleCategory: (categoryId: string) => void;
+  onOpenCommandPalette?: () => void;
 }
 
 export function BuilderSidebar({
@@ -19,6 +20,7 @@ export function BuilderSidebar({
   widgets,
   collapsedCategories,
   toggleCategory,
+  onOpenCommandPalette,
 }: BuilderSidebarProps) {
   const filteredWidgets = widgets.filter((widget) =>
     widget.label.toLowerCase().includes(searchQuery.toLowerCase())
@@ -28,7 +30,31 @@ export function BuilderSidebar({
     <div
       className={`w-64 flex-shrink-0 overflow-y-auto p-4 border-r ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
     >
-      <div className="mb-4">
+      <div className="mb-4 space-y-2">
+        {onOpenCommandPalette && (
+          <button
+            type="button"
+            onClick={onOpenCommandPalette}
+            className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-lg border transition-colors ${
+              isDarkMode
+                ? 'bg-gray-700/60 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white'
+                : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-white hover:border-blue-400 hover:text-gray-900'
+            }`}
+            title="Mở Command Palette"
+          >
+            <span className="flex items-center gap-2">
+              <Search size={14} />
+              <span>Thêm nhanh…</span>
+            </span>
+            <kbd
+              className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                isDarkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500 border border-gray-200'
+              }`}
+            >
+              ⌘K
+            </kbd>
+          </button>
+        )}
         <div className="relative">
           <Search
             size={16}

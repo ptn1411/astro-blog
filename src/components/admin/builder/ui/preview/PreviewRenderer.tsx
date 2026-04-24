@@ -139,6 +139,22 @@ const InnerPreviewRenderer: React.FC<{
       return <EffectsWidgetRenderer {...props} />;
     case 'ApiDataWidget':
       return <ApiDataWidgetRenderer {...props} />;
+    case 'Hotline':
+      return <HotlineRenderer {...props} />;
+    case 'ZaloFab':
+      return <ZaloFabRenderer {...props} />;
+    case 'OpeningHours':
+      return <OpeningHoursRenderer {...props} />;
+    case 'MenuPrice':
+      return <MenuPriceRenderer {...props} />;
+    case 'BankInfo':
+      return <BankInfoRenderer {...props} />;
+    case 'IconBox':
+      return <IconBoxRenderer {...props} />;
+    case 'PromoStrip':
+      return <PromoStripRenderer {...props} />;
+    case 'QRCode':
+      return <QRCodeRenderer {...props} />;
     // Custom Widgets - Use Dynamic Renderer
     default:
       // For custom widgets with template, use DynamicWidgetRenderer
@@ -1474,6 +1490,296 @@ const ApiDataWidgetRenderer = (props: any) => {
   return (
     <section className="relative not-prose px-4 py-8 max-w-7xl mx-auto">
       <ApiDataWidget config={config} />
+    </section>
+  );
+};
+
+// --- Micro Widgets VN ---
+
+const ACCENT_BG: Record<string, string> = {
+  red: 'bg-red-600',
+  green: 'bg-green-600',
+  blue: 'bg-blue-600',
+  orange: 'bg-orange-500',
+  black: 'bg-gray-900',
+  purple: 'bg-purple-600',
+  pink: 'bg-pink-600',
+};
+const ACCENT_TEXT: Record<string, string> = {
+  red: 'text-red-600',
+  green: 'text-green-600',
+  blue: 'text-blue-600',
+  orange: 'text-orange-500',
+  black: 'text-gray-900',
+  purple: 'text-purple-600',
+  pink: 'text-pink-600',
+};
+const ACCENT_RING: Record<string, string> = {
+  red: 'ring-red-200',
+  green: 'ring-green-200',
+  blue: 'ring-blue-200',
+  orange: 'ring-orange-200',
+  black: 'ring-gray-300',
+  purple: 'ring-purple-200',
+  pink: 'ring-pink-200',
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const HotlineRenderer = (props: any) => {
+  const { phone = '', label = '', zalo = '', accent = 'red' } = props;
+  const bg = ACCENT_BG[accent] || ACCENT_BG.red;
+  return (
+    <section className="relative not-prose py-6 px-4">
+      <div className={cn('max-w-4xl mx-auto rounded-xl text-white shadow-lg flex items-center gap-4 p-5', bg)}>
+        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+          <TablerIcons.IconPhoneCall size={26} />
+        </div>
+        <div className="flex-1 min-w-0">
+          {label && <div className="text-sm opacity-90 truncate">{label}</div>}
+          <a href={`tel:${phone}`} className="text-2xl md:text-3xl font-extrabold tracking-wide block truncate">
+            {phone}
+          </a>
+        </div>
+        {zalo && (
+          <a
+            href={`https://zalo.me/${zalo}`}
+            className="hidden sm:inline-flex items-center gap-2 bg-white/95 text-gray-900 px-4 py-2 rounded-full font-semibold shadow hover:bg-white"
+          >
+            <TablerIcons.IconBrandMessenger size={18} />
+            Zalo
+          </a>
+        )}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ZaloFabRenderer = (props: any) => {
+  const { zalo = '', messenger = '', phone = '', position = 'bottom-right' } = props;
+  const posClass = position === 'bottom-left' ? 'left-6' : 'right-6';
+  return (
+    <section className="relative not-prose">
+      <div className="relative h-52 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-xl overflow-hidden border border-dashed border-gray-300 dark:border-slate-700 mx-4">
+        <div className="absolute top-3 left-3 text-xs text-gray-400">Preview — hiển thị nổi trên site</div>
+        <div className={cn('absolute bottom-6 flex flex-col gap-3', posClass)}>
+          {phone && (
+            <a
+              href={`tel:${phone}`}
+              className="w-12 h-12 rounded-full bg-red-500 text-white shadow-lg flex items-center justify-center hover:scale-105 transition"
+              title={`Gọi ${phone}`}
+            >
+              <TablerIcons.IconPhone size={22} />
+            </a>
+          )}
+          {messenger && (
+            <a
+              href={messenger}
+              className="w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg flex items-center justify-center hover:scale-105 transition"
+              title="Messenger"
+            >
+              <TablerIcons.IconBrandMessenger size={22} />
+            </a>
+          )}
+          {zalo && (
+            <a
+              href={`https://zalo.me/${zalo}`}
+              className="w-12 h-12 rounded-full bg-sky-500 text-white shadow-lg flex items-center justify-center hover:scale-105 transition font-bold text-xs"
+              title="Zalo"
+            >
+              Zalo
+            </a>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const OpeningHoursRenderer = (props: any) => {
+  const { title = 'Giờ mở cửa', note, items = [] } = props;
+  return (
+    <section className="relative not-prose px-4 py-12">
+      <div className="max-w-md mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-lg border dark:border-slate-800 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600">
+            <TablerIcons.IconClock size={20} />
+          </div>
+          <h3 className="text-xl font-bold">{title}</h3>
+        </div>
+        <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+          {items.map((it: any, i: number) => (
+            <li key={i} className="flex justify-between py-2">
+              <span className="font-medium">{it.day}</span>
+              <span className="text-gray-600 dark:text-slate-400 tabular-nums">{it.hours}</span>
+            </li>
+          ))}
+        </ul>
+        {note && <p className="mt-4 text-sm text-gray-500 dark:text-slate-400 italic">{note}</p>}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MenuPriceRenderer = (props: any) => {
+  const { title = 'Thực đơn', subtitle, columns = 2, items = [] } = props;
+  const cols = Number(columns) === 1 ? 'md:grid-cols-1' : 'md:grid-cols-2';
+  return (
+    <section className="relative not-prose px-4 py-16 max-w-5xl mx-auto">
+      <div className="text-center mb-10">
+        <h2 className="text-4xl font-bold font-serif">{title}</h2>
+        {subtitle && <p className="text-gray-500 dark:text-slate-400 mt-2">{subtitle}</p>}
+      </div>
+      <div className={cn('grid gap-x-12 gap-y-6 grid-cols-1', cols)}>
+        {items.map((it: any, i: number) => (
+          <div key={i} className="flex items-baseline gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold truncate">{it.name}</div>
+              {it.desc && <div className="text-sm text-gray-500 dark:text-slate-400">{it.desc}</div>}
+            </div>
+            <div className="flex-1 border-b border-dotted border-gray-300 dark:border-slate-700 self-end mb-1.5" />
+            <div className="font-bold text-amber-700 dark:text-amber-400 whitespace-nowrap">{it.price}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BankInfoRenderer = (props: any) => {
+  const { title = 'Chuyển khoản', accounts = [], note } = props;
+  return (
+    <section className="relative not-prose px-4 py-12 max-w-4xl mx-auto">
+      <h3 className="text-2xl font-bold text-center mb-6">{title}</h3>
+      <div className="grid gap-4 md:grid-cols-2">
+        {accounts.map((a: any, i: number) => (
+          <div key={i} className="p-5 bg-white dark:bg-slate-900 rounded-xl shadow-md border dark:border-slate-800">
+            <div className="flex items-center gap-2 mb-3">
+              <TablerIcons.IconBuildingBank size={20} className="text-blue-600" />
+              <span className="font-bold text-lg">{a.bank}</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div>
+                <span className="text-gray-500 dark:text-slate-400">Chủ TK: </span>
+                <span className="font-semibold">{a.holder}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500 dark:text-slate-400">Số TK: </span>
+                <span className="font-mono font-bold tracking-wide select-all">{a.number}</span>
+              </div>
+              {a.branch && (
+                <div>
+                  <span className="text-gray-500 dark:text-slate-400">Chi nhánh: </span>
+                  <span>{a.branch}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      {note && (
+        <div className="mt-5 p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-sm rounded-lg text-center">
+          {note}
+        </div>
+      )}
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const IconBoxRenderer = (props: any) => {
+  const { icon, title, description, href, accent = 'blue' } = props;
+  const bg = ACCENT_BG[accent] || ACCENT_BG.blue;
+  const ring = ACCENT_RING[accent] || ACCENT_RING.blue;
+
+  let IconComponent: any = null;
+  if (typeof icon === 'string' && icon.startsWith('tabler:')) {
+    const iconName = icon.replace('tabler:', '');
+    const compName = tablerNameToComponent(iconName);
+    IconComponent = (TablerIcons as unknown as any)[compName] || null;
+  }
+
+  const content = (
+    <div
+      className={cn(
+        'p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-md hover:shadow-xl transition ring-1',
+        ring
+      )}
+    >
+      <div className={cn('w-12 h-12 rounded-xl text-white flex items-center justify-center mb-4', bg)}>
+        {IconComponent ? <IconComponent size={24} /> : <span className="text-xl">★</span>}
+      </div>
+      <h3 className="font-bold text-lg mb-1">{title}</h3>
+      {description && <p className="text-gray-600 dark:text-slate-400 text-sm">{description}</p>}
+      {href && (
+        <div className={cn('mt-3 text-sm font-semibold', ACCENT_TEXT[accent] || ACCENT_TEXT.blue)}>
+          Xem thêm →
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <section className="relative not-prose px-4 py-8 max-w-sm mx-auto">
+      {href ? (
+        <a href={href} className="block">
+          {content}
+        </a>
+      ) : (
+        content
+      )}
+    </section>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const PromoStripRenderer = (props: any) => {
+  const { text = '', href = '#', accent = 'red' } = props;
+  const bg = ACCENT_BG[accent] || ACCENT_BG.red;
+  return (
+    <a
+      href={href}
+      className={cn(
+        'block text-white text-center py-3 px-4 font-semibold text-sm md:text-base hover:opacity-95 transition',
+        bg
+      )}
+    >
+      {text}
+    </a>
+  );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const QRCodeRenderer = (props: any) => {
+  const { title, value = '', caption, size = 200 } = props;
+  const qrSize = Math.max(120, Math.min(480, Number(size) || 200));
+  const qrUrl = value
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(value)}`
+    : '';
+  return (
+    <section className="relative not-prose px-4 py-12">
+      <div className="max-w-sm mx-auto text-center bg-white dark:bg-slate-900 rounded-2xl shadow-lg border dark:border-slate-800 p-6">
+        {title && <h3 className="text-xl font-bold mb-4">{title}</h3>}
+        <div
+          className="mx-auto flex items-center justify-center bg-gray-50 dark:bg-slate-800 rounded-lg"
+          style={{ width: qrSize, height: qrSize }}
+        >
+          {qrUrl ? (
+            <img src={qrUrl} alt={title || 'QR'} width={qrSize} height={qrSize} className="rounded" />
+          ) : (
+            <TablerIcons.IconQrcode size={Math.floor(qrSize * 0.6)} className="text-gray-400" />
+          )}
+        </div>
+        {caption && <p className="mt-4 text-sm text-gray-500 dark:text-slate-400">{caption}</p>}
+        {value && (
+          <p className="mt-1 text-xs font-mono text-gray-400 truncate" title={value}>
+            {value}
+          </p>
+        )}
+      </div>
     </section>
   );
 };

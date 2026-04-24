@@ -16,6 +16,7 @@ import {
   Grid,
   HelpCircle,
   Image,
+  Landmark,
   Layers,
   Layout,
   LayoutGrid,
@@ -28,15 +29,19 @@ import {
   Minus,
   MoveVertical,
   PanelTop,
+  Phone,
   Play,
   Quote,
+  Rows,
   Share2,
   ShoppingBag,
   Sparkles,
+  SquareStack,
   Table,
   Trophy,
   Users,
   UsersRound,
+  Utensils,
 } from 'lucide-react';
 
 export type WidgetType =
@@ -87,7 +92,15 @@ export type WidgetType =
   | 'Downloads'
   | 'EffectsWidget'
   | 'Events'
-  | 'ApiDataWidget';
+  | 'ApiDataWidget'
+  | 'Hotline'
+  | 'ZaloFab'
+  | 'OpeningHours'
+  | 'MenuPrice'
+  | 'BankInfo'
+  | 'IconBox'
+  | 'PromoStrip'
+  | 'QRCode';
 
 export type WidgetCategory = 'hero' | 'features' | 'content' | 'social' | 'blog' | 'misc';
 
@@ -1637,6 +1650,223 @@ export const WIDGET_REGISTRY: WidgetSchema[] = [
       },
     },
     fields: [
+      ...COMMON_FIELDS,
+    ],
+  },
+
+  // --- Micro widgets VN ---
+  {
+    type: 'Hotline',
+    category: 'misc',
+    icon: Phone,
+    label: 'Thanh Hotline',
+    defaultProps: {
+      phone: '1900.xxxx',
+      label: 'Gọi ngay để được tư vấn',
+      zalo: '0901234567',
+      accent: 'red',
+    },
+    fields: [
+      { name: 'phone', label: 'Số điện thoại', type: 'text' },
+      { name: 'label', label: 'Nhãn phụ', type: 'text' },
+      { name: 'zalo', label: 'Số Zalo (tuỳ chọn)', type: 'text' },
+      {
+        name: 'accent', label: 'Màu nhấn', type: 'select',
+        options: [
+          { label: 'Đỏ', value: 'red' },
+          { label: 'Xanh lá', value: 'green' },
+          { label: 'Xanh dương', value: 'blue' },
+          { label: 'Cam', value: 'orange' },
+          { label: 'Đen', value: 'black' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'ZaloFab',
+    category: 'misc',
+    icon: MessageSquare,
+    label: 'Nút Zalo/Messenger nổi',
+    defaultProps: {
+      zalo: '0901234567',
+      messenger: '',
+      phone: '',
+      position: 'bottom-right',
+    },
+    fields: [
+      { name: 'zalo', label: 'Số/link Zalo', type: 'text' },
+      { name: 'messenger', label: 'Link m.me (tuỳ chọn)', type: 'text' },
+      { name: 'phone', label: 'Hotline hiển thị kèm (tuỳ chọn)', type: 'text' },
+      {
+        name: 'position', label: 'Vị trí', type: 'select',
+        options: [
+          { label: 'Góc phải dưới', value: 'bottom-right' },
+          { label: 'Góc trái dưới', value: 'bottom-left' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'OpeningHours',
+    category: 'misc',
+    icon: Clock,
+    label: 'Giờ mở cửa',
+    defaultProps: {
+      title: 'Giờ mở cửa',
+      note: 'Mở cửa tất cả các ngày trong tuần',
+      items: [
+        { day: 'Thứ 2 – Thứ 6', hours: '08:00 – 22:00' },
+        { day: 'Thứ 7', hours: '08:00 – 23:00' },
+        { day: 'Chủ nhật', hours: '09:00 – 22:00' },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Tiêu đề', type: 'text' },
+      { name: 'note', label: 'Ghi chú', type: 'text' },
+      {
+        name: 'items', label: 'Lịch', type: 'array',
+        arraySchema: [
+          { key: 'day', label: 'Ngày', type: 'text' },
+          { key: 'hours', label: 'Giờ', type: 'text' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'MenuPrice',
+    category: 'misc',
+    icon: Utensils,
+    label: 'Menu & Giá (quán ăn/café)',
+    defaultProps: {
+      title: 'Thực Đơn',
+      subtitle: 'Giá đã bao gồm VAT · Topping 5k',
+      columns: 2,
+      items: [
+        { name: 'Phở Bò', desc: 'Nước dùng ninh xương bò 12 tiếng', price: '75k' },
+        { name: 'Bún Bò Huế', desc: 'Cay nồng vị Huế truyền thống', price: '85k' },
+        { name: 'Cơm Tấm Sườn', desc: 'Sườn nướng than hoa, chả trứng', price: '65k' },
+        { name: 'Bánh Mì Thịt Nguội', desc: 'Pate nhà làm, rau thơm', price: '35k' },
+      ],
+    },
+    fields: [
+      { name: 'title', label: 'Tiêu đề', type: 'text' },
+      { name: 'subtitle', label: 'Phụ đề', type: 'text' },
+      { name: 'columns', label: 'Số cột (1 / 2)', type: 'number' },
+      {
+        name: 'items', label: 'Món', type: 'array',
+        arraySchema: [
+          { key: 'name', label: 'Tên món', type: 'text' },
+          { key: 'desc', label: 'Mô tả', type: 'text' },
+          { key: 'price', label: 'Giá', type: 'text' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'BankInfo',
+    category: 'misc',
+    icon: Landmark,
+    label: 'Thông tin chuyển khoản',
+    defaultProps: {
+      title: 'Thanh Toán Chuyển Khoản',
+      accounts: [
+        { bank: 'Vietcombank', holder: 'NGUYEN VAN A', number: '0123456789', branch: 'CN Sài Gòn' },
+        { bank: 'MB Bank', holder: 'NGUYEN VAN A', number: '9876543210', branch: 'CN Hà Nội' },
+      ],
+      note: 'Nội dung chuyển khoản: Họ tên + SĐT',
+    },
+    fields: [
+      { name: 'title', label: 'Tiêu đề', type: 'text' },
+      { name: 'note', label: 'Ghi chú', type: 'text' },
+      {
+        name: 'accounts', label: 'Tài khoản', type: 'array',
+        arraySchema: [
+          { key: 'bank', label: 'Ngân hàng', type: 'text' },
+          { key: 'holder', label: 'Chủ TK (in hoa)', type: 'text' },
+          { key: 'number', label: 'Số tài khoản', type: 'text' },
+          { key: 'branch', label: 'Chi nhánh', type: 'text' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'IconBox',
+    category: 'features',
+    icon: SquareStack,
+    label: 'Icon Box (thẻ đơn)',
+    defaultProps: {
+      icon: 'tabler:sparkles',
+      title: 'Tiêu đề nổi bật',
+      description: 'Mô tả ngắn cho một điểm mạnh hoặc dịch vụ.',
+      href: '',
+      accent: 'blue',
+    },
+    fields: [
+      { name: 'icon', label: 'Icon (tabler:xxx)', type: 'icon' },
+      { name: 'title', label: 'Tiêu đề', type: 'text' },
+      { name: 'description', label: 'Mô tả', type: 'textarea' },
+      { name: 'href', label: 'Link (tuỳ chọn)', type: 'text' },
+      {
+        name: 'accent', label: 'Màu nhấn', type: 'select',
+        options: [
+          { label: 'Xanh dương', value: 'blue' },
+          { label: 'Xanh lá', value: 'green' },
+          { label: 'Đỏ', value: 'red' },
+          { label: 'Cam', value: 'orange' },
+          { label: 'Tím', value: 'purple' },
+          { label: 'Hồng', value: 'pink' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'PromoStrip',
+    category: 'misc',
+    icon: Bell,
+    label: 'Promo Bar (thanh khuyến mãi)',
+    defaultProps: {
+      text: '🎁 Flash Sale 50% – Chỉ còn 24h · Mã: SALE50',
+      href: '#promo',
+      accent: 'red',
+    },
+    fields: [
+      { name: 'text', label: 'Nội dung', type: 'text' },
+      { name: 'href', label: 'Link', type: 'text' },
+      {
+        name: 'accent', label: 'Màu', type: 'select',
+        options: [
+          { label: 'Đỏ', value: 'red' },
+          { label: 'Cam', value: 'orange' },
+          { label: 'Xanh lá', value: 'green' },
+          { label: 'Tím', value: 'purple' },
+          { label: 'Đen', value: 'black' },
+        ],
+      },
+      ...COMMON_FIELDS,
+    ],
+  },
+  {
+    type: 'QRCode',
+    category: 'misc',
+    icon: Grid,
+    label: 'QR Code (menu/thanh toán)',
+    defaultProps: {
+      title: 'Quét QR để xem menu',
+      value: 'https://example.com/menu',
+      caption: 'Hoặc soi camera điện thoại',
+      size: 200,
+    },
+    fields: [
+      { name: 'title', label: 'Tiêu đề', type: 'text' },
+      { name: 'value', label: 'URL / Nội dung QR', type: 'text' },
+      { name: 'caption', label: 'Chú thích', type: 'text' },
+      { name: 'size', label: 'Kích thước (px)', type: 'number' },
       ...COMMON_FIELDS,
     ],
   },

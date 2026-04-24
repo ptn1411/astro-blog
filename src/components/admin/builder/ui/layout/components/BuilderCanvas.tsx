@@ -12,6 +12,7 @@ import React from 'react';
 import type { BuilderBlock, PageMetadata } from '../../../core/types';
 import type { WidgetSchema } from '../../../config/registry';
 import { CanvasItem } from '../../canvas/CanvasItem';
+import { DropSlot } from '../../canvas/DropSlot';
 import { PropsEditor } from '../../panels/PropsEditor';
 import type { PreviewMode } from '../../../hooks/useBuilderState';
 
@@ -30,6 +31,7 @@ interface BuilderCanvasProps {
   onDragEnd: (event: DragEndEvent) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onMove: (id: string, direction: 'up' | 'down') => void;
   updateBlockProps: (id: string, newProps: Record<string, unknown>) => void;
   metadata: PageMetadata;
   setMetadata: (metadata: PageMetadata) => void;
@@ -49,6 +51,7 @@ export function BuilderCanvas({
   onDragEnd,
   onDelete,
   onDuplicate,
+  onMove,
   updateBlockProps,
   metadata,
   setMetadata,
@@ -77,33 +80,63 @@ export function BuilderCanvas({
               </h3>
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                 <SortableContext items={blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
-                  {blocks.map((block) => (
-                    <CanvasItem
-                      key={block.id}
-                      block={block}
-                      isSelected={selectedId === block.id}
-                      onSelect={() => {
-                        setSelectedId(block.id);
-                        setShowPropsPanel(true);
-                      }}
-                      onDelete={(e) => {
-                        e.stopPropagation();
-                        onDelete(block.id);
-                      }}
-                      onDuplicate={(e) => {
-                        e.stopPropagation();
-                        onDuplicate(block.id);
-                      }}
+                  {blocks.length > 0 && (
+                    <DropSlot
+                      onDropWidget={(type) =>
+                        window.dispatchEvent(new CustomEvent('add-widget', { detail: { type, index: 0 } }))
+                      }
                       isDarkMode={isDarkMode}
                     />
+                  )}
+                  {blocks.map((block, idx) => (
+                    <React.Fragment key={block.id}>
+                      <CanvasItem
+                        block={block}
+                        index={idx}
+                        total={blocks.length}
+                        isSelected={selectedId === block.id}
+                        onSelect={() => {
+                          setSelectedId(block.id);
+                          setShowPropsPanel(true);
+                        }}
+                        onDelete={(e) => {
+                          e.stopPropagation();
+                          onDelete(block.id);
+                        }}
+                        onDuplicate={(e) => {
+                          e.stopPropagation();
+                          onDuplicate(block.id);
+                        }}
+                        onMoveUp={(e) => {
+                          e.stopPropagation();
+                          onMove(block.id, 'up');
+                        }}
+                        onMoveDown={(e) => {
+                          e.stopPropagation();
+                          onMove(block.id, 'down');
+                        }}
+                        isDarkMode={isDarkMode}
+                      />
+                      <DropSlot
+                        onDropWidget={(type) =>
+                          window.dispatchEvent(
+                            new CustomEvent('add-widget', { detail: { type, index: idx + 1 } })
+                          )
+                        }
+                        isDarkMode={isDarkMode}
+                      />
+                    </React.Fragment>
                   ))}
                 </SortableContext>
               </DndContext>
               {blocks.length === 0 && (
-                <div className={`text-center py-8 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                  <p className="text-sm">No blocks yet</p>
-                  <p className="text-xs mt-1">Click a widget to add</p>
-                </div>
+                <DropSlot
+                  onDropWidget={(type) =>
+                    window.dispatchEvent(new CustomEvent('add-widget', { detail: type }))
+                  }
+                  isDarkMode={isDarkMode}
+                  variant="empty"
+                />
               )}
             </div>
           )}

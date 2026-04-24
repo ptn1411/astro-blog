@@ -97,7 +97,7 @@ export function useBuilderActions({
   }, [blocks, metadata, setIsSaving, setIsSaveModalOpen]);
 
   // --- Block Actions ---
-  const addBlock = useCallback((type: WidgetType | string) => {
+  const addBlock = useCallback((type: WidgetType | string, index?: number) => {
     const def = widgetRegistry.getWidget(type);
     if (!def) {
       console.warn(`Widget definition not found for type: ${type}`);
@@ -108,7 +108,12 @@ export function useBuilderActions({
       type: type as WidgetType,
       props: deepClone(def.defaultProps),
     };
-    setBlocks((prev) => [...prev, newBlock]);
+    setBlocks((prev) => {
+      if (index === undefined || index < 0 || index > prev.length) {
+        return [...prev, newBlock];
+      }
+      return [...prev.slice(0, index), newBlock, ...prev.slice(index)];
+    });
     setSelectedId(newBlock.id);
   }, [widgetRegistry, setBlocks, setSelectedId]);
 
@@ -123,6 +128,16 @@ export function useBuilderActions({
       return next;
     });
   }, [selectedId, setBlocks, setSelectedId]);
+
+  const moveBlock = useCallback((id: string, direction: 'up' | 'down') => {
+    setBlocks((prev) => {
+      const index = prev.findIndex((b) => b.id === id);
+      if (index === -1) return prev;
+      const target = direction === 'up' ? index - 1 : index + 1;
+      if (target < 0 || target >= prev.length) return prev;
+      return arrayMove(prev, index, target);
+    });
+  }, [setBlocks]);
 
   const duplicateBlock = useCallback((id: string) => {
     const block = blocks.find((b) => b.id === id);
@@ -260,7 +275,11 @@ export function useBuilderActions({
 
   // --- Listen for sidebar widget clicks ---
   useEffect(() => {
-    const handler = (e: CustomEvent) => addBlock(e.detail);
+    const handler = (e: CustomEvent) => {
+      const d = e.detail;
+      if (typeof d === 'string') addBlock(d);
+      else if (d && typeof d === 'object') addBlock(d.type, d.index);
+    };
     window.addEventListener('add-widget' as keyof WindowEventMap, handler as EventListener);
     return () => window.removeEventListener('add-widget' as keyof WindowEventMap, handler as EventListener);
   }, [addBlock]);
@@ -271,6 +290,7 @@ export function useBuilderActions({
     updateBlockProps,
     deleteBlock,
     duplicateBlock,
+    moveBlock,
     toggleCategory,
     applyTemplate,
     clearPage,
