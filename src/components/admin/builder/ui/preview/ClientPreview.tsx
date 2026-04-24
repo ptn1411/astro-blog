@@ -21,6 +21,7 @@ export default function ClientPreview() {
   const [blocks, setBlocks] = useState<BuilderBlock[]>([]);
   const [customWidgets, setCustomWidgets] = useState<WidgetSchema[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     // Load custom widgets
@@ -59,6 +60,8 @@ export default function ClientPreview() {
             document.title = metadata.title;
           }
         }
+      } else if (event.data?.type === 'SELECT_BLOCK_FROM_PARENT') {
+        setSelectedId(event.data.payload?.id ?? null);
       }
     };
 
@@ -104,16 +107,36 @@ export default function ClientPreview() {
     );
   }
 
+  const handleBlockClick = (id: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedId(id);
+    try {
+      window.parent?.postMessage({ type: 'SELECT_BLOCK', payload: { id } }, '*');
+    } catch {}
+  };
+
   return (
     <div className="preview-container">
-      {blocks.map((block) => (
-        <PreviewRenderer 
-          key={block.id} 
-          type={block.type} 
-          props={block.props}
-          widgetDef={getWidgetDef(block.type)}
-        />
-      ))}
+      {blocks.map((block) => {
+        const isSel = selectedId === block.id;
+        return (
+          <div
+            key={block.id}
+            data-block-id={block.id}
+            onClick={handleBlockClick(block.id)}
+            className={`builder-block-wrapper relative cursor-pointer transition-shadow ${
+              isSel ? 'ring-2 ring-blue-500 ring-offset-1' : 'hover:ring-2 hover:ring-blue-300'
+            }`}
+          >
+            <PreviewRenderer
+              type={block.type}
+              props={block.props}
+              widgetDef={getWidgetDef(block.type)}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
