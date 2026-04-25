@@ -27,6 +27,7 @@ export const headerData = {
         { text: 'Feed', href: getPermalink('/stories/feed') },
         { text: 'Pages', href: getPermalink('/pages') },
         { text: 'Bookmarks', href: getPermalink('/bookmarks') },
+        { text: 'Photobooth 3D', href: getPermalink('/photobooth') },
       ],
     },
     {

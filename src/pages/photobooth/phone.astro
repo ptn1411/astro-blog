@@ -1,0 +1,28 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import PhoneSender from '~/components/photobooth/PhoneSender';
+
+const metadata = {
+  title: 'Photobooth Phone — Gửi camera điện thoại',
+  description: 'Dùng camera điện thoại làm nguồn cho Photobooth 3D trên máy tính qua QR P2P.',
+  robots: { index: false, follow: false },
+};
+---
+
+<Layout metadata={metadata}>
+  <PhoneSender client:only="react" />
+</Layout>
+
+<style is:global>
+  main:has(.photobooth-phone-root) {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+  main:has(.photobooth-phone-root) + footer {
+    display: none !important;
+  }
+  body:has(.photobooth-phone-root) header:first-of-type {
+    display: none !important;
+  }
+</style>

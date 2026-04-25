@@ -1,0 +1,42 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import Photobooth from '~/components/photobooth/Photobooth';
+
+const metadata = {
+  title: 'Photobooth 3D — Chụp ảnh hiệu ứng AR',
+  description:
+    'Photobooth chạy trên trình duyệt: face-tracking AR mask, particle, shader filter và 3D frame. Không cần cài đặt.',
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+---
+
+<Layout metadata={metadata}>
+  <Photobooth client:only="react" />
+</Layout>
+
+<style is:global>
+  main:has(.photobooth-root) {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+  main:has(.photobooth-root) + footer {
+    display: none !important;
+  }
+  body.photobooth-flash::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    z-index: 9999;
+    pointer-events: none;
+    animation: photoboothFlash 180ms ease-out;
+  }
+  @keyframes photoboothFlash {
+    0% { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+</style>

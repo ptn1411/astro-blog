@@ -111,6 +111,7 @@ export default defineConfig({
       external: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
     },
     server: {
+      host: true,
       headers: {
         'Cross-Origin-Opener-Policy': 'same-origin',
         'Cross-Origin-Embedder-Policy': 'require-corp',
