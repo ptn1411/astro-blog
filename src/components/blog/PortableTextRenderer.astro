@@ -1,0 +1,66 @@
+---
+import { PortableText } from 'astro-portabletext';
+import { urlForImage } from '~/utils/sanity/image';
+
+export interface Props {
+  value: any;
+}
+
+const { value } = Astro.props;
+
+// Custom Components cho Portable Text
+const customComponents = {
+  type: {
+    codeBlock: ({ node }: any) => {
+      const code = node.code || '';
+      const lang = node.language || 'plaintext';
+      const filename = node.filename;
+      return `
+        <div class="my-6 rounded-lg overflow-hidden border border-slate-700 bg-slate-950 font-mono text-sm shadow-md">
+          ${filename ? `<div class="bg-slate-800 text-slate-300 text-xs px-4 py-2 border-b border-slate-700 font-semibold">${filename}</div>` : ''}
+          <pre class="p-4 overflow-x-auto text-slate-100"><code class="language-${lang}">${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
+        </div>
+      `;
+    },
+    inlineImage: ({ node }: any) => {
+      if (!node.asset) return '';
+      const url = urlForImage(node).auto('format').width(900).url();
+      const alt = node.alt || '';
+      const caption = node.caption;
+      return `
+        <figure class="my-8 text-center">
+          <img src="${url}" alt="${alt}" class="mx-auto rounded-lg shadow-md max-w-full h-auto" loading="lazy" />
+          ${caption ? `<figcaption class="mt-2 text-sm text-slate-500 italic">${caption}</figcaption>` : ''}
+        </figure>
+      `;
+    },
+    youtube: ({ node }: any) => {
+      if (!node.url) return '';
+      // Trích xuất video ID
+      const match = node.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      const videoId = match ? match[1] : null;
+      if (!videoId) return `<a href="${node.url}" target="_blank" rel="noopener noreferrer">${node.url}</a>`;
+      return `
+        <div class="my-8 aspect-video w-full overflow-hidden rounded-xl shadow-lg">
+          <iframe class="w-full h-full" src="https://www.youtube.com/embed/${videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      `;
+    },
+    vimeo: ({ node }: any) => {
+      if (!node.url) return '';
+      const match = node.url.match(/vimeo\.com\/(\d+)/);
+      const videoId = match ? match[1] : null;
+      if (!videoId) return `<a href="${node.url}" target="_blank" rel="noopener noreferrer">${node.url}</a>`;
+      return `
+        <div class="my-8 aspect-video w-full overflow-hidden rounded-xl shadow-lg">
+          <iframe class="w-full h-full" src="https://player.vimeo.com/video/${videoId}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      `;
+    },
+  },
+};
+---
+
+<div class="prose dark:prose-invert max-w-none prose-headings:font-heading prose-headings:font-bold prose-a:text-primary dark:prose-a:text-blue-400">
+  {value && <PortableText value={value} components={customComponents} />}
+</div>

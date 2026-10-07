@@ -41,6 +41,7 @@ export interface Post {
   /**  */
   Content?: AstroComponentFactory;
   content?: string;
+  body?: any;
 
   /**  */
   readingTime?: number;

@@ -51,6 +51,8 @@ export async function saveLocally(path: string, content: string): Promise<void> 
 }
 
 export function getGitHubToken(): string | null {
+  const directToken = typeof window !== 'undefined' ? localStorage.getItem('github_token') : null;
+  if (directToken) return directToken;
   try {
     const storedUser = localStorage.getItem('sveltia-cms.user');
     if (storedUser) {

@@ -2,7 +2,7 @@ import { getCollection } from 'astro:content';
 import type { PaginateFunction } from 'astro';
 import type { Post } from '~/types';
 import { cleanSlug, TAG_BASE } from '../permalinks';
-import { getNormalizedPost } from './normalizer';
+import { getNormalizedPost, getNormalizedSanityPost } from './normalizer';
 import { compareSeriesPosts, matchesSeries } from './series';
 import { blogPostsPerPage, isBlogEnabled, isBlogTagRouteEnabled } from './config';
 
@@ -34,9 +34,27 @@ let _posts: Array<Post>;
 
 const load = async function (): Promise<Array<Post>> {
   const posts = await getCollection('post');
-  const normalizedPosts = posts.map(async (post) => await getNormalizedPost(post));
+  const normalizedPosts = await Promise.all(posts.map(async (post) => await getNormalizedPost(post)));
 
-  const results = (await Promise.all(normalizedPosts))
+  const localSlugs = new Set(normalizedPosts.map((p) => p.slug));
+
+  // Merge thêm bài viết mới từ Sanity nếu chưa có ở local
+  try {
+    const { sanityClient } = await import('~/utils/sanity/client');
+    const { allPostsQuery } = await import('~/utils/sanity/queries');
+    const sanityPosts = await sanityClient.fetch(allPostsQuery);
+    if (Array.isArray(sanityPosts)) {
+      const newSanityPosts = sanityPosts.filter((doc: any) => !localSlugs.has(doc.slug?.current || doc.slug));
+      if (newSanityPosts.length > 0) {
+        const normalizedSanity = await Promise.all(newSanityPosts.map((doc: any) => getNormalizedSanityPost(doc)));
+        normalizedPosts.push(...normalizedSanity);
+      }
+    }
+  } catch (_err) {
+    // Sanity offline hoặc không có mạng vẫn chạy 100% bằng local
+  }
+
+  const results = normalizedPosts
     .sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf())
     .filter((post) => !post.draft);
 

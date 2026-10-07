@@ -25,6 +25,7 @@ function isProduction(): boolean {
     devHosts.includes(hostname) ||
     hostname.endsWith('.local') ||
     hostname.endsWith('.localhost') ||
+    hostname.endsWith('.test') ||
     hostname.startsWith('192.168.') || // Local network
     hostname.startsWith('10.') ||      // Local network
     hostname.startsWith('172.') ||     // Local network (172.16-31.x.x)

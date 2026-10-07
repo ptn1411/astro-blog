@@ -10,9 +10,9 @@ export const prerender = true;
 export const getStaticPaths = (async () => {
   // import.meta.glob must appear in the source file for Vite static analysis.
   // Keeping them inside getStaticPaths ensures they are also in scope at SSG runtime.
-  const images = import.meta.glob('/src/assets/images/**/*', { eager: false, import: 'default' });
-  const audios = import.meta.glob('/src/assets/audio/**/*', { eager: false, import: 'default' });
-  const videos = import.meta.glob('/src/assets/video/**/*', { eager: false, import: 'default' });
+  const images = import.meta.glob('/src/assets/images/**/*', { eager: false, 'import': 'default' });
+  const audios = import.meta.glob('/src/assets/audio/**/*', { eager: false, 'import': 'default' });
+  const videos = import.meta.glob('/src/assets/video/**/*', { eager: false, 'import': 'default' });
 
   const stories = await getCollection('stories');
 
@@ -44,7 +44,8 @@ export const getStaticPaths = (async () => {
         if (slide.audio?.src)
           slide.audio.src = await resolveAsset(slide.audio.src, audios);
 
-        for (const el of slide.elements ?? []) {
+        for (const rawEl of slide.elements ?? []) {
+          const el = rawEl as any;
           if (['image', 'sticker', 'gif', 'avatar'].includes(el.type)) {
             if (el.content) el.content = await resolveAsset(el.content, images);
             if (el.src)     el.src     = await resolveAsset(el.src, images);

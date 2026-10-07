@@ -9,17 +9,17 @@ export const prerender = true;
 // Load all assets using glob — must be top-level for Vite static analysis
 const images = import.meta.glob('/src/assets/images/**/*', {
   eager: false,
-  import: 'default',
+  'import': 'default',
 });
 
 const audios = import.meta.glob('/src/assets/audio/**/*', {
   eager: false,
-  import: 'default',
+  'import': 'default',
 });
 
 const videos = import.meta.glob('/src/assets/video/**/*', {
   eager: false,
-  import: 'default',
+  'import': 'default',
 });
 
 // Helper: resolve /src/assets/... paths → hashed production URLs
@@ -54,7 +54,8 @@ const processedStories: Story[] = await Promise.all(
         slide.background.value = await resolveAsset(slide.background.value, videos);
       if (slide.audio?.src) slide.audio.src = await resolveAsset(slide.audio.src, audios);
 
-      for (const el of slide.elements ?? []) {
+      for (const rawEl of slide.elements ?? []) {
+        const el = rawEl as any;
         if (['image', 'sticker', 'gif', 'avatar'].includes(el.type)) {
           if (el.content) el.content = await resolveAsset(el.content, images);
           if (el.src) el.src = await resolveAsset(el.src, images);

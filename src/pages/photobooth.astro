@@ -1,6 +1,6 @@
 ---
 import Layout from '~/layouts/PageLayout.astro';
-import Photobooth from '~/components/photobooth/Photobooth';
+import PhotoboothApp from '~/components/photobooth/Photobooth';
 
 const metadata = {
   title: 'Photobooth 3D — Chụp ảnh hiệu ứng AR',
@@ -14,7 +14,7 @@ const metadata = {
 ---
 
 <Layout metadata={metadata}>
-  <Photobooth client:only="react" />
+  <PhotoboothApp client:only="react" />
 </Layout>
 
 <style is:global>

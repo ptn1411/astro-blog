@@ -81,11 +81,13 @@ export function getCopilotKitUrl(): string {
   return `${AI_CONFIG.workerUrl}${AI_CONFIG.endpoint}`;
 }
 
-// Helper to get GitHub token from localStorage (set by Sveltia CMS)
+// Helper to get GitHub token from localStorage (supports direct github_token and legacy Sveltia CMS)
 export function getGitHubToken(): string | null {
   if (typeof window === 'undefined') return null;
   
-  // Sveltia CMS stores the token in localStorage
+  const directToken = localStorage.getItem('github_token');
+  if (directToken) return directToken;
+
   const token = localStorage.getItem('sveltia-cms.user');
   if (!token) return null;
   

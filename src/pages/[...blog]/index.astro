@@ -6,6 +6,7 @@ import merge from 'lodash.merge';
 import SinglePost from '~/components/blog/SinglePost.astro';
 import ToBlogLink from '~/components/blog/ToBlogLink.astro';
 import Layout from '~/layouts/PageLayout.astro';
+import PortableTextRenderer from '~/components/blog/PortableTextRenderer.astro';
 
 import RelatedPosts from '~/components/blog/RelatedPosts.astro';
 import type { MetaData } from '~/types';
@@ -78,7 +79,13 @@ metadata.structuredData = [
 
 <Layout metadata={metadata}>
   <SinglePost post={{ ...post, image: image }} url={url}>
-    {post.Content ? <post.Content /> : <Fragment set:html={post.content || ''} />}
+    {post.body ? (
+      <PortableTextRenderer value={post.body} />
+    ) : post.Content ? (
+      <post.Content />
+    ) : (
+      <Fragment set:html={post.content || ''} />
+    )}
   </SinglePost>
   <ToBlogLink />
   <RelatedPosts post={post} />

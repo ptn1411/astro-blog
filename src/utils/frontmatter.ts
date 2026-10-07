@@ -1,4 +1,5 @@
-import { type RehypePlugin, type RemarkPlugin } from '@astrojs/markdown-remark';
+type RemarkPlugin = () => (tree: any, file: any) => void;
+type RehypePlugin = () => (tree: any) => void;
 import GithubSlugger from 'github-slugger';
 import { toString } from 'mdast-util-to-string';
 import getReadingTime from 'reading-time';

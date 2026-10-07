@@ -25,3 +25,9 @@ pnpm-lock.yaml
 stats.html
 
 worker/
+
+agent/
+.claude/
+
+.agents/
+.wrangler/

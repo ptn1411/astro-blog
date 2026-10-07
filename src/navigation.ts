@@ -1,14 +1,10 @@
-﻿import { getBlogPermalink, getPermalink } from './utils/permalinks';
+import { getBlogPermalink, getPermalink } from './utils/permalinks';
 
 export const headerData = {
   links: [
     {
       text: 'Trang chủ',
       href: getPermalink('/'),
-    },
-    {
-      text: 'Chat',
-      href: getPermalink('/chat'),
     },
     {
       text: 'Dịch vụ',
@@ -55,7 +51,9 @@ export const footerData = {
       links: [
         { text: 'Blog', href: '/blog' },
         { text: 'Stories', href: '/stories' },
+        { text: 'Story Feed', href: '/stories/feed' },
         { text: 'Tác giả', href: '/authors' },
+        { text: 'Bookmarks', href: '/bookmarks' },
         { text: 'Pages', href: '/pages' },
       ],
     },

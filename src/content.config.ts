@@ -41,7 +41,7 @@ const metadataDefinition = () =>
           cardType: z.string().optional(),
         })
         .optional(),
-      structuredData: z.union([z.record(z.any()), z.array(z.record(z.any()))]).optional(),
+      structuredData: z.union([z.record(z.string(), z.any()), z.array(z.record(z.string(), z.any()))]).optional(),
     })
     .optional();
 

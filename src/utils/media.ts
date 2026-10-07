@@ -18,6 +18,8 @@ const pendingMediaStore: Map<string, PendingMedia> = new Map();
 // Helper functions
 function getGitHubToken(): string | null {
   if (typeof window === 'undefined') return null;
+  const directToken = localStorage.getItem('github_token');
+  if (directToken) return directToken;
   try {
     const storedUser = localStorage.getItem('sveltia-cms.user');
     if (storedUser) {
