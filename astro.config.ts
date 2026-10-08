@@ -71,7 +71,7 @@ export default defineConfig({
     ),
     pagefind(),
     compress({
-      CSS: true,
+      CSS: false,
       HTML: {
         'html-minifier-terser': {
           removeAttributeQuotes: false,
