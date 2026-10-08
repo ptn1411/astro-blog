@@ -40,12 +40,41 @@ const resolveAsset = async (assetPath: string, assetsGlob: Record<string, () => 
 
 // Fetch ALL stories — no filter, exactly like index.astro
 const storiesCollection = await getCollection('stories');
+const allStoriesList: Story[] = storiesCollection.map((entry) => JSON.parse(JSON.stringify(entry.data)));
+const localIds = new Set(allStoriesList.map((s) => s.id));
+
+// Merge thêm stories mới từ Sanity
+try {
+  const { sanityClient } = await import('~/utils/sanity/client');
+  const { allStoriesQuery } = await import('~/utils/sanity/queries');
+  const sanityStories = await sanityClient.fetch(allStoriesQuery);
+  if (Array.isArray(sanityStories)) {
+    for (const doc of sanityStories) {
+      if (doc.id && !localIds.has(doc.id)) {
+        let slides = doc.rawSlides ? JSON.parse(doc.rawSlides) : doc.slides;
+        allStoriesList.push({
+          id: doc.id,
+          title: doc.title,
+          description: doc.description,
+          slides: slides || [],
+          audio: doc.audioUrl ? { src: doc.audioUrl, volume: 1 } : undefined,
+          settings: {
+            autoPlay: doc.autoPlay,
+            loop: doc.loop,
+          },
+          createdAt: doc.createdAt,
+        } as any);
+      }
+    }
+  }
+} catch {
+  // Sanity offline fallback
+}
 
 // Resolve asset paths for each story in parallel
 const processedStories: Story[] = await Promise.all(
-  storiesCollection.map(async (entry) => {
-    // Deep clone to avoid mutating the collection entry
-    const storyData = JSON.parse(JSON.stringify(entry.data)) as Story;
+  allStoriesList.map(async (storyData) => {
+
 
     for (const slide of storyData.slides ?? []) {
       if (slide.background?.type === 'image' && slide.background.value)

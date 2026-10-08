@@ -14,7 +14,43 @@ export const getStaticPaths = (async () => {
   const audios = import.meta.glob('/src/assets/audio/**/*', { eager: false, 'import': 'default' });
   const videos = import.meta.glob('/src/assets/video/**/*', { eager: false, 'import': 'default' });
 
-  const stories = await getCollection('stories');
+  const localStories = await getCollection('stories');
+  const allStoriesList: Array<{ id: string; data: any }> = localStories.map((s) => ({
+    id: s.id,
+    data: s.data,
+  }));
+  const localIds = new Set(allStoriesList.map((s) => s.id));
+
+  // Merge thêm stories mới từ Sanity
+  try {
+    const { sanityClient } = await import('~/utils/sanity/client');
+    const { allStoriesQuery } = await import('~/utils/sanity/queries');
+    const sanityStories = await sanityClient.fetch(allStoriesQuery);
+    if (Array.isArray(sanityStories)) {
+      for (const doc of sanityStories) {
+        if (doc.id && !localIds.has(doc.id)) {
+          let slides = doc.rawSlides ? JSON.parse(doc.rawSlides) : doc.slides;
+          allStoriesList.push({
+            id: doc.id,
+            data: {
+              id: doc.id,
+              title: doc.title,
+              description: doc.description,
+              slides: slides || [],
+              audio: doc.audioUrl ? { src: doc.audioUrl, volume: 1 } : undefined,
+              settings: {
+                autoPlay: doc.autoPlay,
+                loop: doc.loop,
+              },
+              createdAt: doc.createdAt,
+            },
+          });
+        }
+      }
+    }
+  } catch {
+    // Sanity offline fallback
+  }
 
   // Resolve /src/assets/... path → hashed production URL
   const resolveAsset = async (assetPath: string, assetsGlob: Record<string, () => Promise<unknown>>) => {
@@ -33,7 +69,7 @@ export const getStaticPaths = (async () => {
   };
 
   return Promise.all(
-    stories.map(async (story) => {
+    allStoriesList.map(async (story) => {
       const storyData = JSON.parse(JSON.stringify(story.data)) as Story;
 
       for (const slide of storyData.slides ?? []) {
