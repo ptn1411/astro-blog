@@ -51,6 +51,22 @@ export const pageType = defineType({
       title: 'Nội dung trang',
       type: 'blockContent',
     }),
+    defineField({
+      name: 'rawContent',
+      title: 'Nội dung MDX gốc',
+      type: 'text',
+      rows: 8,
+    }),
+    defineField({
+      name: 'headerData',
+      title: 'Cấu hình Header (JSON)',
+      type: 'text',
+    }),
+    defineField({
+      name: 'footerData',
+      title: 'Cấu hình Footer (JSON)',
+      type: 'text',
+    }),
   ],
   preview: {
     select: {

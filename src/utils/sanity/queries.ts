@@ -85,5 +85,49 @@ export const allStoriesQuery = `*[_type == "story"] | order(createdAt desc) {
   autoPlay,
   loop,
   createdAt,
+  rawSlides,
   slides
 }`;
+
+// Chi tiết 1 Story theo ID
+export const storyByIdQuery = `*[_type == "story" && id == $id][0] {
+  _id,
+  id,
+  title,
+  description,
+  thumbnail,
+  "audioUrl": audio.asset->url,
+  autoPlay,
+  loop,
+  createdAt,
+  rawSlides,
+  slides
+}`;
+
+// Danh sách các trang tĩnh (Pages)
+export const allPagesQuery = `*[_type == "page"] | order(title asc) {
+  _id,
+  title,
+  "slug": slug.current,
+  image,
+  pageLayout,
+  metadata,
+  headerData,
+  footerData,
+  rawContent
+}`;
+
+// Chi tiết 1 trang tĩnh theo slug
+export const pageBySlugQuery = `*[_type == "page" && slug.current == $slug][0] {
+  _id,
+  title,
+  "slug": slug.current,
+  image,
+  pageLayout,
+  metadata,
+  headerData,
+  footerData,
+  rawContent,
+  body
+}`;
+

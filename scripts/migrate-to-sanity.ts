@@ -4,8 +4,22 @@ import matter from 'gray-matter';
 import { markdownToPortableText } from '@portabletext/markdown';
 import { createClient } from '@sanity/client';
 
-// Load .env
-import 'dotenv/config';
+// Load .env manually without external dependency
+if (fs.existsSync('.env')) {
+  const envContent = fs.readFileSync('.env', 'utf-8');
+  for (const line of envContent.split('\n')) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+      const idx = trimmed.indexOf('=');
+      const key = trimmed.slice(0, idx).trim();
+      const val = trimmed.slice(idx + 1).trim();
+      if (!process.env[key]) {
+        process.env[key] = val;
+      }
+    }
+  }
+}
+
 
 const projectId = process.env.PUBLIC_SANITY_PROJECT_ID || 'whq7qfq3';
 const dataset = process.env.PUBLIC_SANITY_DATASET || 'production';
@@ -29,6 +43,9 @@ const POSTS_DIR = path.join(ROOT_DIR, 'src/content/post');
 const AUTHORS_DIR = path.join(ROOT_DIR, 'src/content/author');
 const CATEGORIES_DIR = path.join(ROOT_DIR, 'src/content/category');
 const TAGS_DIR = path.join(ROOT_DIR, 'src/content/tag');
+const PAGES_DIR = path.join(ROOT_DIR, 'src/content/page');
+const STORIES_DIR = path.join(ROOT_DIR, 'src/content/stories');
+
 
 // Cache image uploads để tránh upload lặp lại
 const uploadedAssetsCache = new Map<string, string>();
@@ -306,6 +323,124 @@ async function migratePosts() {
   }
 }
 
+async function migratePages() {
+  console.log('\n--- 5. BẮT ĐẦU MIGRATE PAGES ---');
+  if (!fs.existsSync(PAGES_DIR)) return;
+  const files = fs.readdirSync(PAGES_DIR).filter((f) => f.endsWith('.md') || f.endsWith('.mdx'));
+  console.log(`Tổng số trang phát hiện: ${files.length}`);
+
+  for (const file of files) {
+    const filePath = path.join(PAGES_DIR, file);
+    const rawSlug = path.basename(file, path.extname(file));
+    const slug = cleanSlug(rawSlug);
+    const { data, content } = matter(fs.readFileSync(filePath, 'utf-8'));
+
+    let imageAssetId: string | null = null;
+    if (data.image) {
+      imageAssetId = await uploadLocalAsset(data.image);
+    }
+
+    const blocks = markdownToPortableText(content || '');
+
+    const doc: any = {
+      _id: `page-${slug}`,
+      _type: 'page',
+      title: data.title || rawSlug,
+      slug: { _type: 'slug', current: slug },
+      pageLayout: data.pageLayout || 'AnimationPageLayout',
+      rawContent: content || '',
+      headerData: data.headerData ? JSON.stringify(data.headerData) : undefined,
+      footerData: data.footerData ? JSON.stringify(data.footerData) : undefined,
+      body: blocks,
+    };
+
+    if (imageAssetId) {
+      doc.image = {
+        _type: 'image',
+        asset: { _type: 'reference', _ref: imageAssetId },
+      };
+    }
+
+    if (data.metadata) {
+      doc.metadata = {
+        title: data.metadata.title,
+        description: data.metadata.description,
+        canonical: data.metadata.canonical,
+      };
+    }
+
+    await client.createOrReplace(doc);
+    console.log(`  ✓ Đã import page: ${doc.title} (${doc._id})`);
+  }
+}
+
+async function migrateStories() {
+  console.log('\n--- 6. BẮT ĐẦU MIGRATE STORIES ---');
+  if (!fs.existsSync(STORIES_DIR)) return;
+  const files = fs.readdirSync(STORIES_DIR).filter((f) => f.endsWith('.md') || f.endsWith('.mdx'));
+  console.log(`Tổng số stories phát hiện: ${files.length}`);
+
+  for (const file of files) {
+    const filePath = path.join(STORIES_DIR, file);
+    const rawId = path.basename(file, path.extname(file));
+    const { data } = matter(fs.readFileSync(filePath, 'utf-8'));
+
+    const storyId = data.id || rawId;
+    const cleanId = cleanSlug(storyId);
+
+    let thumbnailAssetId: string | null = null;
+    if (data.thumbnail) {
+      thumbnailAssetId = await uploadLocalAsset(data.thumbnail);
+    }
+
+    let slidesArray = data.slides;
+    if (typeof slidesArray === 'string') {
+      try {
+        slidesArray = JSON.parse(slidesArray);
+      } catch {
+        slidesArray = [];
+      }
+    }
+    if (!Array.isArray(slidesArray)) {
+      slidesArray = [];
+    }
+
+    const mappedSlides = slidesArray.map((s: any, idx: number) => {
+      const slideId = s.id || `slide-${idx}`;
+      return {
+        _key: `slide-${idx}-${cleanId}`,
+        id: slideId,
+        duration: typeof s.duration === 'number' ? (s.duration > 100 ? s.duration : s.duration * 1000) : 5000,
+        bgColor: s.background?.type === 'color' ? s.background.value : undefined,
+        rawElements: s.elements ? JSON.stringify(s.elements) : undefined,
+      };
+    });
+
+    const doc: any = {
+      _id: `story-${cleanId}`,
+      _type: 'story',
+      id: storyId,
+      title: data.title || 'Untitled Story',
+      description: data.description || '',
+      autoPlay: Boolean(data.settings?.autoPlay),
+      loop: Boolean(data.settings?.loop),
+      createdAt: data.createdAt ? new Date(data.createdAt).toISOString() : new Date().toISOString(),
+      rawSlides: JSON.stringify(slidesArray),
+      slides: mappedSlides,
+    };
+
+    if (thumbnailAssetId) {
+      doc.thumbnail = {
+        _type: 'image',
+        asset: { _type: 'reference', _ref: thumbnailAssetId },
+      };
+    }
+
+    await client.createOrReplace(doc);
+    console.log(`  ✓ Đã import story: ${doc.title} (${doc._id})`);
+  }
+}
+
 async function main() {
   console.log(`🚀 Bắt đầu quá trình Migration sang Sanity: ${projectId} (${dataset})`);
   const startTime = Date.now();
@@ -315,9 +450,11 @@ async function main() {
     await migrateTags();
     await migrateAuthors();
     await migratePosts();
+    await migratePages();
+    await migrateStories();
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`\n🎉 HOÀN THÀNH MIGRATION 72 BÀI VIẾT TRONG ${elapsed} GIÂY!`);
+    console.log(`\n🎉 HOÀN THÀNH MIGRATION TOÀN BỘ NỘI DUNG (POSTS, PAGES, STORIES, AUTHORS, CATEGORIES, TAGS) TRONG ${elapsed} GIÂY!`);
   } catch (error) {
     console.error('\n❌ Có lỗi xảy ra trong quá trình migration:', error);
     process.exit(1);

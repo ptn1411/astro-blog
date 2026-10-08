@@ -64,6 +64,12 @@ export const storyType = defineType({
         }),
       ],
     }),
+    defineField({
+      name: 'rawSlides',
+      title: 'Dữ liệu Slides nguyên bản (JSON)',
+      type: 'text',
+      description: 'Dữ liệu slides JSON đầy đủ cho Web Story Player',
+    }),
   ],
   preview: {
     select: {
