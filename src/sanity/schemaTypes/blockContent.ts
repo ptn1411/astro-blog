@@ -59,7 +59,7 @@ export const blockContentType = defineType({
       title: 'Đường kẻ ngang (Horizontal Rule)',
       fields: [
         defineField({
-          name: '_divider',
+          name: 'divider',
           type: 'boolean',
           hidden: true,
           initialValue: true,
